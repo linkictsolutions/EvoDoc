@@ -1,0 +1,113 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function userPath(orgId) {
+      return /databases/$(database)/documents/organizations/$(orgId)/users/$(request.auth.uid);
+    }
+
+    function hasOrgMembership(orgId) {
+      return signedIn() && exists(userPath(orgId));
+    }
+
+    function userData(orgId) {
+      return get(userPath(orgId)).data;
+    }
+
+    function role(orgId) {
+      return userData(orgId).role;
+    }
+
+    function isAdmin(orgId) {
+      return hasOrgMembership(orgId) && role(orgId) == 'admin';
+    }
+
+    function isEditor(orgId) {
+      return hasOrgMembership(orgId) && (role(orgId) == 'editor' || role(orgId) == 'admin');
+    }
+
+    function isViewer(orgId) {
+      return hasOrgMembership(orgId) && (
+        role(orgId) == 'viewer' ||
+        role(orgId) == 'editor' ||
+        role(orgId) == 'admin'
+      );
+    }
+
+    function validNonNegativeNumber(value) {
+      return value is number && value >= 0;
+    }
+
+    match /organizations/{orgId} {
+      allow read: if isViewer(orgId);
+      allow create, update, delete: if isAdmin(orgId);
+
+      match /users/{uid} {
+        allow read: if isViewer(orgId);
+        allow create, delete: if isAdmin(orgId);
+        allow update: if isAdmin(orgId);
+      }
+
+      match /customers/{customerId} {
+        allow read: if isViewer(orgId);
+        allow write: if isEditor(orgId);
+      }
+
+      match /contracts/{contractId} {
+        allow read: if isViewer(orgId);
+        allow create, update: if isEditor(orgId)
+          && validNonNegativeNumber(request.resource.data.terms.quantityBags)
+          && validNonNegativeNumber(request.resource.data.terms.bagWeightKg)
+          && validNonNegativeNumber(request.resource.data.terms.unitPrice)
+          && validNonNegativeNumber(request.resource.data.processing.moisturePercent);
+        allow delete: if isAdmin(orgId);
+
+        match /shipments/{shipmentId} {
+          allow read: if isViewer(orgId);
+          allow create, update: if isEditor(orgId)
+            && validNonNegativeNumber(request.resource.data.totals.totalBags)
+            && validNonNegativeNumber(request.resource.data.totals.totalGrossWeightKg)
+            && validNonNegativeNumber(request.resource.data.totals.totalTareWeightKg)
+            && validNonNegativeNumber(request.resource.data.totals.totalNetWeightKg);
+          allow delete: if isAdmin(orgId);
+        }
+
+        match /documents/{docId} {
+          allow read: if isViewer(orgId);
+          allow create: if isEditor(orgId);
+          allow update: if (isEditor(orgId)
+            && request.resource.data.status != 'approved')
+            || (isAdmin(orgId) && userData(orgId).isApprover == true);
+          allow delete: if isAdmin(orgId);
+        }
+
+        match /sourceInputs/{sourceType} {
+          allow read: if isViewer(orgId);
+          allow create, update: if isEditor(orgId);
+          allow delete: if isAdmin(orgId);
+
+          match /revisions/{revisionId} {
+            allow read: if isViewer(orgId);
+            allow create: if isEditor(orgId);
+            allow update, delete: if false;
+          }
+        }
+      }
+
+      match /auditLogs/{logId} {
+        allow read: if isAdmin(orgId);
+        allow create: if isEditor(orgId);
+        allow update, delete: if false;
+      }
+
+      match /notifications/{notificationId} {
+        allow read: if isViewer(orgId);
+        allow create, update: if isEditor(orgId);
+        allow delete: if isAdmin(orgId);
+      }
+    }
+  }
+}

@@ -1,0 +1,3439 @@
+{
+  "workbook": "docs\\source\\excel\\Coffee Doc-Praxis-V2.xlsm",
+  "sheets": [
+    "Form Configuration",
+    "Contract",
+    "Shipping Instruction",
+    "Bank & LC",
+    "Contract-SI-LC",
+    "Bookings",
+    "Staffing",
+    "Processing",
+    "Coffee Test Letter",
+    "Commercial Invoice(Permit)",
+    "Commercial Invoice",
+    "Commercial Invoice(ICC)",
+    "Packing List(Permit)",
+    "Packing List",
+    "Packing List(ICC)",
+    "SI",
+    "Certificate of Quality",
+    "Certificate of Weight",
+    "WAY BILL",
+    "COCG",
+    "VGM",
+    "ICO",
+    "Cert Of Origin",
+    "NON-GMO"
+  ],
+  "defined_names": {
+    "_21_08_2006": "'[1]Packing list '!$L$16 current date"
+  },
+  "sheet_profiles": {
+    "Form Configuration": {
+      "sheet_state": "visible",
+      "used_range": {
+        "min_row": 1,
+        "max_row": 26,
+        "min_col": 1,
+        "max_col": 11
+      },
+      "formula_count_total_est": 0,
+      "labels_sample": [
+        "A1:Seller Name | B1:PRAXIS  INTERNATIONAL BUSINESS PLC | G1:Email | H1:coffee@praxis.com.et",
+        "A2:Seller Address | B2:NIFAS SILK LAFTO SUB CITY, WOREDA  08, HOUSE NO 1986, ADDIS ABABA, ETHIOPIA. | G2:Phone | H2:0992454545",
+        "A3:Amharic Name | B3:ፕራክሲስ ኢንተርናሽናል ቢዝነስ ኅ/የ/የግ/ማህበር",
+        "A4:Item List | E4:UoM | H4:Weight | I4:Weight of Bags(Kg) | J4:Gross",
+        "E5:Bag of 60Kg | H5:60 | I5:0.75 | J5:60.75",
+        "E6:Bag of 50Kg | H6:50 | I6:0.625 | J6:50.625 | K6:ORIGIN",
+        "E7:Bag of 30Kg | H7:30 | I7:0.375 | J7:30.375 | K7:ETHIOPIA",
+        "E8:Kg",
+        "E9:Lbs",
+        "E10:Metric Ton",
+        "A11:ICO No | E11:Bulk | H11:19200",
+        "A12:010/1116",
+        "A15:Payment Term | D15:HS Code",
+        "A16:CAD | D16:09011100",
+        "A17:LC",
+        "A18:Advance & CAD | D18:Transitor",
+        "A19:Advance | D19:Company Name | E19:ETHIOPIAN SHIPPING AND LOGISTICS SERVICES ENTERPRISE (ESLSE)",
+        "D20:Phone Number | E20:+25377384845/+253 77031882/+253 21380802",
+        "D21:Location | E21:DJIBOUTI",
+        "A22:Delivery Term",
+        "A23:F.O.B"
+      ],
+      "formulas_sample": []
+    },
+    "Contract": {
+      "sheet_state": "visible",
+      "used_range": {
+        "min_row": 1,
+        "max_row": 65,
+        "min_col": 1,
+        "max_col": 32
+      },
+      "formula_count_total_est": 34,
+      "labels_sample": [
+        "B1:Contract Information",
+        "B5:NO:",
+        "B7:Date:",
+        "B9:Buyers Name:",
+        "B11:Buyers Address:",
+        "B13:Item List: | C13:Quality:",
+        "C14:UoM(For Price): | D14:Lbs",
+        "C15:Unit (For Price): | D15:100",
+        "C16:Price: | D16:154",
+        "C17:UoM(Packing): | D17:Bag of 60Kg",
+        "C18:Quantity(Contract): | D18:320",
+        "C19:Total Price:",
+        "C20:Quantity(Bag of 60Kg):",
+        "C21:Unit Price(Bag of 60Kg):",
+        "C22:Quantity(Bag of 50Kg;)",
+        "C23:Unit Price(Bag of 50Kg):",
+        "C24:Quantity(Bag of 30Kg):",
+        "C25:Unit Price(Bag of 30Kg):",
+        "C26:Quantity(Kg):",
+        "C27:Unit Price(Kg):",
+        "C28:Quantity(Lb):",
+        "C29:Unit Price(Lb):",
+        "C30:Quantity(Metric Ton):",
+        "C31:Unit Price(Metric Ton):",
+        "C32:Quantity(Bulk):",
+        "C33:Unit Price(Bulk):",
+        "C34:Quantitiy(Container):",
+        "C35:Unit Price(Container):",
+        "C37:ORIGIN: | D37:UNWASHED DJIMMAH",
+        "C38:GRADE: | D38:FIVE(5)",
+        "B40:Shippment Period: | C40:2023-12-01 00:00:00",
+        "B42:Payment Term: | C42:CAD",
+        "B44:Delivery Term: | C44:F.O.B",
+        "B46:Document List: | C46:Commercial Invoice in Triplicate",
+        "B54:Cert No: | C54:Last Cert No: | D54:22 | E54:CERT NO:",
+        "C55:.",
+        "C56:.",
+        "C57:.",
+        "C58:.",
+        "C59:.",
+        "C60:.",
+        "C61:.",
+        "C62:.",
+        "C63:.",
+        "C64:.",
+        "C65:."
+      ],
+      "formulas_sample": [
+        {
+          "cell": "D19",
+          "formula": "=(D16/D15)*D28"
+        },
+        {
+          "cell": "D20",
+          "formula": "=D26/60"
+        },
+        {
+          "cell": "H20",
+          "formula": "=D20*'Form Configuration'!I5"
+        },
+        {
+          "cell": "D21",
+          "formula": "=D19/D20"
+        },
+        {
+          "cell": "D22",
+          "formula": "=D26/50"
+        },
+        {
+          "cell": "H22",
+          "formula": "=D22*'Form Configuration'!I6"
+        },
+        {
+          "cell": "D23",
+          "formula": "=D19/D22"
+        },
+        {
+          "cell": "D24",
+          "formula": "=D26/30"
+        },
+        {
+          "cell": "H24",
+          "formula": "=D24*'Form Configuration'!I7"
+        },
+        {
+          "cell": "D25",
+          "formula": "=D19/D24"
+        },
+        {
+          "cell": "D26",
+          "formula": "=IF(D17=\"Kg\",D18,IF(D17=\"Bag of 60Kg\",D18*60,IF(D17=\"Bag of 50Kg\",D18*50,IF(D17=\"Bag of 30Kg\",D18*30,IF(D17=\"Lbs\",D18/2.2046,IF(D17=\"Metric Ton\",D18*1000,IF(D17=\"Bulk\",D18*19200,\"-\")))))))"
+        },
+        {
+          "cell": "H26",
+          "formula": "=D26+H20"
+        },
+        {
+          "cell": "D27",
+          "formula": "=D19/D26"
+        },
+        {
+          "cell": "D28",
+          "formula": "=D26*2.20462"
+        },
+        {
+          "cell": "D29",
+          "formula": "=D19/D28"
+        },
+        {
+          "cell": "D30",
+          "formula": "=D26/1000"
+        },
+        {
+          "cell": "H30",
+          "formula": "=H26/1000"
+        },
+        {
+          "cell": "D31",
+          "formula": "=D19/D30"
+        },
+        {
+          "cell": "D32",
+          "formula": "=D26/19200"
+        },
+        {
+          "cell": "D33",
+          "formula": "=D19/D32"
+        },
+        {
+          "cell": "D34",
+          "formula": "=ROUNDUP(D26/19200,0)"
+        },
+        {
+          "cell": "D35",
+          "formula": "=D19/D34"
+        },
+        {
+          "cell": "F54",
+          "formula": "=IF(D57=\"\",CONCATENATE(\"00\",D56),CONCATENATE(\"00\",D56,\"-\",\"00\",D54+D34))"
+        },
+        {
+          "cell": "D55",
+          "formula": "=IF(ROW(D55)-ROW(D$55)+$D$54<=$D$54+$D$34,ROW(D55)-ROW(D$55)+$D$54,\"\")"
+        },
+        {
+          "cell": "D56",
+          "formula": "=IF(D54+1>D54+D34,\"\",D54+1)"
+        },
+        {
+          "cell": "D57",
+          "formula": "=IF(D56=\"\",\"\",IF(D56+1>$D$54+$D$34,\"\",D56+1))"
+        },
+        {
+          "cell": "D58",
+          "formula": "=IF(D57=\"\",\"\",IF(D57+1>$D$54+$D$34,\"\",D57+1))"
+        },
+        {
+          "cell": "D59",
+          "formula": "=IF(D58=\"\",\"\",IF(D58+1>$D$54+$D$34,\"\",D58+1))"
+        },
+        {
+          "cell": "D60",
+          "formula": "=IF(D59=\"\",\"\",IF(D59+1>$D$54+$D$34,\"\",D59+1))"
+        },
+        {
+          "cell": "D61",
+          "formula": "=IF(D60=\"\",\"\",IF(D60+1>$D$54+$D$34,\"\",D60+1))"
+        },
+        {
+          "cell": "D62",
+          "formula": "=IF(D61=\"\",\"\",IF(D61+1>$D$54+$D$34,\"\",D61+1))"
+        },
+        {
+          "cell": "D63",
+          "formula": "=IF(D62=\"\",\"\",IF(D62+1>$D$54+$D$34,\"\",D62+1))"
+        },
+        {
+          "cell": "D64",
+          "formula": "=IF(D63=\"\",\"\",IF(D63+1>$D$54+$D$34,\"\",D63+1))"
+        },
+        {
+          "cell": "D65",
+          "formula": "=IF(D64=\"\",\"\",IF(D64+1>$D$54+$D$34,\"\",D64+1))"
+        }
+      ]
+    },
+    "Shipping Instruction": {
+      "sheet_state": "visible",
+      "used_range": {
+        "min_row": 1,
+        "max_row": 34,
+        "min_col": 1,
+        "max_col": 10
+      },
+      "formula_count_total_est": 0,
+      "labels_sample": [
+        "B1:Shipping Instruction Information",
+        "B5:Destination( Port, Country):",
+        "B7:Shipping Line: | E7:Service Contract:",
+        "B9:Alternative 1: | E9:Service Contract: | H9:Selected:",
+        "B11:Alternative 2: | E11:Service Contract:",
+        "B13:Port of Loading:",
+        "B15:Quantity:",
+        "B16:Quality:",
+        "B17:Packaging:",
+        "B18:No of Bags:",
+        "B19:Containers:",
+        "B21:Shipment Month:",
+        "B22:Bag Marking:",
+        "B23:Description:",
+        "F24:Revised Entry section",
+        "B25:Consignee: | E25:Consignee:",
+        "B27:Notify: | E27:Notify:",
+        "B29:2nd Notify: | E29:2nd Notify:"
+      ],
+      "formulas_sample": []
+    },
+    "Bank & LC": {
+      "sheet_state": "visible",
+      "used_range": {
+        "min_row": 1,
+        "max_row": 27,
+        "min_col": 1,
+        "max_col": 9
+      },
+      "formula_count_total_est": 0,
+      "labels_sample": [
+        "B1:LC Information",
+        "G2:Bank Information",
+        "B4:LC No:",
+        "G5:Bank Permit:",
+        "B6:Bank Detail",
+        "B7:Swift Output | C7:Sender: | G7:Beneficiary Bank:",
+        "C8:Receiver",
+        "G9:Address of Bank:",
+        "B10:Applicant",
+        "G11:Beneficiaries Acc. No:",
+        "B12:Port of Loading/Airport of Dep.",
+        "G13:Correspondant Bank:",
+        "B14:Port of Discharge/Airport of Dest. | G14:Address of Bank:",
+        "G15:SWIFT Number:",
+        "B16:Latest Date of Shipment | G16:Acc. No:",
+        "B18:Description of Goods",
+        "B20:No of Bag",
+        "H21:Revised Entry Section",
+        "B22:Consignee | G22:Consignee",
+        "B25:Notify | G25:Notify",
+        "B26:2nd Notify | G26:2nd Notify",
+        "B27:Currency Amount"
+      ],
+      "formulas_sample": []
+    },
+    "Contract-SI-LC": {
+      "sheet_state": "visible",
+      "used_range": {
+        "min_row": 1,
+        "max_row": 37,
+        "min_col": 1,
+        "max_col": 11
+      },
+      "formula_count_total_est": 68,
+      "labels_sample": [
+        "F6:Contract | G6:Shipping Instruction | H6:Revised Shipping Instruction | I6:Letter of Credit (LC) | J6:Revised Letter of Credit | K6:Final",
+        "E7:Quality",
+        "E8:Buyers Name",
+        "E9:Buyers Address",
+        "E10:UoM(Packing):",
+        "E11:Quantity(Contract):",
+        "E12:Total Price:",
+        "E13:ORIGIN:",
+        "E14:GRADE:",
+        "E15:Shippment Period:",
+        "E16:Payment Term:",
+        "E17:Delivery Term:",
+        "E18:Cert No:",
+        "E20:Destination( Port, Country):",
+        "E21:Shipping Line:",
+        "E22:Alternative 1:",
+        "E23:Alternative 2:",
+        "E24:Port of Loading:",
+        "E25:No of Bags:",
+        "E27:Bag Marking:",
+        "E28:Description:",
+        "E29:Consignee:",
+        "E30:Notify:",
+        "E31:Applicant",
+        "E32:2nd Notify",
+        "E35:PACKAGING & MARKING",
+        "E37:CROP YEAR"
+      ],
+      "formulas_sample": [
+        {
+          "cell": "F7",
+          "formula": "=Contract!D13"
+        },
+        {
+          "cell": "G7",
+          "formula": "='Shipping Instruction'!C16"
+        },
+        {
+          "cell": "K7",
+          "formula": "=IF(IF(J7<>\"\",J7,IF(I7<>\"\",I7,IF(H7<>\"\",H7,IF(G7<>\"\",G7,F7))))=\"\",\"-\",IF(J7<>\"\",J7,IF(I7<>\"\",I7,IF(H7<>\"\",H7,IF(G7<>\"\",G7,F7)))))"
+        },
+        {
+          "cell": "F8",
+          "formula": "=Contract!C9"
+        },
+        {
+          "cell": "K8",
+          "formula": "=IF(IF(J8<>\"\",J8,IF(I8<>\"\",I8,IF(H8<>\"\",H8,IF(G8<>\"\",G8,F8))))=\"\",\"-\",IF(J8<>\"\",J8,IF(I8<>\"\",I8,IF(H8<>\"\",H8,IF(G8<>\"\",G8,F8)))))"
+        },
+        {
+          "cell": "F9",
+          "formula": "=Contract!C11"
+        },
+        {
+          "cell": "K9",
+          "formula": "=IF(IF(J9<>\"\",J9,IF(I9<>\"\",I9,IF(H9<>\"\",H9,IF(G9<>\"\",G9,F9))))=\"\",\"-\",IF(J9<>\"\",J9,IF(I9<>\"\",I9,IF(H9<>\"\",H9,IF(G9<>\"\",G9,F9)))))"
+        },
+        {
+          "cell": "F10",
+          "formula": "=Contract!D17"
+        },
+        {
+          "cell": "K10",
+          "formula": "=IF(IF(J10<>\"\",J10,IF(I10<>\"\",I10,IF(H10<>\"\",H10,IF(G10<>\"\",G10,F10))))=\"\",\"-\",IF(J10<>\"\",J10,IF(I10<>\"\",I10,IF(H10<>\"\",H10,IF(G10<>\"\",G10,F10)))))"
+        },
+        {
+          "cell": "F11",
+          "formula": "=Contract!D18"
+        },
+        {
+          "cell": "G11",
+          "formula": "='Shipping Instruction'!C15"
+        },
+        {
+          "cell": "K11",
+          "formula": "=IF(IF(J11<>\"\",J11,IF(I11<>\"\",I11,IF(H11<>\"\",H11,IF(G11<>\"\",G11,F11))))=\"\",\"-\",IF(J11<>\"\",J11,IF(I11<>\"\",I11,IF(H11<>\"\",H11,IF(G11<>\"\",G11,F11)))))"
+        },
+        {
+          "cell": "F12",
+          "formula": "=Contract!D19"
+        },
+        {
+          "cell": "I12",
+          "formula": "=IF('Bank & LC'!C27=\"\",\"\",'Bank & LC'!C27)"
+        },
+        {
+          "cell": "K12",
+          "formula": "=IF(IF(J12<>\"\",J12,IF(I12<>\"\",I12,IF(H12<>\"\",H12,IF(G12<>\"\",G12,F12))))=\"\",\"-\",IF(J12<>\"\",J12,IF(I12<>\"\",I12,IF(H12<>\"\",H12,IF(G12<>\"\",G12,F12)))))"
+        },
+        {
+          "cell": "F13",
+          "formula": "=Contract!D37"
+        },
+        {
+          "cell": "K13",
+          "formula": "=IF(IF(J13<>\"\",J13,IF(I13<>\"\",I13,IF(H13<>\"\",H13,IF(G13<>\"\",G13,F13))))=\"\",\"-\",IF(J13<>\"\",J13,IF(I13<>\"\",I13,IF(H13<>\"\",H13,IF(G13<>\"\",G13,F13)))))"
+        },
+        {
+          "cell": "F14",
+          "formula": "=Contract!D38"
+        },
+        {
+          "cell": "K14",
+          "formula": "=IF(IF(J14<>\"\",J14,IF(I14<>\"\",I14,IF(H14<>\"\",H14,IF(G14<>\"\",G14,F14))))=\"\",\"-\",IF(J14<>\"\",J14,IF(I14<>\"\",I14,IF(H14<>\"\",H14,IF(G14<>\"\",G14,F14)))))"
+        },
+        {
+          "cell": "F15",
+          "formula": "=Contract!C40"
+        },
+        {
+          "cell": "G15",
+          "formula": "='Shipping Instruction'!C21"
+        },
+        {
+          "cell": "K15",
+          "formula": "=IF(IF(J15<>\"\",J15,IF(I15<>\"\",I15,IF(H15<>\"\",H15,IF(G15<>\"\",G15,F15))))=\"\",\"-\",IF(J15<>\"\",J15,IF(I15<>\"\",I15,IF(H15<>\"\",H15,IF(G15<>\"\",G15,F15)))))"
+        },
+        {
+          "cell": "F16",
+          "formula": "=Contract!C42"
+        },
+        {
+          "cell": "K16",
+          "formula": "=IF(IF(J16<>\"\",J16,IF(I16<>\"\",I16,IF(H16<>\"\",H16,IF(G16<>\"\",G16,F16))))=\"\",\"-\",IF(J16<>\"\",J16,IF(I16<>\"\",I16,IF(H16<>\"\",H16,IF(G16<>\"\",G16,F16)))))"
+        },
+        {
+          "cell": "F17",
+          "formula": "=Contract!C44"
+        },
+        {
+          "cell": "K17",
+          "formula": "=IF(IF(J17<>\"\",J17,IF(I17<>\"\",I17,IF(H17<>\"\",H17,IF(G17<>\"\",G17,F17))))=\"\",\"-\",IF(J17<>\"\",J17,IF(I17<>\"\",I17,IF(H17<>\"\",H17,IF(G17<>\"\",G17,F17)))))"
+        },
+        {
+          "cell": "F18",
+          "formula": "=Contract!F54"
+        },
+        {
+          "cell": "K18",
+          "formula": "=IF(IF(J18<>\"\",J18,IF(I18<>\"\",I18,IF(H18<>\"\",H18,IF(G18<>\"\",G18,F18))))=\"\",\"-\",IF(J18<>\"\",J18,IF(I18<>\"\",I18,IF(H18<>\"\",H18,IF(G18<>\"\",G18,F18)))))"
+        },
+        {
+          "cell": "K19",
+          "formula": "=IF(IF(J19<>\"\",J19,IF(I19<>\"\",I19,IF(H19<>\"\",H19,IF(G19<>\"\",G19,F19))))=\"\",\"-\",IF(J19<>\"\",J19,IF(I19<>\"\",I19,IF(H19<>\"\",H19,IF(G19<>\"\",G19,F19)))))"
+        },
+        {
+          "cell": "G20",
+          "formula": "='Shipping Instruction'!C5"
+        },
+        {
+          "cell": "I20",
+          "formula": "=IF('Bank & LC'!C14=\"\",\"\",'Bank & LC'!C14)"
+        },
+        {
+          "cell": "K20",
+          "formula": "=IF(IF(J20<>\"\",J20,IF(I20<>\"\",I20,IF(H20<>\"\",H20,IF(G20<>\"\",G20,F20))))=\"\",\"-\",IF(J20<>\"\",J20,IF(I20<>\"\",I20,IF(H20<>\"\",H20,IF(G20<>\"\",G20,F20)))))"
+        },
+        {
+          "cell": "G21",
+          "formula": "='Shipping Instruction'!C7"
+        },
+        {
+          "cell": "K21",
+          "formula": "=IF(IF(J21<>\"\",J21,IF(I21<>\"\",I21,IF(H21<>\"\",H21,IF(G21<>\"\",G21,F21))))=\"\",\"-\",IF(J21<>\"\",J21,IF(I21<>\"\",I21,IF(H21<>\"\",H21,IF(G21<>\"\",G21,F21)))))"
+        },
+        {
+          "cell": "G22",
+          "formula": "='Shipping Instruction'!C9"
+        },
+        {
+          "cell": "K22",
+          "formula": "=IF(IF(J22<>\"\",J22,IF(I22<>\"\",I22,IF(H22<>\"\",H22,IF(G22<>\"\",G22,F22))))=\"\",\"-\",IF(J22<>\"\",J22,IF(I22<>\"\",I22,IF(H22<>\"\",H22,IF(G22<>\"\",G22,F22)))))"
+        },
+        {
+          "cell": "G23",
+          "formula": "='Shipping Instruction'!C11"
+        },
+        {
+          "cell": "K23",
+          "formula": "=IF(IF(J23<>\"\",J23,IF(I23<>\"\",I23,IF(H23<>\"\",H23,IF(G23<>\"\",G23,F23))))=\"\",\"-\",IF(J23<>\"\",J23,IF(I23<>\"\",I23,IF(H23<>\"\",H23,IF(G23<>\"\",G23,F23)))))"
+        },
+        {
+          "cell": "G24",
+          "formula": "='Shipping Instruction'!C13"
+        },
+        {
+          "cell": "I24",
+          "formula": "=IF('Bank & LC'!C12=\"\",\"\",'Bank & LC'!C12)"
+        },
+        {
+          "cell": "K24",
+          "formula": "=IF(IF(J24<>\"\",J24,IF(I24<>\"\",I24,IF(H24<>\"\",H24,IF(G24<>\"\",G24,F24))))=\"\",\"-\",IF(J24<>\"\",J24,IF(I24<>\"\",I24,IF(H24<>\"\",H24,IF(G24<>\"\",G24,F24)))))"
+        },
+        {
+          "cell": "G25",
+          "formula": "='Shipping Instruction'!C18"
+        },
+        {
+          "cell": "I25",
+          "formula": "=IF('Bank & LC'!C20=\"\",\"\",'Bank & LC'!C20)"
+        },
+        {
+          "cell": "K25",
+          "formula": "=IF(IF(J25<>\"\",J25,IF(I25<>\"\",I25,IF(H25<>\"\",H25,IF(G25<>\"\",G25,F25))))=\"\",\"-\",IF(J25<>\"\",J25,IF(I25<>\"\",I25,IF(H25<>\"\",H25,IF(G25<>\"\",G25,F25)))))"
+        },
+        {
+          "cell": "K26",
+          "formula": "=IF(IF(J26<>\"\",J26,IF(I26<>\"\",I26,IF(H26<>\"\",H26,IF(G26<>\"\",G26,F26))))=\"\",\"-\",IF(J26<>\"\",J26,IF(I26<>\"\",I26,IF(H26<>\"\",H26,IF(G26<>\"\",G26,F26)))))"
+        },
+        {
+          "cell": "G27",
+          "formula": "='Shipping Instruction'!C22"
+        },
+        {
+          "cell": "K27",
+          "formula": "=IF(IF(J27<>\"\",J27,IF(I27<>\"\",I27,IF(H27<>\"\",H27,IF(G27<>\"\",G27,F27))))=\"\",\"-\",IF(J27<>\"\",J27,IF(I27<>\"\",I27,IF(H27<>\"\",H27,IF(G27<>\"\",G27,F27)))))"
+        },
+        {
+          "cell": "G28",
+          "formula": "='Shipping Instruction'!C23"
+        },
+        {
+          "cell": "I28",
+          "formula": "=IF('Bank & LC'!C18=\"\",\"\",'Bank & LC'!C18)"
+        },
+        {
+          "cell": "K28",
+          "formula": "=IF(IF(J28<>\"\",J28,IF(I28<>\"\",I28,IF(H28<>\"\",H28,IF(G28<>\"\",G28,F28))))=\"\",\"-\",IF(J28<>\"\",J28,IF(I28<>\"\",I28,IF(H28<>\"\",H28,IF(G28<>\"\",G28,F28)))))"
+        },
+        {
+          "cell": "G29",
+          "formula": "=IF('Shipping Instruction'!C25=\"\",\"\",'Shipping Instruction'!C25)"
+        },
+        {
+          "cell": "H29",
+          "formula": "=IF('Shipping Instruction'!F25=\"\",\"\",'Shipping Instruction'!F25)"
+        },
+        {
+          "cell": "I29",
+          "formula": "=IF('Bank & LC'!C22=\"\",\"\",'Bank & LC'!C22)"
+        },
+        {
+          "cell": "J29",
+          "formula": "=IF('Bank & LC'!H22=\"\",\"\",'Bank & LC'!H22)"
+        },
+        {
+          "cell": "K29",
+          "formula": "=IF(IF(J29<>\"\",J29,IF(I29<>\"\",I29,IF(H29<>\"\",H29,IF(G29<>\"\",G29,F29))))=\"\",\"-\",IF(J29<>\"\",J29,IF(I29<>\"\",I29,IF(H29<>\"\",H29,IF(G29<>\"\",G29,F29)))))"
+        },
+        {
+          "cell": "G30",
+          "formula": "=IF('Shipping Instruction'!C27=\"\",\"\",'Shipping Instruction'!C27)"
+        },
+        {
+          "cell": "H30",
+          "formula": "=IF('Shipping Instruction'!F27=\"\",\"\",'Shipping Instruction'!F27)"
+        },
+        {
+          "cell": "I30",
+          "formula": "=IF('Bank & LC'!C25=\"\",\"\",'Bank & LC'!C25)"
+        },
+        {
+          "cell": "J30",
+          "formula": "=IF('Bank & LC'!H25=\"\",\"\",'Bank & LC'!H25)"
+        },
+        {
+          "cell": "K30",
+          "formula": "=IF(IF(J30<>\"\",J30,IF(I30<>\"\",I30,IF(H30<>\"\",H30,IF(G30<>\"\",G30,F30))))=\"\",\"-\",IF(J30<>\"\",J30,IF(I30<>\"\",I30,IF(H30<>\"\",H30,IF(G30<>\"\",G30,F30)))))"
+        },
+        {
+          "cell": "I31",
+          "formula": "=IF('Bank & LC'!C25=\"\",\"\",'Bank & LC'!C25)"
+        },
+        {
+          "cell": "J31",
+          "formula": "=IF('Bank & LC'!H25=\"\",\"\",'Bank & LC'!H25)"
+        },
+        {
+          "cell": "K31",
+          "formula": "=IF(IF(J31<>\"\",J31,IF(I31<>\"\",I31,IF(H31<>\"\",H31,IF(G31<>\"\",G31,F31))))=\"\",\"-\",IF(J31<>\"\",J31,IF(I31<>\"\",I31,IF(H31<>\"\",H31,IF(G31<>\"\",G31,F31)))))"
+        },
+        {
+          "cell": "G32",
+          "formula": "=IF('Shipping Instruction'!C29=\"\",\"\",'Shipping Instruction'!C29)"
+        },
+        {
+          "cell": "H32",
+          "formula": "=IF('Shipping Instruction'!F29=\"\",\"\",'Shipping Instruction'!F29)"
+        },
+        {
+          "cell": "I32",
+          "formula": "=IF('Bank & LC'!C26=\"\",\"\",'Bank & LC'!C26)"
+        },
+        {
+          "cell": "J32",
+          "formula": "=IF('Bank & LC'!H26=\"\",\"\",'Bank & LC'!H26)"
+        },
+        {
+          "cell": "K32",
+          "formula": "=IF(IF(J32<>\"\",J32,IF(I32<>\"\",I32,IF(H32<>\"\",H32,IF(G32<>\"\",G32,F32))))=\"\",\"-\",IF(J32<>\"\",J32,IF(I32<>\"\",I32,IF(H32<>\"\",H32,IF(G32<>\"\",G32,F32)))))"
+        }
+      ]
+    },
+    "Bookings": {
+      "sheet_state": "visible",
+      "used_range": {
+        "min_row": 1,
+        "max_row": 43,
+        "min_col": 1,
+        "max_col": 10
+      },
+      "formula_count_total_est": 10,
+      "labels_sample": [
+        "B4:Booking Number:",
+        "B5:Shipping Line:",
+        "B6:Vessel Name:",
+        "B7:Voyage No:",
+        "B9:Free Days",
+        "G15:Add Column",
+        "A16:Vehicle No | B16:TRUCK/TRAILER | C16:Plate No. | D16:Driver's Name | E16:Driver Phone No. | F16:Driver Phone No. (DJIBOUTI) | G16:License No. | H16:Container No. | I16:Seal No. | J16:Tare Weight",
+        "A17:1 | B17:TRUCK | D17:ABEBE DEJENE | E17:0911138271 | F17:+253 77398162 | G17:05-R008141 | H17:MSDU121638/1 | I17:EU27646310 | J17:2220",
+        "B18:TRAILER | C18:3 ET-03098",
+        "A19:2 | B19:TRUCK",
+        "B20:TRAILER",
+        "A21:3 | B21:TRUCK",
+        "B22:TRAILER",
+        "A23:4 | B23:TRUCK",
+        "B24:TRAILER",
+        "A25:5 | B25:TRUCK",
+        "B26:TRAILER",
+        "A43:Bill No:"
+      ],
+      "formulas_sample": [
+        {
+          "cell": "D18",
+          "formula": "=IF(D17=\"\",\"\",D17)"
+        },
+        {
+          "cell": "G18",
+          "formula": "=G17"
+        },
+        {
+          "cell": "D20",
+          "formula": "=IF(D19=\"\",\"\",D19)"
+        },
+        {
+          "cell": "G20",
+          "formula": "=G19"
+        },
+        {
+          "cell": "D22",
+          "formula": "=IF(D21=\"\",\"\",D21)"
+        },
+        {
+          "cell": "G22",
+          "formula": "=G21"
+        },
+        {
+          "cell": "D24",
+          "formula": "=IF(D23=\"\",\"\",D23)"
+        },
+        {
+          "cell": "G24",
+          "formula": "=G23"
+        },
+        {
+          "cell": "D26",
+          "formula": "=IF(D25=\"\",\"\",D25)"
+        },
+        {
+          "cell": "G26",
+          "formula": "=G25"
+        }
+      ]
+    },
+    "Staffing": {
+      "sheet_state": "visible",
+      "used_range": {
+        "min_row": 1,
+        "max_row": 31,
+        "min_col": 1,
+        "max_col": 36
+      },
+      "formula_count_total_est": 185,
+      "labels_sample": [
+        "B1:Shipping Information",
+        "A3:Staffing Instruction & Report",
+        "A5:Vehicle No | B5:TRUCK/TRAILER | C5:Plate No. | D5:Driver's Name | E5:Driver Phone No. | F5:License No. | G5:Container No. | H5:Seal No. | I5:Seal No. V2 | J5:Cert No.",
+        "A6:1 | B6:TRUCK | H6:EU27646310 | J6:23",
+        "B7:TRAILER",
+        "A8:2 | B8:TRUCK",
+        "B9:TRAILER",
+        "A10:3 | B10:TRUCK",
+        "B11:TRAILER",
+        "A12:4 | B12:TRUCK",
+        "B13:TRAILER",
+        "A14:5 | B14:TRUCK",
+        "B15:TRAILER",
+        "A19:Final Staffing Report",
+        "A21:Vehicle No | B21:TRUCK/TRAILER | C21:Plate No. | D21:Driver's Name | E21:Driver Phone No. | F21:License No. | G21:Container No. | H21:Seal No. | I21:Cert No. | J21:Tare Weight",
+        "A22:1 | B22:TRUCK",
+        "B23:TRAILER",
+        "A24:2 | B24:TRUCK",
+        "B25:TRAILER",
+        "A26:3 | B26:TRUCK",
+        "B27:TRAILER",
+        "A28:4 | B28:TRUCK",
+        "B29:TRAILER",
+        "A30:5 | B30:TRUCK",
+        "B31:TRAILER"
+      ],
+      "formulas_sample": [
+        {
+          "cell": "C6",
+          "formula": "=IF(Bookings!C17=\"\",\"\",Bookings!C17)"
+        },
+        {
+          "cell": "D6",
+          "formula": "=IF(Bookings!D17=\"\",\"\",Bookings!D17)"
+        },
+        {
+          "cell": "E6",
+          "formula": "=IF(Bookings!E17=\"\",\"\",Bookings!E17)"
+        },
+        {
+          "cell": "F6",
+          "formula": "=IF(Bookings!G17=\"\",\"\",Bookings!G17)"
+        },
+        {
+          "cell": "G6",
+          "formula": "=IF(Bookings!H17=\"\",\"\",Bookings!H17)"
+        },
+        {
+          "cell": "L6",
+          "formula": "=IF(Bookings!J17=\"\",\"\",Bookings!J17)"
+        },
+        {
+          "cell": "C7",
+          "formula": "=IF(Bookings!C18=\"\",\"\",Bookings!C18)"
+        },
+        {
+          "cell": "D7",
+          "formula": "=IF(Bookings!D18=\"\",\"\",Bookings!D18)"
+        },
+        {
+          "cell": "E7",
+          "formula": "=IF(Bookings!E18=\"\",\"\",Bookings!E18)"
+        },
+        {
+          "cell": "F7",
+          "formula": "=IF(Bookings!G18=\"\",\"\",Bookings!G18)"
+        },
+        {
+          "cell": "G7",
+          "formula": "=IF(Bookings!H18=\"\",\"\",Bookings!H18)"
+        },
+        {
+          "cell": "L7",
+          "formula": "=IF(Bookings!J18=\"\",\"\",Bookings!J18)"
+        },
+        {
+          "cell": "C8",
+          "formula": "=IF(Bookings!C19=\"\",\"\",Bookings!C19)"
+        },
+        {
+          "cell": "D8",
+          "formula": "=IF(Bookings!D19=\"\",\"\",Bookings!D19)"
+        },
+        {
+          "cell": "E8",
+          "formula": "=IF(Bookings!E19=\"\",\"\",Bookings!E19)"
+        },
+        {
+          "cell": "F8",
+          "formula": "=IF(Bookings!G19=\"\",\"\",Bookings!G19)"
+        },
+        {
+          "cell": "G8",
+          "formula": "=IF(Bookings!H19=\"\",\"\",Bookings!H19)"
+        },
+        {
+          "cell": "L8",
+          "formula": "=IF(Bookings!J19=\"\",\"\",Bookings!J19)"
+        },
+        {
+          "cell": "C9",
+          "formula": "=IF(Bookings!C20=\"\",\"\",Bookings!C20)"
+        },
+        {
+          "cell": "D9",
+          "formula": "=IF(Bookings!D20=\"\",\"\",Bookings!D20)"
+        },
+        {
+          "cell": "E9",
+          "formula": "=IF(Bookings!E20=\"\",\"\",Bookings!E20)"
+        },
+        {
+          "cell": "F9",
+          "formula": "=IF(Bookings!G20=\"\",\"\",Bookings!G20)"
+        },
+        {
+          "cell": "G9",
+          "formula": "=IF(Bookings!H20=\"\",\"\",Bookings!H20)"
+        },
+        {
+          "cell": "L9",
+          "formula": "=IF(Bookings!J20=\"\",\"\",Bookings!J20)"
+        },
+        {
+          "cell": "C10",
+          "formula": "=IF(Bookings!C21=\"\",\"\",Bookings!C21)"
+        },
+        {
+          "cell": "D10",
+          "formula": "=IF(Bookings!D21=\"\",\"\",Bookings!D21)"
+        },
+        {
+          "cell": "E10",
+          "formula": "=IF(Bookings!E21=\"\",\"\",Bookings!E21)"
+        },
+        {
+          "cell": "F10",
+          "formula": "=IF(Bookings!G21=\"\",\"\",Bookings!G21)"
+        },
+        {
+          "cell": "G10",
+          "formula": "=IF(Bookings!H21=\"\",\"\",Bookings!H21)"
+        },
+        {
+          "cell": "L10",
+          "formula": "=IF(Bookings!J21=\"\",\"\",Bookings!J21)"
+        },
+        {
+          "cell": "C11",
+          "formula": "=IF(Bookings!C22=\"\",\"\",Bookings!C22)"
+        },
+        {
+          "cell": "D11",
+          "formula": "=IF(Bookings!D22=\"\",\"\",Bookings!D22)"
+        },
+        {
+          "cell": "E11",
+          "formula": "=IF(Bookings!E22=\"\",\"\",Bookings!E22)"
+        },
+        {
+          "cell": "F11",
+          "formula": "=IF(Bookings!G22=\"\",\"\",Bookings!G22)"
+        },
+        {
+          "cell": "G11",
+          "formula": "=IF(Bookings!H22=\"\",\"\",Bookings!H22)"
+        },
+        {
+          "cell": "L11",
+          "formula": "=IF(Bookings!J22=\"\",\"\",Bookings!J22)"
+        },
+        {
+          "cell": "C12",
+          "formula": "=IF(Bookings!C23=\"\",\"\",Bookings!C23)"
+        },
+        {
+          "cell": "D12",
+          "formula": "=IF(Bookings!D23=\"\",\"\",Bookings!D23)"
+        },
+        {
+          "cell": "E12",
+          "formula": "=IF(Bookings!E23=\"\",\"\",Bookings!E23)"
+        },
+        {
+          "cell": "F12",
+          "formula": "=IF(Bookings!G23=\"\",\"\",Bookings!G23)"
+        },
+        {
+          "cell": "G12",
+          "formula": "=IF(Bookings!H23=\"\",\"\",Bookings!H23)"
+        },
+        {
+          "cell": "L12",
+          "formula": "=IF(Bookings!J23=\"\",\"\",Bookings!J23)"
+        },
+        {
+          "cell": "C13",
+          "formula": "=IF(Bookings!C24=\"\",\"\",Bookings!C24)"
+        },
+        {
+          "cell": "D13",
+          "formula": "=IF(Bookings!D24=\"\",\"\",Bookings!D24)"
+        },
+        {
+          "cell": "E13",
+          "formula": "=IF(Bookings!E24=\"\",\"\",Bookings!E24)"
+        },
+        {
+          "cell": "F13",
+          "formula": "=IF(Bookings!G24=\"\",\"\",Bookings!G24)"
+        },
+        {
+          "cell": "G13",
+          "formula": "=IF(Bookings!H24=\"\",\"\",Bookings!H24)"
+        },
+        {
+          "cell": "L13",
+          "formula": "=IF(Bookings!J24=\"\",\"\",Bookings!J24)"
+        },
+        {
+          "cell": "C14",
+          "formula": "=IF(Bookings!C25=\"\",\"\",Bookings!C25)"
+        },
+        {
+          "cell": "D14",
+          "formula": "=IF(Bookings!D25=\"\",\"\",Bookings!D25)"
+        },
+        {
+          "cell": "E14",
+          "formula": "=IF(Bookings!E25=\"\",\"\",Bookings!E25)"
+        },
+        {
+          "cell": "F14",
+          "formula": "=IF(Bookings!G25=\"\",\"\",Bookings!G25)"
+        },
+        {
+          "cell": "G14",
+          "formula": "=IF(Bookings!H25=\"\",\"\",Bookings!H25)"
+        },
+        {
+          "cell": "L14",
+          "formula": "=IF(Bookings!J25=\"\",\"\",Bookings!J25)"
+        },
+        {
+          "cell": "C15",
+          "formula": "=IF(Bookings!C26=\"\",\"\",Bookings!C26)"
+        },
+        {
+          "cell": "D15",
+          "formula": "=IF(Bookings!D26=\"\",\"\",Bookings!D26)"
+        },
+        {
+          "cell": "E15",
+          "formula": "=IF(Bookings!E26=\"\",\"\",Bookings!E26)"
+        },
+        {
+          "cell": "F15",
+          "formula": "=IF(Bookings!G26=\"\",\"\",Bookings!G26)"
+        },
+        {
+          "cell": "G15",
+          "formula": "=IF(Bookings!H26=\"\",\"\",Bookings!H26)"
+        },
+        {
+          "cell": "L15",
+          "formula": "=IF(Bookings!J26=\"\",\"\",Bookings!J26)"
+        },
+        {
+          "cell": "C22",
+          "formula": "=IF(Bookings!C17=\"\",\"\",Bookings!C17)"
+        },
+        {
+          "cell": "D22",
+          "formula": "=IF(Bookings!D17=\"\",\"\",Bookings!D17)"
+        },
+        {
+          "cell": "E22",
+          "formula": "=IF(Bookings!E17=\"\",\"\",Bookings!E17)"
+        },
+        {
+          "cell": "F22",
+          "formula": "=IF(Bookings!G17=\"\",\"\",Bookings!G17)"
+        },
+        {
+          "cell": "G22",
+          "formula": "=IF(Bookings!H17=\"\",\"\",Bookings!H17)"
+        },
+        {
+          "cell": "H22",
+          "formula": "=IF(I6<>\"\",I6,IF(H6<>\"\",H6,\"-\"))"
+        },
+        {
+          "cell": "I22",
+          "formula": "=IF(K6<>\"\",K6,IF(J6<>\"\",J6,\"-\"))"
+        },
+        {
+          "cell": "J22",
+          "formula": "=IF(Bookings!J17=\"\",\"\",Bookings!J17)"
+        },
+        {
+          "cell": "K22",
+          "formula": "=IF(M6=\"\",\"\",M6)"
+        },
+        {
+          "cell": "L22",
+          "formula": "=IF(N6=\"\",\"\",N6)"
+        },
+        {
+          "cell": "M22",
+          "formula": "=IF(O6=\"\",\"\",O6)"
+        },
+        {
+          "cell": "N22",
+          "formula": "=IF(P6=\"\",\"\",P6)"
+        },
+        {
+          "cell": "C23",
+          "formula": "=IF(Bookings!C18=\"\",\"\",Bookings!C18)"
+        },
+        {
+          "cell": "D23",
+          "formula": "=IF(Bookings!D18=\"\",\"\",Bookings!D18)"
+        },
+        {
+          "cell": "E23",
+          "formula": "=IF(Bookings!E18=\"\",\"\",Bookings!E18)"
+        },
+        {
+          "cell": "F23",
+          "formula": "=IF(Bookings!G18=\"\",\"\",Bookings!G18)"
+        },
+        {
+          "cell": "G23",
+          "formula": "=IF(Bookings!H18=\"\",\"\",Bookings!H18)"
+        },
+        {
+          "cell": "H23",
+          "formula": "=IF(I7<>\"\",I7,IF(H7<>\"\",H7,\"-\"))"
+        },
+        {
+          "cell": "I23",
+          "formula": "=IF(K7<>\"\",K7,IF(J7<>\"\",J7,\"-\"))"
+        },
+        {
+          "cell": "J23",
+          "formula": "=IF(Bookings!J18=\"\",\"\",Bookings!J18)"
+        },
+        {
+          "cell": "K23",
+          "formula": "=IF(M7=\"\",\"\",M7)"
+        },
+        {
+          "cell": "L23",
+          "formula": "=IF(N7=\"\",\"\",N7)"
+        },
+        {
+          "cell": "M23",
+          "formula": "=IF(O7=\"\",\"\",O7)"
+        },
+        {
+          "cell": "N23",
+          "formula": "=IF(P7=\"\",\"\",P7)"
+        },
+        {
+          "cell": "C24",
+          "formula": "=IF(Bookings!C19=\"\",\"\",Bookings!C19)"
+        },
+        {
+          "cell": "D24",
+          "formula": "=IF(Bookings!D19=\"\",\"\",Bookings!D19)"
+        },
+        {
+          "cell": "E24",
+          "formula": "=IF(Bookings!E19=\"\",\"\",Bookings!E19)"
+        },
+        {
+          "cell": "F24",
+          "formula": "=IF(Bookings!G19=\"\",\"\",Bookings!G19)"
+        },
+        {
+          "cell": "G24",
+          "formula": "=IF(Bookings!H19=\"\",\"\",Bookings!H19)"
+        },
+        {
+          "cell": "H24",
+          "formula": "=IF(I8<>\"\",I8,IF(H8<>\"\",H8,\"-\"))"
+        },
+        {
+          "cell": "I24",
+          "formula": "=IF(K8<>\"\",K8,IF(J8<>\"\",J8,\"-\"))"
+        },
+        {
+          "cell": "J24",
+          "formula": "=IF(Bookings!J19=\"\",\"\",Bookings!J19)"
+        },
+        {
+          "cell": "K24",
+          "formula": "=IF(M8=\"\",\"\",M8)"
+        },
+        {
+          "cell": "L24",
+          "formula": "=IF(N8=\"\",\"\",N8)"
+        },
+        {
+          "cell": "M24",
+          "formula": "=IF(O8=\"\",\"\",O8)"
+        },
+        {
+          "cell": "N24",
+          "formula": "=IF(P8=\"\",\"\",P8)"
+        },
+        {
+          "cell": "C25",
+          "formula": "=IF(Bookings!C20=\"\",\"\",Bookings!C20)"
+        },
+        {
+          "cell": "D25",
+          "formula": "=IF(Bookings!D20=\"\",\"\",Bookings!D20)"
+        },
+        {
+          "cell": "E25",
+          "formula": "=IF(Bookings!E20=\"\",\"\",Bookings!E20)"
+        },
+        {
+          "cell": "F25",
+          "formula": "=IF(Bookings!G20=\"\",\"\",Bookings!G20)"
+        },
+        {
+          "cell": "G25",
+          "formula": "=IF(Bookings!H20=\"\",\"\",Bookings!H20)"
+        },
+        {
+          "cell": "H25",
+          "formula": "=IF(I9<>\"\",I9,IF(H9<>\"\",H9,\"-\"))"
+        },
+        {
+          "cell": "I25",
+          "formula": "=IF(K9<>\"\",K9,IF(J9<>\"\",J9,\"-\"))"
+        },
+        {
+          "cell": "J25",
+          "formula": "=IF(Bookings!J20=\"\",\"\",Bookings!J20)"
+        },
+        {
+          "cell": "K25",
+          "formula": "=IF(M9=\"\",\"\",M9)"
+        },
+        {
+          "cell": "L25",
+          "formula": "=IF(N9=\"\",\"\",N9)"
+        },
+        {
+          "cell": "M25",
+          "formula": "=IF(O9=\"\",\"\",O9)"
+        },
+        {
+          "cell": "N25",
+          "formula": "=IF(P9=\"\",\"\",P9)"
+        },
+        {
+          "cell": "C26",
+          "formula": "=IF(Bookings!C21=\"\",\"\",Bookings!C21)"
+        },
+        {
+          "cell": "D26",
+          "formula": "=IF(Bookings!D21=\"\",\"\",Bookings!D21)"
+        },
+        {
+          "cell": "E26",
+          "formula": "=IF(Bookings!E21=\"\",\"\",Bookings!E21)"
+        },
+        {
+          "cell": "F26",
+          "formula": "=IF(Bookings!G21=\"\",\"\",Bookings!G21)"
+        },
+        {
+          "cell": "G26",
+          "formula": "=IF(Bookings!H21=\"\",\"\",Bookings!H21)"
+        },
+        {
+          "cell": "H26",
+          "formula": "=IF(I10<>\"\",I10,IF(H10<>\"\",H10,\"-\"))"
+        },
+        {
+          "cell": "I26",
+          "formula": "=IF(K10<>\"\",K10,IF(J10<>\"\",J10,\"-\"))"
+        },
+        {
+          "cell": "J26",
+          "formula": "=IF(Bookings!J21=\"\",\"\",Bookings!J21)"
+        },
+        {
+          "cell": "K26",
+          "formula": "=IF(M10=\"\",\"\",M10)"
+        },
+        {
+          "cell": "L26",
+          "formula": "=IF(N10=\"\",\"\",N10)"
+        },
+        {
+          "cell": "M26",
+          "formula": "=IF(O10=\"\",\"\",O10)"
+        },
+        {
+          "cell": "N26",
+          "formula": "=IF(P10=\"\",\"\",P10)"
+        },
+        {
+          "cell": "C27",
+          "formula": "=IF(Bookings!C22=\"\",\"\",Bookings!C22)"
+        },
+        {
+          "cell": "D27",
+          "formula": "=IF(Bookings!D22=\"\",\"\",Bookings!D22)"
+        },
+        {
+          "cell": "E27",
+          "formula": "=IF(Bookings!E22=\"\",\"\",Bookings!E22)"
+        },
+        {
+          "cell": "F27",
+          "formula": "=IF(Bookings!G22=\"\",\"\",Bookings!G22)"
+        },
+        {
+          "cell": "G27",
+          "formula": "=IF(Bookings!H22=\"\",\"\",Bookings!H22)"
+        },
+        {
+          "cell": "H27",
+          "formula": "=IF(I11<>\"\",I11,IF(H11<>\"\",H11,\"-\"))"
+        },
+        {
+          "cell": "I27",
+          "formula": "=IF(K11<>\"\",K11,IF(J11<>\"\",J11,\"-\"))"
+        },
+        {
+          "cell": "J27",
+          "formula": "=IF(Bookings!J22=\"\",\"\",Bookings!J22)"
+        },
+        {
+          "cell": "K27",
+          "formula": "=IF(M11=\"\",\"\",M11)"
+        },
+        {
+          "cell": "L27",
+          "formula": "=IF(N11=\"\",\"\",N11)"
+        },
+        {
+          "cell": "M27",
+          "formula": "=IF(O11=\"\",\"\",O11)"
+        },
+        {
+          "cell": "N27",
+          "formula": "=IF(P11=\"\",\"\",P11)"
+        },
+        {
+          "cell": "C28",
+          "formula": "=IF(Bookings!C23=\"\",\"\",Bookings!C23)"
+        },
+        {
+          "cell": "D28",
+          "formula": "=IF(Bookings!D23=\"\",\"\",Bookings!D23)"
+        },
+        {
+          "cell": "E28",
+          "formula": "=IF(Bookings!E23=\"\",\"\",Bookings!E23)"
+        },
+        {
+          "cell": "F28",
+          "formula": "=IF(Bookings!G23=\"\",\"\",Bookings!G23)"
+        },
+        {
+          "cell": "G28",
+          "formula": "=IF(Bookings!H23=\"\",\"\",Bookings!H23)"
+        },
+        {
+          "cell": "H28",
+          "formula": "=IF(I12<>\"\",I12,IF(H12<>\"\",H12,\"-\"))"
+        },
+        {
+          "cell": "I28",
+          "formula": "=IF(K12<>\"\",K12,IF(J12<>\"\",J12,\"-\"))"
+        },
+        {
+          "cell": "J28",
+          "formula": "=IF(Bookings!J23=\"\",\"\",Bookings!J23)"
+        },
+        {
+          "cell": "K28",
+          "formula": "=IF(M12=\"\",\"\",M12)"
+        },
+        {
+          "cell": "L28",
+          "formula": "=IF(N12=\"\",\"\",N12)"
+        },
+        {
+          "cell": "M28",
+          "formula": "=IF(O12=\"\",\"\",O12)"
+        },
+        {
+          "cell": "N28",
+          "formula": "=IF(P12=\"\",\"\",P12)"
+        },
+        {
+          "cell": "C29",
+          "formula": "=IF(Bookings!C24=\"\",\"\",Bookings!C24)"
+        },
+        {
+          "cell": "D29",
+          "formula": "=IF(Bookings!D24=\"\",\"\",Bookings!D24)"
+        },
+        {
+          "cell": "E29",
+          "formula": "=IF(Bookings!E24=\"\",\"\",Bookings!E24)"
+        },
+        {
+          "cell": "F29",
+          "formula": "=IF(Bookings!G24=\"\",\"\",Bookings!G24)"
+        },
+        {
+          "cell": "G29",
+          "formula": "=IF(Bookings!H24=\"\",\"\",Bookings!H24)"
+        },
+        {
+          "cell": "H29",
+          "formula": "=IF(I13<>\"\",I13,IF(H13<>\"\",H13,\"-\"))"
+        },
+        {
+          "cell": "I29",
+          "formula": "=IF(K13<>\"\",K13,IF(J13<>\"\",J13,\"-\"))"
+        },
+        {
+          "cell": "J29",
+          "formula": "=IF(Bookings!J24=\"\",\"\",Bookings!J24)"
+        },
+        {
+          "cell": "K29",
+          "formula": "=IF(M13=\"\",\"\",M13)"
+        },
+        {
+          "cell": "L29",
+          "formula": "=IF(N13=\"\",\"\",N13)"
+        },
+        {
+          "cell": "M29",
+          "formula": "=IF(O13=\"\",\"\",O13)"
+        },
+        {
+          "cell": "N29",
+          "formula": "=IF(P13=\"\",\"\",P13)"
+        },
+        {
+          "cell": "C30",
+          "formula": "=IF(Bookings!C25=\"\",\"\",Bookings!C25)"
+        },
+        {
+          "cell": "D30",
+          "formula": "=IF(Bookings!D25=\"\",\"\",Bookings!D25)"
+        },
+        {
+          "cell": "E30",
+          "formula": "=IF(Bookings!E25=\"\",\"\",Bookings!E25)"
+        },
+        {
+          "cell": "F30",
+          "formula": "=IF(Bookings!G25=\"\",\"\",Bookings!G25)"
+        },
+        {
+          "cell": "G30",
+          "formula": "=IF(Bookings!H25=\"\",\"\",Bookings!H25)"
+        },
+        {
+          "cell": "H30",
+          "formula": "=IF(I14<>\"\",I14,IF(H14<>\"\",H14,\"-\"))"
+        },
+        {
+          "cell": "I30",
+          "formula": "=IF(K14<>\"\",K14,IF(J14<>\"\",J14,\"-\"))"
+        },
+        {
+          "cell": "J30",
+          "formula": "=IF(Bookings!J25=\"\",\"\",Bookings!J25)"
+        },
+        {
+          "cell": "K30",
+          "formula": "=IF(M14=\"\",\"\",M14)"
+        },
+        {
+          "cell": "L30",
+          "formula": "=IF(N14=\"\",\"\",N14)"
+        },
+        {
+          "cell": "M30",
+          "formula": "=IF(O14=\"\",\"\",O14)"
+        },
+        {
+          "cell": "N30",
+          "formula": "=IF(P14=\"\",\"\",P14)"
+        },
+        {
+          "cell": "C31",
+          "formula": "=IF(Bookings!C26=\"\",\"\",Bookings!C26)"
+        },
+        {
+          "cell": "D31",
+          "formula": "=IF(Bookings!D26=\"\",\"\",Bookings!D26)"
+        },
+        {
+          "cell": "E31",
+          "formula": "=IF(Bookings!E26=\"\",\"\",Bookings!E26)"
+        },
+        {
+          "cell": "F31",
+          "formula": "=IF(Bookings!G26=\"\",\"\",Bookings!G26)"
+        },
+        {
+          "cell": "G31",
+          "formula": "=IF(Bookings!H26=\"\",\"\",Bookings!H26)"
+        },
+        {
+          "cell": "H31",
+          "formula": "=IF(I15<>\"\",I15,IF(H15<>\"\",H15,\"-\"))"
+        },
+        {
+          "cell": "I31",
+          "formula": "=IF(K15<>\"\",K15,IF(J15<>\"\",J15,\"-\"))"
+        },
+        {
+          "cell": "J31",
+          "formula": "=IF(Bookings!J26=\"\",\"\",Bookings!J26)"
+        },
+        {
+          "cell": "K31",
+          "formula": "=IF(M15=\"\",\"\",M15)"
+        },
+        {
+          "cell": "L31",
+          "formula": "=IF(N15=\"\",\"\",N15)"
+        },
+        {
+          "cell": "M31",
+          "formula": "=IF(O15=\"\",\"\",O15)"
+        },
+        {
+          "cell": "N31",
+          "formula": "=IF(P15=\"\",\"\",P15)"
+        }
+      ]
+    },
+    "Processing": {
+      "sheet_state": "visible",
+      "used_range": {
+        "min_row": 1,
+        "max_row": 13,
+        "min_col": 1,
+        "max_col": 12
+      },
+      "formula_count_total_est": 0,
+      "labels_sample": [
+        "B1:PROCESSING",
+        "B4:Mositure: | D4:0.11",
+        "B6:Processing Station: | D6:GUNA TRADING COFFEE PROCESSING | I6:ሆራይዘን ቡና ማበጠሪያ",
+        "B9:Station Address: | D9:ADDIS ABABA - ETHIOPIA",
+        "B13:Move to booking& Processing"
+      ],
+      "formulas_sample": []
+    },
+    "Commercial Invoice": {
+      "sheet_state": "visible",
+      "used_range": {
+        "min_row": 1,
+        "max_row": 54,
+        "min_col": 1,
+        "max_col": 13
+      },
+      "formula_count_total_est": 27,
+      "labels_sample": [
+        "G3:www.dhakaboracoffee.com",
+        "K5:DATE:-",
+        "K6:REF, NO.",
+        "B7:COMMERCIAL INVOICE",
+        "B10:SHIPPER",
+        "B11:APPLICANTS NAME",
+        "B12:REFERENCE | C12:SALES CONTRACT REF. NO | I12:DATED",
+        "B13:IF TERM OF PAYMENT",
+        "B14:LC NO",
+        "B15:DELIVEY TERM | D15:PORT OF LOADING",
+        "B16:PORT OF DISCHARGE | D16:FINAL DESTINATION",
+        "B17:BANK PERMIT NUMBER | D17:HS CODE",
+        "B18:PACKAGING & MARKING",
+        "B19:DESCRIPTION OF GOODS | C19:QUANTITY IN LB | D19:QUANTITY IN KG | G19:PACKAGES IN BAGS | J19:UNIT PRICE USC/LB | M19:TOTAL AMOUNT IN USD",
+        "C20:NET | D20:NET | F20:GROSS",
+        "B22:TOTAL USD",
+        "B23:BENEFICIARY ACCOUNT DETAILS",
+        "B24:BANK OF BENEFICIARY:",
+        "B25:ADDRESS OF BANK:",
+        "B26:SWIFT NUMBER:",
+        "B27:NAME OF BENEFICIARY (ACC. NAME):",
+        "B28:BENEFICIARIES ACC. NO:",
+        "B30:FULL MARKING:"
+      ],
+      "formulas_sample": [
+        {
+          "cell": "C10",
+          "formula": "=_xlfn.CONCAT('Form Configuration'!B1:D1,\",\",'Form Configuration'!B2:D2)"
+        },
+        {
+          "cell": "C11",
+          "formula": "='Contract-SI-LC'!K31"
+        },
+        {
+          "cell": "E12",
+          "formula": "=Contract!C5"
+        },
+        {
+          "cell": "K12",
+          "formula": "=Contract!C7"
+        },
+        {
+          "cell": "C13",
+          "formula": "='Contract-SI-LC'!K16"
+        },
+        {
+          "cell": "C14",
+          "formula": "='Bank & LC'!C4"
+        },
+        {
+          "cell": "C15",
+          "formula": "='Contract-SI-LC'!K17"
+        },
+        {
+          "cell": "H15",
+          "formula": "='Contract-SI-LC'!K24"
+        },
+        {
+          "cell": "C16",
+          "formula": "='Contract-SI-LC'!K20"
+        },
+        {
+          "cell": "H16",
+          "formula": "='Contract-SI-LC'!K20"
+        },
+        {
+          "cell": "C17",
+          "formula": "='Bank & LC'!H5"
+        },
+        {
+          "cell": "H17",
+          "formula": "='Form Configuration'!D16"
+        },
+        {
+          "cell": "C18",
+          "formula": "='Contract-SI-LC'!F35"
+        },
+        {
+          "cell": "B20",
+          "formula": "='Contract-SI-LC'!K28"
+        },
+        {
+          "cell": "C21",
+          "formula": "=Contract!D28"
+        },
+        {
+          "cell": "D21",
+          "formula": "=Contract!D26"
+        },
+        {
+          "cell": "F21",
+          "formula": "=Contract!H26"
+        },
+        {
+          "cell": "G21",
+          "formula": "='Contract-SI-LC'!K25"
+        },
+        {
+          "cell": "J21",
+          "formula": "=Contract!D16"
+        },
+        {
+          "cell": "M21",
+          "formula": "='Contract-SI-LC'!K12"
+        },
+        {
+          "cell": "C22",
+          "formula": "=_xlfn.CONCAT(\"USD\",\" \",M21,\" (\",NumberToWords(M21),\")\")"
+        },
+        {
+          "cell": "C24",
+          "formula": "='Bank & LC'!H7"
+        },
+        {
+          "cell": "C25",
+          "formula": "='Bank & LC'!H9"
+        },
+        {
+          "cell": "C26",
+          "formula": "='Bank & LC'!D8"
+        },
+        {
+          "cell": "C27",
+          "formula": "='Form Configuration'!B1"
+        },
+        {
+          "cell": "C28",
+          "formula": "='Bank & LC'!H11"
+        },
+        {
+          "cell": "C30",
+          "formula": "='Contract-SI-LC'!K27"
+        }
+      ]
+    },
+    "Packing List": {
+      "sheet_state": "visible",
+      "used_range": {
+        "min_row": 1,
+        "max_row": 42,
+        "min_col": 1,
+        "max_col": 12
+      },
+      "formula_count_total_est": 51,
+      "labels_sample": [
+        "I2:www.dhakaboracoffee.com",
+        "K4:DATE:",
+        "K5:REF, NO.",
+        "C7:PACKING LIST CERTIFICATE",
+        "A9:SHIPPER",
+        "A10:APPLICANTS NAME",
+        "A11:CONSIGNEE",
+        "A12:REFERENCE | B12:SALES CONTRACT REF. NO | I12:DATED",
+        "A13:DELIVEY TERM | F13:Port of loading",
+        "A14:PORT OF DISCHARGE | F14:Final Destination",
+        "A15:BANK PERMIT NUMBER | F15:HS CODE",
+        "A16:BILL NO.",
+        "A17:SHIPPING LINE: | C17:VESSEL NAME | H17:VOYAGE NO:",
+        "A18:PACKAGING & MARKING",
+        "A19:DESCRIPTION OF GOODS",
+        "A20:QUANTITY IN MT | B20:GROSS WT | H20:NET WT",
+        "A21:CONTAINERS DETAIL | B21:CONTAINER NUMBER | D21:SEAL NUMBER | H21:PACKAEGS IN BAGS",
+        "B32:TOTAL SUM",
+        "A33:PACKING DATE:",
+        "A34:PACKING PLACE:",
+        "A35:ADDRESS:"
+      ],
+      "formulas_sample": [
+        {
+          "cell": "B9",
+          "formula": "=_xlfn.CONCAT('Form Configuration'!B1:D1,\",\",'Form Configuration'!B2:D2)"
+        },
+        {
+          "cell": "B10",
+          "formula": "='Contract-SI-LC'!K31"
+        },
+        {
+          "cell": "B11",
+          "formula": "='Contract-SI-LC'!K29"
+        },
+        {
+          "cell": "E12",
+          "formula": "=Contract!C5"
+        },
+        {
+          "cell": "B13",
+          "formula": "='Contract-SI-LC'!K17"
+        },
+        {
+          "cell": "I13",
+          "formula": "='Contract-SI-LC'!K24"
+        },
+        {
+          "cell": "B14",
+          "formula": "='Contract-SI-LC'!K20"
+        },
+        {
+          "cell": "I14",
+          "formula": "='Contract-SI-LC'!K20"
+        },
+        {
+          "cell": "B15",
+          "formula": "='Bank & LC'!H5"
+        },
+        {
+          "cell": "I15",
+          "formula": "='Form Configuration'!D16"
+        },
+        {
+          "cell": "B16",
+          "formula": "=Bookings!B43"
+        },
+        {
+          "cell": "B17",
+          "formula": "=Bookings!C5"
+        },
+        {
+          "cell": "G17",
+          "formula": "=Bookings!C6"
+        },
+        {
+          "cell": "J17",
+          "formula": "=Bookings!C7"
+        },
+        {
+          "cell": "B18",
+          "formula": "='Contract-SI-LC'!F35"
+        },
+        {
+          "cell": "B19",
+          "formula": "='Contract-SI-LC'!K28"
+        },
+        {
+          "cell": "D20",
+          "formula": "=CONCATENATE(Contract!H30,\" MT\")"
+        },
+        {
+          "cell": "K20",
+          "formula": "=CONCATENATE(Contract!D30,\" MT\")"
+        },
+        {
+          "cell": "B22",
+          "formula": "=Staffing!G22"
+        },
+        {
+          "cell": "D22",
+          "formula": "=Staffing!H22"
+        },
+        {
+          "cell": "H22",
+          "formula": "=IF(B22=\"\",\"\",'Contract-SI-LC'!$K$25/Contract!$D$34)"
+        },
+        {
+          "cell": "B23",
+          "formula": "=Staffing!G23"
+        },
+        {
+          "cell": "D23",
+          "formula": "=Staffing!H23"
+        },
+        {
+          "cell": "H23",
+          "formula": "=IF(B23=\"\",\"\",'Contract-SI-LC'!$K$25/Contract!$D$34)"
+        },
+        {
+          "cell": "B24",
+          "formula": "=Staffing!G24"
+        },
+        {
+          "cell": "D24",
+          "formula": "=Staffing!H24"
+        },
+        {
+          "cell": "H24",
+          "formula": "=IF(B24=\"\",\"\",'Contract-SI-LC'!$K$25/Contract!$D$34)"
+        },
+        {
+          "cell": "B25",
+          "formula": "=Staffing!G25"
+        },
+        {
+          "cell": "D25",
+          "formula": "=Staffing!H25"
+        },
+        {
+          "cell": "H25",
+          "formula": "=IF(B25=\"\",\"\",'Contract-SI-LC'!$K$25/Contract!$D$34)"
+        },
+        {
+          "cell": "B26",
+          "formula": "=Staffing!G26"
+        },
+        {
+          "cell": "D26",
+          "formula": "=Staffing!H26"
+        },
+        {
+          "cell": "H26",
+          "formula": "=IF(B26=\"\",\"\",'Contract-SI-LC'!$K$25/Contract!$D$34)"
+        },
+        {
+          "cell": "B27",
+          "formula": "=Staffing!G27"
+        },
+        {
+          "cell": "D27",
+          "formula": "=Staffing!H27"
+        },
+        {
+          "cell": "H27",
+          "formula": "=IF(B27=\"\",\"\",'Contract-SI-LC'!$K$25/Contract!$D$34)"
+        },
+        {
+          "cell": "B28",
+          "formula": "=Staffing!G28"
+        },
+        {
+          "cell": "D28",
+          "formula": "=Staffing!H28"
+        },
+        {
+          "cell": "H28",
+          "formula": "=IF(B28=\"\",\"\",'Contract-SI-LC'!$K$25/Contract!$D$34)"
+        },
+        {
+          "cell": "B29",
+          "formula": "=Staffing!G29"
+        },
+        {
+          "cell": "D29",
+          "formula": "=Staffing!H29"
+        },
+        {
+          "cell": "H29",
+          "formula": "=IF(B29=\"\",\"\",'Contract-SI-LC'!$K$25/Contract!$D$34)"
+        },
+        {
+          "cell": "B30",
+          "formula": "=Staffing!G30"
+        },
+        {
+          "cell": "D30",
+          "formula": "=Staffing!H30"
+        },
+        {
+          "cell": "H30",
+          "formula": "=IF(B30=\"\",\"\",'Contract-SI-LC'!$K$25/Contract!$D$34)"
+        },
+        {
+          "cell": "B31",
+          "formula": "=Staffing!G31"
+        },
+        {
+          "cell": "D31",
+          "formula": "=Staffing!H31"
+        },
+        {
+          "cell": "H31",
+          "formula": "=IF(B31=\"\",\"\",'Contract-SI-LC'!$K$25/Contract!$D$34)"
+        },
+        {
+          "cell": "H32",
+          "formula": "=SUM(H22:L31)"
+        },
+        {
+          "cell": "B34",
+          "formula": "=Processing!D6"
+        },
+        {
+          "cell": "B35",
+          "formula": "=Processing!D9"
+        }
+      ]
+    },
+    "SI": {
+      "sheet_state": "visible",
+      "used_range": {
+        "min_row": 1,
+        "max_row": 45,
+        "min_col": 1,
+        "max_col": 16
+      },
+      "formula_count_total_est": 45,
+      "labels_sample": [
+        "L2:www.dhakaboracoffee.com",
+        "N5:DATE:",
+        "N6:REF. No:",
+        "F8:SHIPPING INSTRUCTION",
+        "D9:SHIPPING LINE: MAERSK SHIPPING LINE / TO: ORBIT FREIGHT LOGISTICS",
+        "D10:SHIPPER NAME   FULL ADDRESS IS REQUIRED NAME, TEL, EMAIL, FAX",
+        "D11:CONSIGNEE FULL ADDRESS IS REQUIRED NAME,TEL, EMAIL,FAX",
+        "D12:NOTIFY PARTY FULL ADDRESS IS REQUIRED NAME, TEL, EMAIL, FAX",
+        "D13:2ND NOTIFY PARTY FULL ADDRESS",
+        "D14:ORIGINAL BILL TYPE | E14:PREPAID | G14:COLLECT | L14:PREPAID FOR DOCUMENTATION",
+        "G15:COLLECT",
+        "D16:FREIGHT | E16:FREIGHT PAYABLE ELSEWHERE IN BASEL/SWITZERLAND BY WALTER MATTER",
+        "D17:SERVICE CONTRACT NO",
+        "D18:CARGO DESCRIPTION",
+        "D19:HS CODE",
+        "D20:QUANTITY",
+        "D21:GROSS WEIGHT | E21:GROSS WEIGHT | L21:NET WEIGHT",
+        "D22:VERIFIED GROSS MASS | E22:SHOULD BE CONDUCTED.",
+        "D23:CERT NUMBER",
+        "D24:PARTIAL SHIPMENT ALLOWED YES/NO | E24:NOT ALLOWED",
+        "D25:IF REEFER CARGO ;  INDICATE TEMPERATURE SETTINGS | E25:---------",
+        "D26:NUMBER TYPE AND SIZE OF CONTAINERS | E26:20 DRY | F26:40 DRY | I26:40 DRHC | J26:20 REEF | M26:40 REF | N26:OTHER",
+        "D28:SERVICE MODE (CY/CY - CY/SD )",
+        "D29:PORT OF LOADING",
+        "D30:PLACE OF DISCHARGE",
+        "D31:BOOKING NUMBER",
+        "D32:VESSEL DEPARTURE (ETD)/ DATE",
+        "D33:ADDITIONAL DOCUMENT/REMARK | E33:14 DAYS FREE TIME AT PORT OF DISCHARGE",
+        "D34:CARGO MOVED BY | E34:BY TRUCK",
+        "D35:CONTAINER NO | E35:CONTAINER NO | K35:SEAL NO | N35:CERT NO,"
+      ],
+      "formulas_sample": [
+        {
+          "cell": "E10",
+          "formula": "=_xlfn.CONCAT('Form Configuration'!B1:D1,\",\",'Form Configuration'!B2:D2)"
+        },
+        {
+          "cell": "E11",
+          "formula": "='Contract-SI-LC'!K29"
+        },
+        {
+          "cell": "E12",
+          "formula": "='Contract-SI-LC'!K30"
+        },
+        {
+          "cell": "E13",
+          "formula": "=IF('Contract-SI-LC'!K32=\"-\",\" \",'Contract-SI-LC'!K32)"
+        },
+        {
+          "cell": "E17",
+          "formula": "='Shipping Instruction'!F7"
+        },
+        {
+          "cell": "E18",
+          "formula": "=\"ETHIOPIAN COFFEE, UNWASHED ARABICA,\"&'Contract-SI-LC'!K13&\" GRADE \"&'Contract-SI-LC'!K14&\", CROP YEAR \"&'Contract-SI-LC'!F37&\", AS PER CONTRACT REF.\"&Contract!C5"
+        },
+        {
+          "cell": "E19",
+          "formula": "='Form Configuration'!D16"
+        },
+        {
+          "cell": "E20",
+          "formula": "=CONCATENATE(Contract!D18,\" BAGS \", \"(\",Contract!D34,\"*20\",\")\")"
+        },
+        {
+          "cell": "H21",
+          "formula": "=_xlfn.CONCAT(Contract!H26,\" KGS\")"
+        },
+        {
+          "cell": "O21",
+          "formula": "=_xlfn.CONCAT(Contract!D26,\" KGS\")"
+        },
+        {
+          "cell": "E23",
+          "formula": "=Contract!F54"
+        },
+        {
+          "cell": "E27",
+          "formula": "=_xlfn.CONCAT(Contract!D34,\" FCL\")"
+        },
+        {
+          "cell": "E29",
+          "formula": "='Contract-SI-LC'!K24"
+        },
+        {
+          "cell": "E30",
+          "formula": "='Contract-SI-LC'!K20"
+        },
+        {
+          "cell": "E31",
+          "formula": "=Bookings!C4"
+        },
+        {
+          "cell": "E36",
+          "formula": "=Staffing!G22"
+        },
+        {
+          "cell": "K36",
+          "formula": "=Staffing!H22"
+        },
+        {
+          "cell": "N36",
+          "formula": "=Staffing!I22"
+        },
+        {
+          "cell": "E37",
+          "formula": "=Staffing!G23"
+        },
+        {
+          "cell": "K37",
+          "formula": "=Staffing!H23"
+        },
+        {
+          "cell": "N37",
+          "formula": "=Staffing!I23"
+        },
+        {
+          "cell": "E38",
+          "formula": "=Staffing!G24"
+        },
+        {
+          "cell": "K38",
+          "formula": "=Staffing!H24"
+        },
+        {
+          "cell": "N38",
+          "formula": "=Staffing!I24"
+        },
+        {
+          "cell": "E39",
+          "formula": "=Staffing!G25"
+        },
+        {
+          "cell": "K39",
+          "formula": "=Staffing!H25"
+        },
+        {
+          "cell": "N39",
+          "formula": "=Staffing!I25"
+        },
+        {
+          "cell": "E40",
+          "formula": "=Staffing!G26"
+        },
+        {
+          "cell": "K40",
+          "formula": "=Staffing!H26"
+        },
+        {
+          "cell": "N40",
+          "formula": "=Staffing!I26"
+        },
+        {
+          "cell": "E41",
+          "formula": "=Staffing!G27"
+        },
+        {
+          "cell": "K41",
+          "formula": "=Staffing!H27"
+        },
+        {
+          "cell": "N41",
+          "formula": "=Staffing!I27"
+        },
+        {
+          "cell": "E42",
+          "formula": "=Staffing!G28"
+        },
+        {
+          "cell": "K42",
+          "formula": "=Staffing!H28"
+        },
+        {
+          "cell": "N42",
+          "formula": "=Staffing!I28"
+        },
+        {
+          "cell": "E43",
+          "formula": "=Staffing!G29"
+        },
+        {
+          "cell": "K43",
+          "formula": "=Staffing!H29"
+        },
+        {
+          "cell": "N43",
+          "formula": "=Staffing!I29"
+        },
+        {
+          "cell": "E44",
+          "formula": "=Staffing!G30"
+        },
+        {
+          "cell": "K44",
+          "formula": "=Staffing!H30"
+        },
+        {
+          "cell": "N44",
+          "formula": "=Staffing!I30"
+        },
+        {
+          "cell": "E45",
+          "formula": "=Staffing!G31"
+        },
+        {
+          "cell": "K45",
+          "formula": "=Staffing!H31"
+        },
+        {
+          "cell": "N45",
+          "formula": "=Staffing!I31"
+        }
+      ]
+    },
+    "Certificate of Quality": {
+      "sheet_state": "visible",
+      "used_range": {
+        "min_row": 1,
+        "max_row": 42,
+        "min_col": 1,
+        "max_col": 9
+      },
+      "formula_count_total_est": 47,
+      "labels_sample": [
+        "E2:www.dhakaboracoffee.com",
+        "E5:DATE:",
+        "E6:REF. NO:",
+        "D8:CERTIFICATE OF QUALITY",
+        "B11:MODE OF TRANSPORTATION:",
+        "B12:MOISTURE CONTENT:",
+        "B13:SHIPPER:",
+        "B14:NOTIFY:",
+        "B15:2ND NOTIFY:",
+        "B16:DESCRIPTION OF GOODS:",
+        "B17:ORIGIN:",
+        "B18:QUALITY:",
+        "B19:ICO NO:",
+        "B20:CERT NO:",
+        "B21:NET WEIGHT:",
+        "B22:GROSS WEIGHT:",
+        "B23:QUANTITIY IN LB:",
+        "B24:FROM:",
+        "B25:TO:",
+        "B27:CONTAINER NO | C27:SEAL NO | D27:QUALITY OF BAGS PER CONTAINER"
+      ],
+      "formulas_sample": [
+        {
+          "cell": "B9",
+          "formula": "=CONCATENATE(\"THIS IS A QUALITY CERTIFICATE IS FOR \",'Contract-SI-LC'!K28)"
+        },
+        {
+          "cell": "C11",
+          "formula": "=CONCATENATE(Bookings!C5,\",\",\"VESSEL \",Bookings!C6,\", VOYAGE NO\",Bookings!C7,\", UNDER B/L NO\", Bookings!B43, \"WERE PACKED IN JUTE BAGS AS FOLLOWS:\")"
+        },
+        {
+          "cell": "C12",
+          "formula": "=Processing!D4"
+        },
+        {
+          "cell": "C13",
+          "formula": "=_xlfn.CONCAT('Form Configuration'!B1:D1,\",\",'Form Configuration'!B2:D2)"
+        },
+        {
+          "cell": "C14",
+          "formula": "='Contract-SI-LC'!K30"
+        },
+        {
+          "cell": "C15",
+          "formula": "='Contract-SI-LC'!K32"
+        },
+        {
+          "cell": "C16",
+          "formula": "='Contract-SI-LC'!K28"
+        },
+        {
+          "cell": "C17",
+          "formula": "='Form Configuration'!K7"
+        },
+        {
+          "cell": "C18",
+          "formula": "='Contract-SI-LC'!K7"
+        },
+        {
+          "cell": "C19",
+          "formula": "=_xlfn.CONCAT('Form Configuration'!A12,\"/\",Contract!F54)"
+        },
+        {
+          "cell": "C20",
+          "formula": "=Contract!F54"
+        },
+        {
+          "cell": "C21",
+          "formula": "=CONCATENATE(Contract!D26,\" KG\")"
+        },
+        {
+          "cell": "C22",
+          "formula": "=CONCATENATE(Contract!H26,\" KG\")"
+        },
+        {
+          "cell": "C23",
+          "formula": "=CONCATENATE(Contract!D28,\" LBS\")"
+        },
+        {
+          "cell": "C24",
+          "formula": "='Contract-SI-LC'!K24"
+        },
+        {
+          "cell": "C25",
+          "formula": "='Contract-SI-LC'!K20"
+        },
+        {
+          "cell": "B28",
+          "formula": "=Staffing!G22"
+        },
+        {
+          "cell": "C28",
+          "formula": "=Staffing!H22"
+        },
+        {
+          "cell": "D28",
+          "formula": "=IF(B28=\"\",\"\",'Contract-SI-LC'!$K$25/Contract!$D$34)"
+        },
+        {
+          "cell": "B29",
+          "formula": "=Staffing!G23"
+        },
+        {
+          "cell": "C29",
+          "formula": "=Staffing!H23"
+        },
+        {
+          "cell": "D29",
+          "formula": "=IF(B29=\"\",\"\",'Contract-SI-LC'!$K$25/Contract!$D$34)"
+        },
+        {
+          "cell": "B30",
+          "formula": "=Staffing!G24"
+        },
+        {
+          "cell": "C30",
+          "formula": "=Staffing!H24"
+        },
+        {
+          "cell": "D30",
+          "formula": "=IF(B30=\"\",\"\",'Contract-SI-LC'!$K$25/Contract!$D$34)"
+        },
+        {
+          "cell": "B31",
+          "formula": "=Staffing!G25"
+        },
+        {
+          "cell": "C31",
+          "formula": "=Staffing!H25"
+        },
+        {
+          "cell": "D31",
+          "formula": "=IF(B31=\"\",\"\",'Contract-SI-LC'!$K$25/Contract!$D$34)"
+        },
+        {
+          "cell": "B32",
+          "formula": "=Staffing!G26"
+        },
+        {
+          "cell": "C32",
+          "formula": "=Staffing!H26"
+        },
+        {
+          "cell": "D32",
+          "formula": "=IF(B32=\"\",\"\",'Contract-SI-LC'!$K$25/Contract!$D$34)"
+        },
+        {
+          "cell": "B33",
+          "formula": "=Staffing!G27"
+        },
+        {
+          "cell": "C33",
+          "formula": "=Staffing!H27"
+        },
+        {
+          "cell": "D33",
+          "formula": "=IF(B33=\"\",\"\",'Contract-SI-LC'!$K$25/Contract!$D$34)"
+        },
+        {
+          "cell": "B34",
+          "formula": "=Staffing!G28"
+        },
+        {
+          "cell": "C34",
+          "formula": "=Staffing!H28"
+        },
+        {
+          "cell": "D34",
+          "formula": "=IF(B34=\"\",\"\",'Contract-SI-LC'!$K$25/Contract!$D$34)"
+        },
+        {
+          "cell": "B35",
+          "formula": "=Staffing!G29"
+        },
+        {
+          "cell": "C35",
+          "formula": "=Staffing!H29"
+        },
+        {
+          "cell": "D35",
+          "formula": "=IF(B35=\"\",\"\",'Contract-SI-LC'!$K$25/Contract!$D$34)"
+        },
+        {
+          "cell": "B36",
+          "formula": "=Staffing!G30"
+        },
+        {
+          "cell": "C36",
+          "formula": "=Staffing!H30"
+        },
+        {
+          "cell": "D36",
+          "formula": "=IF(B36=\"\",\"\",'Contract-SI-LC'!$K$25/Contract!$D$34)"
+        },
+        {
+          "cell": "B37",
+          "formula": "=Staffing!G31"
+        },
+        {
+          "cell": "C37",
+          "formula": "=Staffing!H31"
+        },
+        {
+          "cell": "D37",
+          "formula": "=IF(B37=\"\",\"\",'Contract-SI-LC'!$K$25/Contract!$D$34)"
+        },
+        {
+          "cell": "C39",
+          "formula": "='Form Configuration'!B1"
+        }
+      ]
+    },
+    "Certificate of Weight": {
+      "sheet_state": "visible",
+      "used_range": {
+        "min_row": 1,
+        "max_row": 40,
+        "min_col": 1,
+        "max_col": 10
+      },
+      "formula_count_total_est": 85,
+      "labels_sample": [
+        "G2:www.dhakaboracoffee.com",
+        "H5:DATE",
+        "H6:Ref No:",
+        "D8:CERTIFICATE OF WEIGHT",
+        "B9:SHIPPER:",
+        "B10:NOTIFY:",
+        "B11:2ND NOTIFY:",
+        "B12:Description of Goods:",
+        "B13:Net Weight:",
+        "B14:Gross Weight:",
+        "B15:Packages in bags:",
+        "B16:ORIGIN:",
+        "B17:QUALITY:",
+        "B18:ICO No:",
+        "B19:CERT NO:",
+        "B20:FROM:",
+        "B21:TO:",
+        "C23:CONTAINER NO | D23:SEAL NO | E23:QUANTITY OF BAGS PER CONTAINER | F23:BAG WEIGHT | H23:CONTAINER WEIGHT IN KGS",
+        "F24:NET WEIGHT | G24:GROSS WEIGHT | H24:NET WEIGHT | I24:GROSS WEIGHT",
+        "G35:TOTAL SUM"
+      ],
+      "formulas_sample": [
+        {
+          "cell": "C9",
+          "formula": "=_xlfn.CONCAT('Form Configuration'!B1:D1,\" \",'Form Configuration'!B2:D2)"
+        },
+        {
+          "cell": "C10",
+          "formula": "='Contract-SI-LC'!K30"
+        },
+        {
+          "cell": "C11",
+          "formula": "='Contract-SI-LC'!K32"
+        },
+        {
+          "cell": "C12",
+          "formula": "='Contract-SI-LC'!K28"
+        },
+        {
+          "cell": "C13",
+          "formula": "=CONCATENATE(Contract!D26,\" KG\")"
+        },
+        {
+          "cell": "C14",
+          "formula": "=CONCATENATE(Contract!H26,\" KG\")"
+        },
+        {
+          "cell": "C15",
+          "formula": "='Contract-SI-LC'!F35"
+        },
+        {
+          "cell": "C16",
+          "formula": "='Form Configuration'!K7"
+        },
+        {
+          "cell": "C17",
+          "formula": "='Contract-SI-LC'!K7"
+        },
+        {
+          "cell": "C18",
+          "formula": "=_xlfn.CONCAT('Form Configuration'!A12,\"/\",Contract!F54)"
+        },
+        {
+          "cell": "C19",
+          "formula": "=Contract!F54"
+        },
+        {
+          "cell": "C20",
+          "formula": "='Contract-SI-LC'!K24"
+        },
+        {
+          "cell": "C21",
+          "formula": "='Contract-SI-LC'!K20"
+        },
+        {
+          "cell": "C25",
+          "formula": "=Staffing!G22"
+        },
+        {
+          "cell": "D25",
+          "formula": "=Staffing!H22"
+        },
+        {
+          "cell": "E25",
+          "formula": "=IF(C25=\"\",\"\",'Contract-SI-LC'!$K$25/Contract!$D$34)"
+        },
+        {
+          "cell": "F25",
+          "formula": "=IF(C25=\"\",\"\",INDEX('Form Configuration'!$E$5:$J$11,MATCH(Contract!$D$17,'Form Configuration'!$E$5:$E$11,0),4))"
+        },
+        {
+          "cell": "G25",
+          "formula": "=IF(C25=\"\",\"\",INDEX('Form Configuration'!$E$5:$J$11,MATCH(Contract!$D$17,'Form Configuration'!$E$5:$E$11,0),6))"
+        },
+        {
+          "cell": "H25",
+          "formula": "=IF(C25=\"\",\"\",Contract!D$26/Contract!D$34)"
+        },
+        {
+          "cell": "I25",
+          "formula": "=IF(C25=\"\",\"\",Contract!H$26/Contract!D$34)"
+        },
+        {
+          "cell": "C26",
+          "formula": "=Staffing!G23"
+        },
+        {
+          "cell": "D26",
+          "formula": "=Staffing!H23"
+        },
+        {
+          "cell": "E26",
+          "formula": "=IF(C26=\"\",\"\",'Contract-SI-LC'!$K$25/Contract!$D$34)"
+        },
+        {
+          "cell": "F26",
+          "formula": "=IF(C26=\"\",\"\",INDEX('Form Configuration'!$E$5:$J$11,MATCH(Contract!$D$17,'Form Configuration'!$E$5:$E$11,0),4))"
+        },
+        {
+          "cell": "G26",
+          "formula": "=IF(C26=\"\",\"\",INDEX('Form Configuration'!$E$5:$J$11,MATCH(Contract!$D$17,'Form Configuration'!$E$5:$E$11,0),6))"
+        },
+        {
+          "cell": "H26",
+          "formula": "=IF(C26=\"\",\"\",Contract!D$26/Contract!D$34)"
+        },
+        {
+          "cell": "I26",
+          "formula": "=IF(C26=\"\",\"\",Contract!H$26/Contract!D$34)"
+        },
+        {
+          "cell": "C27",
+          "formula": "=Staffing!G24"
+        },
+        {
+          "cell": "D27",
+          "formula": "=Staffing!H24"
+        },
+        {
+          "cell": "E27",
+          "formula": "=IF(C27=\"\",\"\",'Contract-SI-LC'!$K$25/Contract!$D$34)"
+        },
+        {
+          "cell": "F27",
+          "formula": "=IF(C27=\"\",\"\",INDEX('Form Configuration'!$E$5:$J$11,MATCH(Contract!$D$17,'Form Configuration'!$E$5:$E$11,0),4))"
+        },
+        {
+          "cell": "G27",
+          "formula": "=IF(C27=\"\",\"\",INDEX('Form Configuration'!$E$5:$J$11,MATCH(Contract!$D$17,'Form Configuration'!$E$5:$E$11,0),6))"
+        },
+        {
+          "cell": "H27",
+          "formula": "=IF(C27=\"\",\"\",Contract!D$26/Contract!D$34)"
+        },
+        {
+          "cell": "I27",
+          "formula": "=IF(C27=\"\",\"\",Contract!H$26/Contract!D$34)"
+        },
+        {
+          "cell": "C28",
+          "formula": "=Staffing!G25"
+        },
+        {
+          "cell": "D28",
+          "formula": "=Staffing!H25"
+        },
+        {
+          "cell": "E28",
+          "formula": "=IF(C28=\"\",\"\",'Contract-SI-LC'!$K$25/Contract!$D$34)"
+        },
+        {
+          "cell": "F28",
+          "formula": "=IF(C28=\"\",\"\",INDEX('Form Configuration'!$E$5:$J$11,MATCH(Contract!$D$17,'Form Configuration'!$E$5:$E$11,0),4))"
+        },
+        {
+          "cell": "G28",
+          "formula": "=IF(C28=\"\",\"\",INDEX('Form Configuration'!$E$5:$J$11,MATCH(Contract!$D$17,'Form Configuration'!$E$5:$E$11,0),6))"
+        },
+        {
+          "cell": "H28",
+          "formula": "=IF(C28=\"\",\"\",Contract!D$26/Contract!D$34)"
+        },
+        {
+          "cell": "I28",
+          "formula": "=IF(C28=\"\",\"\",Contract!H$26/Contract!D$34)"
+        },
+        {
+          "cell": "C29",
+          "formula": "=Staffing!G26"
+        },
+        {
+          "cell": "D29",
+          "formula": "=Staffing!H26"
+        },
+        {
+          "cell": "E29",
+          "formula": "=IF(C29=\"\",\"\",'Contract-SI-LC'!$K$25/Contract!$D$34)"
+        },
+        {
+          "cell": "F29",
+          "formula": "=IF(C29=\"\",\"\",INDEX('Form Configuration'!$E$5:$J$11,MATCH(Contract!$D$17,'Form Configuration'!$E$5:$E$11,0),4))"
+        },
+        {
+          "cell": "G29",
+          "formula": "=IF(C29=\"\",\"\",INDEX('Form Configuration'!$E$5:$J$11,MATCH(Contract!$D$17,'Form Configuration'!$E$5:$E$11,0),6))"
+        },
+        {
+          "cell": "H29",
+          "formula": "=IF(C29=\"\",\"\",Contract!D$26/Contract!D$34)"
+        },
+        {
+          "cell": "I29",
+          "formula": "=IF(C29=\"\",\"\",Contract!H$26/Contract!D$34)"
+        },
+        {
+          "cell": "C30",
+          "formula": "=Staffing!G27"
+        },
+        {
+          "cell": "D30",
+          "formula": "=Staffing!H27"
+        },
+        {
+          "cell": "E30",
+          "formula": "=IF(C30=\"\",\"\",'Contract-SI-LC'!$K$25/Contract!$D$34)"
+        },
+        {
+          "cell": "F30",
+          "formula": "=IF(C30=\"\",\"\",INDEX('Form Configuration'!$E$5:$J$11,MATCH(Contract!$D$17,'Form Configuration'!$E$5:$E$11,0),4))"
+        },
+        {
+          "cell": "G30",
+          "formula": "=IF(C30=\"\",\"\",INDEX('Form Configuration'!$E$5:$J$11,MATCH(Contract!$D$17,'Form Configuration'!$E$5:$E$11,0),6))"
+        },
+        {
+          "cell": "H30",
+          "formula": "=IF(C30=\"\",\"\",Contract!D$26/Contract!D$34)"
+        },
+        {
+          "cell": "I30",
+          "formula": "=IF(C30=\"\",\"\",Contract!H$26/Contract!D$34)"
+        },
+        {
+          "cell": "C31",
+          "formula": "=Staffing!G28"
+        },
+        {
+          "cell": "D31",
+          "formula": "=Staffing!H28"
+        },
+        {
+          "cell": "E31",
+          "formula": "=IF(C31=\"\",\"\",'Contract-SI-LC'!$K$25/Contract!$D$34)"
+        },
+        {
+          "cell": "F31",
+          "formula": "=IF(C31=\"\",\"\",INDEX('Form Configuration'!$E$5:$J$11,MATCH(Contract!$D$17,'Form Configuration'!$E$5:$E$11,0),4))"
+        },
+        {
+          "cell": "G31",
+          "formula": "=IF(C31=\"\",\"\",INDEX('Form Configuration'!$E$5:$J$11,MATCH(Contract!$D$17,'Form Configuration'!$E$5:$E$11,0),6))"
+        },
+        {
+          "cell": "H31",
+          "formula": "=IF(C31=\"\",\"\",Contract!D$26/Contract!D$34)"
+        },
+        {
+          "cell": "I31",
+          "formula": "=IF(C31=\"\",\"\",Contract!H$26/Contract!D$34)"
+        },
+        {
+          "cell": "C32",
+          "formula": "=Staffing!G29"
+        },
+        {
+          "cell": "D32",
+          "formula": "=Staffing!H29"
+        },
+        {
+          "cell": "E32",
+          "formula": "=IF(C32=\"\",\"\",'Contract-SI-LC'!$K$25/Contract!$D$34)"
+        },
+        {
+          "cell": "F32",
+          "formula": "=IF(C32=\"\",\"\",INDEX('Form Configuration'!$E$5:$J$11,MATCH(Contract!$D$17,'Form Configuration'!$E$5:$E$11,0),4))"
+        },
+        {
+          "cell": "G32",
+          "formula": "=IF(C32=\"\",\"\",INDEX('Form Configuration'!$E$5:$J$11,MATCH(Contract!$D$17,'Form Configuration'!$E$5:$E$11,0),6))"
+        },
+        {
+          "cell": "H32",
+          "formula": "=IF(C32=\"\",\"\",Contract!D$26/Contract!D$34)"
+        },
+        {
+          "cell": "I32",
+          "formula": "=IF(C32=\"\",\"\",Contract!H$26/Contract!D$34)"
+        },
+        {
+          "cell": "C33",
+          "formula": "=Staffing!G30"
+        },
+        {
+          "cell": "D33",
+          "formula": "=Staffing!H30"
+        },
+        {
+          "cell": "E33",
+          "formula": "=IF(C33=\"\",\"\",'Contract-SI-LC'!$K$25/Contract!$D$34)"
+        },
+        {
+          "cell": "F33",
+          "formula": "=IF(C33=\"\",\"\",INDEX('Form Configuration'!$E$5:$J$11,MATCH(Contract!$D$17,'Form Configuration'!$E$5:$E$11,0),4))"
+        },
+        {
+          "cell": "G33",
+          "formula": "=IF(C33=\"\",\"\",INDEX('Form Configuration'!$E$5:$J$11,MATCH(Contract!$D$17,'Form Configuration'!$E$5:$E$11,0),6))"
+        },
+        {
+          "cell": "H33",
+          "formula": "=IF(C33=\"\",\"\",Contract!D$26/Contract!D$34)"
+        },
+        {
+          "cell": "I33",
+          "formula": "=IF(C33=\"\",\"\",Contract!H$26/Contract!D$34)"
+        },
+        {
+          "cell": "C34",
+          "formula": "=Staffing!G31"
+        },
+        {
+          "cell": "D34",
+          "formula": "=Staffing!H31"
+        },
+        {
+          "cell": "E34",
+          "formula": "=IF(C34=\"\",\"\",'Contract-SI-LC'!$K$25/Contract!$D$34)"
+        },
+        {
+          "cell": "F34",
+          "formula": "=IF(C34=\"\",\"\",INDEX('Form Configuration'!$E$5:$J$11,MATCH(Contract!$D$17,'Form Configuration'!$E$5:$E$11,0),4))"
+        },
+        {
+          "cell": "G34",
+          "formula": "=IF(C34=\"\",\"\",INDEX('Form Configuration'!$E$5:$J$11,MATCH(Contract!$D$17,'Form Configuration'!$E$5:$E$11,0),6))"
+        },
+        {
+          "cell": "H34",
+          "formula": "=IF(C34=\"\",\"\",Contract!D$26/Contract!D$34)"
+        },
+        {
+          "cell": "I34",
+          "formula": "=IF(C34=\"\",\"\",Contract!H$26/Contract!D$34)"
+        },
+        {
+          "cell": "H35",
+          "formula": "=CONCATENATE(SUM(H25:H34),\" KGS\")"
+        },
+        {
+          "cell": "I35",
+          "formula": "=CONCATENATE(SUM(I25:I34),\" KGS\")"
+        }
+      ]
+    },
+    "WAY BILL": {
+      "sheet_state": "visible",
+      "used_range": {
+        "min_row": 1,
+        "max_row": 46,
+        "min_col": 1,
+        "max_col": 17
+      },
+      "formula_count_total_est": 19,
+      "labels_sample": [
+        "K2:www.dhakaboracoffee.com",
+        "F7:WAY BILL",
+        "L9:DATE:",
+        "L10:REF. No:",
+        "B11:To:",
+        "B14:Truck No:",
+        "B15:Trailer No:",
+        "B16:Driver Name: | C16:ABEBE DEJENE",
+        "B17:Driver Phone No:",
+        "B18:License No:",
+        "B19:Final Destination:",
+        "H20:Driver’s Declaration",
+        "B22:According to the following terms and conditions.",
+        "B23:1.   I undertake to make good any shortage in goods at the market price ruling.",
+        "B24:2.   I agree that this consignment is now under my charge and entire responsibility.",
+        "B25:3.   I declare that my lorry is equipped with tarpaulin and that I have received the described goods in good condition. ",
+        "G27:Detail of Goods",
+        "C29:ICO No:",
+        "C30:Cert No:",
+        "C31:No of Bag:",
+        "C32:Gross Weight:",
+        "C33:Net Weight:",
+        "C34:The Truck carry the above mentioned Transport at ETH Birr | J34:per quantal | L34:total Birr",
+        "C36:Container No: | G36:Seal No:",
+        "C38:Container No: | G38:Seal No:",
+        "C39:ከላይ የተጠቀሱትን ህግና ደንቦች አንብቤና ተረድቼ ለማንኛውም ችግር ሀላፊነት ለመውሰድ በፊርማየ አረጋግጣለሁ፡ ፡",
+        "C41:Driver name:",
+        "C43:Signature: | I43:Signature:",
+        "C45:Date: | I45:Stamp & Date:"
+      ],
+      "formulas_sample": [
+        {
+          "cell": "C11",
+          "formula": "='Form Configuration'!E19"
+        },
+        {
+          "cell": "C12",
+          "formula": "=CONCATENATE('Form Configuration'!E21,\"(\",'Form Configuration'!E20,\")\")"
+        },
+        {
+          "cell": "C14",
+          "formula": "=INDEX(Staffing!B22:N31,MATCH('WAY BILL'!C16,Staffing!D22:D31,0),2)"
+        },
+        {
+          "cell": "C15",
+          "formula": "=INDEX(Staffing!B22:N31,MATCH('WAY BILL'!C16,Staffing!D22:D31,0)+1,2)"
+        },
+        {
+          "cell": "C17",
+          "formula": "=INDEX(Staffing!B22:N31,MATCH('WAY BILL'!C16,Staffing!D22:D31,0),4)"
+        },
+        {
+          "cell": "C18",
+          "formula": "=INDEX(Staffing!B22:N31,MATCH('WAY BILL'!C16,Staffing!D22:D31,0),5)"
+        },
+        {
+          "cell": "C19",
+          "formula": "='Contract-SI-LC'!K24"
+        },
+        {
+          "cell": "B21",
+          "formula": "=CONCATENATE(\"I \",C16,\" the undersigned_____________and that I have Received the Goods from Praxis International PLC and bind myself to covey them safe to Djibouti port.\")"
+        },
+        {
+          "cell": "C28",
+          "formula": "=CONCATENATE(K41,\" PRODUCE OF ETHIOPIAN ARABICA COFFEE \",'Contract-SI-LC'!K13,\" GRADE \",'Contract-SI-LC'!K14)"
+        },
+        {
+          "cell": "D29",
+          "formula": "=IF(OR(C14=\"\",C15=\"\"),CONCATENATE('Form Configuration'!A12,\"/\",\"00\",INDEX(Staffing!B22:N31,MATCH('WAY BILL'!C16,Staffing!D22:D31,0),8)),CONCATENATE('Form Configuration'!A12,\"/\",\"00\",INDEX(Staffing!B22:N31,MATCH('WAY BILL'!C16,Staffing!D22:D31,0),8),\" and \",'Form Configuration'!A12,\"/\",\"00\",INDEX(Staffing!B22:N31,MATCH('WAY BILL'!C16,Staffing!D22:D31,0)+1,8)))"
+        },
+        {
+          "cell": "D30",
+          "formula": "=IF(OR(C14=\"\",C15=\"\"),CONCATENATE(\"00\",INDEX(Staffing!B22:N31,MATCH('WAY BILL'!C16,Staffing!D22:D31,0),8)),CONCATENATE(\"00\",INDEX(Staffing!B22:N31,MATCH('WAY BILL'!C16,Staffing!D22:D31,0),8),\" and \",\"00\",INDEX(Staffing!B22:N31,MATCH('WAY BILL'!C16,Staffing!D22:D31,0)+1,8)))"
+        },
+        {
+          "cell": "D31",
+          "formula": "=IF(OR(C14=\"\",C15=\"\"),Contract!D18/Contract!D34,Contract!D18/Contract!D34*2)"
+        },
+        {
+          "cell": "D32",
+          "formula": "=CONCATENATE(IF(OR(C14=\"\",C15=\"\"),Contract!H26/Contract!D34,2*Contract!H26/Contract!D34),\" KG\")"
+        },
+        {
+          "cell": "D33",
+          "formula": "=CONCATENATE(IF(OR(C14=\"\",C15=\"\"),Contract!D26/Contract!D34,2*Contract!D26/Contract!D34),\" KG\")"
+        },
+        {
+          "cell": "E36",
+          "formula": "=INDEX(Staffing!B22:N31,MATCH('WAY BILL'!C16,Staffing!D22:D31,0),6)"
+        },
+        {
+          "cell": "H36",
+          "formula": "=INDEX(Staffing!B22:N31,MATCH('WAY BILL'!C16,Staffing!D22:D31,0),7)"
+        },
+        {
+          "cell": "E38",
+          "formula": "=INDEX(Staffing!B22:N31,MATCH('WAY BILL'!C16,Staffing!D22:D31,0)+1,6)"
+        },
+        {
+          "cell": "H38",
+          "formula": "=INDEX(Staffing!B22:N31,MATCH('WAY BILL'!C16,Staffing!D22:D31,0)+1,7)"
+        },
+        {
+          "cell": "K41",
+          "formula": "='Form Configuration'!B1"
+        }
+      ]
+    },
+    "COCG": {
+      "sheet_state": "visible",
+      "used_range": {
+        "min_row": 1,
+        "max_row": 112,
+        "min_col": 1,
+        "max_col": 17
+      },
+      "formula_count_total_est": 12,
+      "labels_sample": [
+        "Q2:Yes",
+        "Q3:No",
+        "C4:አስቻለው ብርሃኑ በቀለ",
+        "C5:ASCHALEW BERHANU BEKELE",
+        "C6:0952 50 50 50  Email:- aschalew@sador-et.com  12553",
+        "B8:Driver’s Name | G8:የምስክር ወረቀት ቁጥር",
+        "B9:Truck plate No | F9:Cert.No | G9:23",
+        "B10:Trailer No | F10:ቀን",
+        "B11:Container No | F11:Date",
+        "B12:Seal No",
+        "B13:Destination",
+        "D14:የምስክር ወረቀት",
+        "D15:CERTIFICATE",
+        "C17:ስለ ኢትዮጵያ ቡና ጥራትና ደረጃ የሚሰጥ የምስክር ወረቀት",
+        "C18:CERTIFICATE OF CLEANLINESS AND GRADE OF ETHIOPIAN COFFEE",
+        "B20:ስለ ቡና ጥራት ቁጥጥርና ግብይት በወጣው አዋጅ ቁጥር ፩ ሺህ ፶፩/፪ ሺህ ፱ ከዚህ ጋር ተያይዞ በወጣው የሚኒስትሮች ምክር ቤት ደንብ ቁጥር ፬፻፴፫/፪ሺ፲፩ መሠረት",
+        "B21:እኛ አስቻለው ብርሃኑ ዳካቦራ ኤክስትሩዥን በቁጥር BL/AA/04/3333/4835638/2013 የሆነ የፈቃድ ወረቀት የተሰጠን በተጠቀሱት አዋጅና ደንቦች",
+        "B22:መሠረት በማድረግ ከዚህ በታች የተዘረዘረው ቡና ፤ | F22:ሆኖ",
+        "B23:(ልክና ቅርፅ) | D23:(ዓይነት) | F23:መበጠሩንና የ",
+        "B24:ቡና በእኛ ወይም በእኛ ተጠባባቂነት በደንብ የተበጠረና የደረቀ በደረጃም የተመደበና ከመሻገት፤ ከበቆልትነት ወይም ይህን በመሳሰሉ ምክንያት ጉድለት",
+        "B25:ከሚያመጡ ነገሮች ነፃ መሆኑን እንዲሁም የእርጠበት ክብደቱ ከመቶ አሥራ አንድ ተኩል (11.5%) ያነሰ መሆኑን እየረጋገጥን እንመሰክራለን፡፡",
+        "B27:ASCHALEW BERHANU BEKELE Licensed Coffee Cleaner and Grader  holding License No. BL/AA/04/3333/4835638/2013 under the pro",
+        "C38:(origin) | F38:(grade)",
+        "D40:ሐተታ/Description of Lot",
+        "B42:ከረጢቶች/B A G S",
+        "B43:ቁጥር/ No | C43:ሚዛን/Weight | E43:ምልክት/Mark",
+        "C44:ጠቅላላ/Gross | D44:የተጣራ/Net",
+        "F52:…………………………………………….",
+        "F53:ASCHALEW BERHANU BEKELE",
+        "E56:የቡና አበጣሪና የደረጃ መዳቢው ፊርማ ……………………………..",
+        "E57:Signature of licensed coffee cleaners & Graders",
+        "E58:የፈቃድ ቁጥር ; BL/AA/04/3333/4835638/2013",
+        "N65:Page Two | O65:Yes"
+      ],
+      "formulas_sample": [
+        {
+          "cell": "C37",
+          "formula": "='Contract-SI-LC'!K13"
+        },
+        {
+          "cell": "F37",
+          "formula": "='Contract-SI-LC'!K14"
+        },
+        {
+          "cell": "B45",
+          "formula": "=CONCATENATE(Contract!D18/Contract!D34,\" \",  Contract!D17)"
+        },
+        {
+          "cell": "C45",
+          "formula": "=CONCATENATE(Contract!H26/Contract!D34,\" KGS\")"
+        },
+        {
+          "cell": "D45",
+          "formula": "=CONCATENATE(Contract!D26/Contract!D34,\" KGS\")"
+        },
+        {
+          "cell": "E45",
+          "formula": "=CONCATENATE('Form Configuration'!B1,CHAR(10),\"ETHIOPIA ARABICA COFFEE \",'Contract-SI-LC'!K13,\" GRADE \",Contract!D38,CHAR(10),\"ICO NO- 010/1116/\",\"00\",COCG!G9,CHAR(10),\"CERT NO-\",\"00\",COCG!G9,CHAR(10),\"CROP YEAR-\",'Contract-SI-LC'!F37,CHAR(10),\"NET WEIFGHT - \",'Certificate of Weight'!F25,\" KG \",CHAR(10),\"GROSS WEIGHT \",'Certificate of Weight'!G25,\" KG \",CHAR(10),\"DESTINATION -\", 'Contract-SI-LC'!K20)"
+        },
+        {
+          "cell": "C63",
+          "formula": "=IFERROR(IF(O65=\"Yes\",INDEX(Staffing!B22:J31,MATCH(G9,Staffing!I22:I31,0),3),\"\"),\"\")"
+        },
+        {
+          "cell": "C64",
+          "formula": "=IFERROR(IF(O65=\"Yes\",IF(INDEX(Staffing!B22:J31,MATCH(G9,Staffing!I22:I31,0),1)=\"TRUCK\",INDEX(Staffing!B22:J31,MATCH(G9,Staffing!I22:I31,0),2),\"\"),\"\"),\"\")"
+        },
+        {
+          "cell": "C65",
+          "formula": "=IFERROR(IF(O65=\"Yes\",IF(INDEX(Staffing!B22:J31,MATCH(G9,Staffing!I22:I31,0),1)=\"TRAILER\",INDEX(Staffing!B22:J31,MATCH(G9,Staffing!I22:I31,0),2),\"\"),\"\"),\"\")"
+        },
+        {
+          "cell": "C66",
+          "formula": "=IFERROR(IF(O65=\"Yes\",INDEX(Staffing!B22:J31,MATCH(G9,Staffing!I22:I31,0),6),\"\"),\"\")"
+        },
+        {
+          "cell": "C67",
+          "formula": "=IFERROR(IF(O65=\"Yes\",INDEX(Staffing!B22:J31,MATCH(G9,Staffing!I22:I31,0),7),\"\"),\"\")"
+        },
+        {
+          "cell": "C68",
+          "formula": "=IF(O65=\"Yes\",IF(G9=\"\",\"\",'Contract-SI-LC'!K24),\"\")"
+        }
+      ]
+    },
+    "VGM": {
+      "sheet_state": "visible",
+      "used_range": {
+        "min_row": 1,
+        "max_row": 39,
+        "min_col": 1,
+        "max_col": 11
+      },
+      "formula_count_total_est": 76,
+      "labels_sample": [
+        "C7:FM-MA-47(01)",
+        "C11:SOLAS Verified Gross Mass Declaration Form",
+        "C12:We hereby confirm the verified gross mass for the below containers as outlined below.",
+        "C13:Shipment Reference :",
+        "C14:Booking Number: | G14:Date of Declaration:10/06/2023",
+        "C15:Container No. | D15:Seal No.: | E15:Wt. Method (1 or 2) | F15:kg or lbs. | G15:Method",
+        "G16:Cargo and packing weight | H16:Container Tare wt. | I16:Total VGM",
+        "C27:Method 1- The container was weighed after it had been packed, only the total VGM to be entered. Method 2- All cargo and ",
+        "C28:Shipper Name",
+        "C29:Weighing Party Name",
+        "C30:Weighing Company address & details",
+        "C31:The duly authorized contact person of the shipper (by name and signature provided in the statement) hereby certifies, th",
+        "C33:Verification Signature: | F33:Verification Name:  Zinaw Alemayehu",
+        "C34:Company Name:",
+        "F35:Verification date:",
+        "C36:Note: Make sure the latest revised form is in use"
+      ],
+      "formulas_sample": [
+        {
+          "cell": "D13",
+          "formula": "=Contract!C5"
+        },
+        {
+          "cell": "D14",
+          "formula": "=IF(Bookings!C4=\"\",\"-\",Bookings!C4)"
+        },
+        {
+          "cell": "C17",
+          "formula": "=Staffing!G22"
+        },
+        {
+          "cell": "D17",
+          "formula": "=Staffing!H22"
+        },
+        {
+          "cell": "E17",
+          "formula": "=IF(C17=\"\",\"\",1)"
+        },
+        {
+          "cell": "F17",
+          "formula": "=IF(C17=\"\",\"\",\"Kg\")"
+        },
+        {
+          "cell": "G17",
+          "formula": "=IF(C17=\"\",\"\",CONCATENATE(Contract!$H$26/Contract!$D$34,\" Kg\"))"
+        },
+        {
+          "cell": "H17",
+          "formula": "=IF(Staffing!J22=\"\",\"\",CONCATENATE(Staffing!J22,\" Kg\"))"
+        },
+        {
+          "cell": "I17",
+          "formula": "=IF(C17=\"\",\"\",CONCATENATE(Contract!$H$26/Contract!$D$34+Staffing!J22,\" Kg\"))"
+        },
+        {
+          "cell": "C18",
+          "formula": "=Staffing!G23"
+        },
+        {
+          "cell": "D18",
+          "formula": "=Staffing!H23"
+        },
+        {
+          "cell": "E18",
+          "formula": "=IF(C18=\"\",\"\",1)"
+        },
+        {
+          "cell": "F18",
+          "formula": "=IF(C18=\"\",\"\",\"Kg\")"
+        },
+        {
+          "cell": "G18",
+          "formula": "=IF(C18=\"\",\"\",CONCATENATE(Contract!$H$26/Contract!$D$34,\" Kg\"))"
+        },
+        {
+          "cell": "H18",
+          "formula": "=IF(Staffing!J23=\"\",\"\",CONCATENATE(Staffing!J23,\" Kg\"))"
+        },
+        {
+          "cell": "I18",
+          "formula": "=IF(C18=\"\",\"\",CONCATENATE(Contract!$H$26/Contract!$D$34+Staffing!J23,\" Kg\"))"
+        },
+        {
+          "cell": "C19",
+          "formula": "=Staffing!G24"
+        },
+        {
+          "cell": "D19",
+          "formula": "=Staffing!H24"
+        },
+        {
+          "cell": "E19",
+          "formula": "=IF(C19=\"\",\"\",1)"
+        },
+        {
+          "cell": "F19",
+          "formula": "=IF(C19=\"\",\"\",\"Kg\")"
+        },
+        {
+          "cell": "G19",
+          "formula": "=IF(C19=\"\",\"\",CONCATENATE(Contract!$H$26/Contract!$D$34,\" Kg\"))"
+        },
+        {
+          "cell": "H19",
+          "formula": "=IF(Staffing!J24=\"\",\"\",CONCATENATE(Staffing!J24,\" Kg\"))"
+        },
+        {
+          "cell": "I19",
+          "formula": "=IF(C19=\"\",\"\",CONCATENATE(Contract!$H$26/Contract!$D$34+Staffing!J24,\" Kg\"))"
+        },
+        {
+          "cell": "C20",
+          "formula": "=Staffing!G25"
+        },
+        {
+          "cell": "D20",
+          "formula": "=Staffing!H25"
+        },
+        {
+          "cell": "E20",
+          "formula": "=IF(C20=\"\",\"\",1)"
+        },
+        {
+          "cell": "F20",
+          "formula": "=IF(C20=\"\",\"\",\"Kg\")"
+        },
+        {
+          "cell": "G20",
+          "formula": "=IF(C20=\"\",\"\",CONCATENATE(Contract!$H$26/Contract!$D$34,\" Kg\"))"
+        },
+        {
+          "cell": "H20",
+          "formula": "=IF(Staffing!J25=\"\",\"\",CONCATENATE(Staffing!J25,\" Kg\"))"
+        },
+        {
+          "cell": "I20",
+          "formula": "=IF(C20=\"\",\"\",CONCATENATE(Contract!$H$26/Contract!$D$34+Staffing!J25,\" Kg\"))"
+        },
+        {
+          "cell": "C21",
+          "formula": "=Staffing!G26"
+        },
+        {
+          "cell": "D21",
+          "formula": "=IF(Staffing!H26=\"\",\"\",Staffing!H26)"
+        },
+        {
+          "cell": "E21",
+          "formula": "=IF(C21=\"\",\"\",1)"
+        },
+        {
+          "cell": "F21",
+          "formula": "=IF(C21=\"\",\"\",\"Kg\")"
+        },
+        {
+          "cell": "G21",
+          "formula": "=IF(C21=\"\",\"\",CONCATENATE(Contract!$H$26/Contract!$D$34,\" Kg\"))"
+        },
+        {
+          "cell": "H21",
+          "formula": "=IF(Staffing!J26=\"\",\"\",CONCATENATE(Staffing!J26,\" Kg\"))"
+        },
+        {
+          "cell": "I21",
+          "formula": "=IF(C21=\"\",\"\",CONCATENATE(Contract!$H$26/Contract!$D$34+Staffing!J26,\" Kg\"))"
+        },
+        {
+          "cell": "C22",
+          "formula": "=Staffing!G27"
+        },
+        {
+          "cell": "D22",
+          "formula": "=IF(Staffing!H27=\"\",\"\",Staffing!H27)"
+        },
+        {
+          "cell": "E22",
+          "formula": "=IF(C22=\"\",\"\",1)"
+        },
+        {
+          "cell": "F22",
+          "formula": "=IF(C22=\"\",\"\",\"Kg\")"
+        },
+        {
+          "cell": "G22",
+          "formula": "=IF(C22=\"\",\"\",CONCATENATE(Contract!$H$26/Contract!$D$34,\" Kg\"))"
+        },
+        {
+          "cell": "H22",
+          "formula": "=IF(Staffing!J27=\"\",\"\",CONCATENATE(Staffing!J27,\" Kg\"))"
+        },
+        {
+          "cell": "I22",
+          "formula": "=IF(C22=\"\",\"\",CONCATENATE(Contract!$H$26/Contract!$D$34+Staffing!J27,\" Kg\"))"
+        },
+        {
+          "cell": "C23",
+          "formula": "=Staffing!G28"
+        },
+        {
+          "cell": "D23",
+          "formula": "=IF(Staffing!H28=\"\",\"\",Staffing!H28)"
+        },
+        {
+          "cell": "E23",
+          "formula": "=IF(C23=\"\",\"\",1)"
+        },
+        {
+          "cell": "F23",
+          "formula": "=IF(C23=\"\",\"\",\"Kg\")"
+        },
+        {
+          "cell": "G23",
+          "formula": "=IF(C23=\"\",\"\",CONCATENATE(Contract!$H$26/Contract!$D$34,\" Kg\"))"
+        },
+        {
+          "cell": "H23",
+          "formula": "=IF(Staffing!J28=\"\",\"\",CONCATENATE(Staffing!J28,\" Kg\"))"
+        },
+        {
+          "cell": "I23",
+          "formula": "=IF(C23=\"\",\"\",CONCATENATE(Contract!$H$26/Contract!$D$34+Staffing!J28,\" Kg\"))"
+        },
+        {
+          "cell": "C24",
+          "formula": "=Staffing!G29"
+        },
+        {
+          "cell": "D24",
+          "formula": "=IF(Staffing!H29=\"\",\"\",Staffing!H29)"
+        },
+        {
+          "cell": "E24",
+          "formula": "=IF(C24=\"\",\"\",1)"
+        },
+        {
+          "cell": "F24",
+          "formula": "=IF(C24=\"\",\"\",\"Kg\")"
+        },
+        {
+          "cell": "G24",
+          "formula": "=IF(C24=\"\",\"\",CONCATENATE(Contract!$H$26/Contract!$D$34,\" Kg\"))"
+        },
+        {
+          "cell": "H24",
+          "formula": "=IF(Staffing!J29=\"\",\"\",CONCATENATE(Staffing!J29,\" Kg\"))"
+        },
+        {
+          "cell": "I24",
+          "formula": "=IF(C24=\"\",\"\",CONCATENATE(Contract!$H$26/Contract!$D$34+Staffing!J29,\" Kg\"))"
+        },
+        {
+          "cell": "C25",
+          "formula": "=Staffing!G30"
+        },
+        {
+          "cell": "D25",
+          "formula": "=IF(Staffing!H30=\"\",\"\",Staffing!H30)"
+        },
+        {
+          "cell": "E25",
+          "formula": "=IF(C25=\"\",\"\",1)"
+        },
+        {
+          "cell": "F25",
+          "formula": "=IF(C25=\"\",\"\",\"Kg\")"
+        },
+        {
+          "cell": "G25",
+          "formula": "=IF(C25=\"\",\"\",CONCATENATE(Contract!$H$26/Contract!$D$34,\" Kg\"))"
+        },
+        {
+          "cell": "H25",
+          "formula": "=IF(Staffing!J30=\"\",\"\",CONCATENATE(Staffing!J30,\" Kg\"))"
+        },
+        {
+          "cell": "I25",
+          "formula": "=IF(C25=\"\",\"\",CONCATENATE(Contract!$H$26/Contract!$D$34+Staffing!J30,\" Kg\"))"
+        },
+        {
+          "cell": "C26",
+          "formula": "=Staffing!G31"
+        },
+        {
+          "cell": "D26",
+          "formula": "=IF(Staffing!H31=\"\",\"\",Staffing!H31)"
+        },
+        {
+          "cell": "E26",
+          "formula": "=IF(C26=\"\",\"\",1)"
+        },
+        {
+          "cell": "F26",
+          "formula": "=IF(C26=\"\",\"\",\"Kg\")"
+        },
+        {
+          "cell": "G26",
+          "formula": "=IF(C26=\"\",\"\",CONCATENATE(Contract!$H$26/Contract!$D$34,\" Kg\"))"
+        },
+        {
+          "cell": "H26",
+          "formula": "=IF(Staffing!J31=\"\",\"\",CONCATENATE(Staffing!J31,\" Kg\"))"
+        },
+        {
+          "cell": "I26",
+          "formula": "=IF(C26=\"\",\"\",CONCATENATE(Contract!$H$26/Contract!$D$34+Staffing!J31,\" Kg\"))"
+        },
+        {
+          "cell": "E28",
+          "formula": "='Form Configuration'!B1"
+        },
+        {
+          "cell": "E29",
+          "formula": "=Processing!D6"
+        },
+        {
+          "cell": "E30",
+          "formula": "=Processing!D9"
+        },
+        {
+          "cell": "C35",
+          "formula": "='Form Configuration'!B1"
+        }
+      ]
+    },
+    "ICO": {
+      "sheet_state": "visible",
+      "used_range": {
+        "min_row": 1,
+        "max_row": 21,
+        "min_col": 1,
+        "max_col": 6
+      },
+      "formula_count_total_est": 6,
+      "labels_sample": [
+        "B3:1    1   1    6",
+        "D5:0 1 0 | E5:0 1",
+        "D6:ETHIOPIA | F6:0    1    0",
+        "C7:0   4    0 | D7:27/06/2023",
+        "B9:DIRECT",
+        "D10:X",
+        "B12:010    1274    0015-0018                     CERT NO. 0015-0018 | F12:X",
+        "B13:X",
+        "B15:X",
+        "B20:25-07-2023                      ADDIS ABABA | D20:25-07-2023 ADDIS ABABA"
+      ],
+      "formulas_sample": [
+        {
+          "cell": "B2",
+          "formula": "=_xlfn.CONCAT('Form Configuration'!B1:D1,\",\",'Form Configuration'!B2:D2,\" Email: \",'Form Configuration'!H1,\" TEL:\",'Form Configuration'!H2)"
+        },
+        {
+          "cell": "B5",
+          "formula": "='Contract-SI-LC'!K30"
+        },
+        {
+          "cell": "B7",
+          "formula": "='Contract-SI-LC'!K20"
+        },
+        {
+          "cell": "C9",
+          "formula": "=CONCATENATE(Bookings!C5,\" \",Bookings!C6,\" \",Bookings!C7)"
+        },
+        {
+          "cell": "D12",
+          "formula": "=Contract!D26"
+        },
+        {
+          "cell": "C14",
+          "formula": "=CONCATENATE('Contract-SI-LC'!K25,\" NEW JUTE \",Contract!D17,\" EACH OF \",Contract!D37, \" GRADE \",Contract!D38, \" CROP YEAR \",'Contract-SI-LC'!F37,\" AS PER CONTRACT REF NO. \",Contract!C5,\" ( \",'Contract-SI-LC'!K25,\" NEW JUTE BAGS, \",Contract!D28,\" LBS\",\")\")"
+        }
+      ]
+    },
+    "Cert Of Origin": {
+      "sheet_state": "visible",
+      "used_range": {
+        "min_row": 1,
+        "max_row": 48,
+        "min_col": 1,
+        "max_col": 18
+      },
+      "formula_count_total_est": 9,
+      "labels_sample": [
+        "E13:KGS | G13:KGS",
+        "A46:26/06/2023"
+      ],
+      "formulas_sample": [
+        {
+          "cell": "B3",
+          "formula": "=_xlfn.CONCAT('Form Configuration'!B1:D1,\",\",'Form Configuration'!B2:D2)"
+        },
+        {
+          "cell": "B4",
+          "formula": "='Contract-SI-LC'!K29"
+        },
+        {
+          "cell": "B6",
+          "formula": "=CONCATENATE(\"SHIPPED BY \",Bookings!C5,\" \",Bookings!C6,\" FROM \",'Contract-SI-LC'!K24,\" TO \",'Contract-SI-LC'!K20)"
+        },
+        {
+          "cell": "A12",
+          "formula": "='Contract-SI-LC'!F35"
+        },
+        {
+          "cell": "B12",
+          "formula": "=CONCATENATE(Contract!D18,\" JUTE BAGS\")"
+        },
+        {
+          "cell": "E12",
+          "formula": "=Contract!H26"
+        },
+        {
+          "cell": "G12",
+          "formula": "=Contract!D26"
+        },
+        {
+          "cell": "I12",
+          "formula": "=CONCATENATE('Contract-SI-LC'!K28,\" ,ICO NO:\",'Form Configuration'!A12,\"/\",Contract!F54,\", CERT NO: \",Contract!F54,\" ,CROP YEAR:\",'Contract-SI-LC'!F37 )"
+        },
+        {
+          "cell": "I19",
+          "formula": "='Contract-SI-LC'!K32"
+        }
+      ]
+    },
+    "NON-GMO": {
+      "sheet_state": "visible",
+      "used_range": {
+        "min_row": 1,
+        "max_row": 37,
+        "min_col": 1,
+        "max_col": 8
+      },
+      "formula_count_total_est": 15,
+      "labels_sample": [
+        "E3:www.dhakaboracoffee.com",
+        "F6:DATE:",
+        "F7:REF, NO:",
+        "C9:NON-GMO CERTIFICATE",
+        "B13:THE SHIPMENT WHICH IS TO BE SOLD UNDER THE FOLLOWING CONDITION IS FREE FROM GENETICALLY MODIFIED CONTENT.",
+        "B15:SHIPPER:",
+        "B16:NOTIFY:",
+        "B17:2ND NOTIFY:",
+        "B18:DESCRIPTIONOF GOODS:",
+        "B19:CONTRACT NO: | D19:DATED: | E19:10/04/2023",
+        "B20:TERM PRICE:",
+        "C22:QUANTITY IN MTS:",
+        "C23:NO OF BAGS:",
+        "C24:GROSS WEIGHT:",
+        "C25:NET WEIGHT:",
+        "C26:PORT OF LOADING:",
+        "C27:BILL NO:",
+        "C28:VESSEL NAME & VOYAGE NO:",
+        "C29:DISCHARGE PORT:",
+        "B31:HEREBY WE DECLEAR THAT NO GENETICALLY MODIFIED CROP IS GROWN IN ETHIOPIA AND THUS",
+        "B32:THE SHIPMENT IS FREE FROM GENETICALLY MODIFIED CONTENTS."
+      ],
+      "formulas_sample": [
+        {
+          "cell": "C15",
+          "formula": "=_xlfn.CONCAT('Form Configuration'!B1:D1,\",\",'Form Configuration'!B2:D2)"
+        },
+        {
+          "cell": "C16",
+          "formula": "='Contract-SI-LC'!K30"
+        },
+        {
+          "cell": "C17",
+          "formula": "='Contract-SI-LC'!K32"
+        },
+        {
+          "cell": "C18",
+          "formula": "='Contract-SI-LC'!K28"
+        },
+        {
+          "cell": "C19",
+          "formula": "=Contract!C5"
+        },
+        {
+          "cell": "C20",
+          "formula": "='Contract-SI-LC'!K17"
+        },
+        {
+          "cell": "D22",
+          "formula": "=CONCATENATE(Contract!D30,\" MTS\")"
+        },
+        {
+          "cell": "D23",
+          "formula": "='Contract-SI-LC'!F35"
+        },
+        {
+          "cell": "D24",
+          "formula": "=CONCATENATE(Contract!H30,\" MTS\")"
+        },
+        {
+          "cell": "D25",
+          "formula": "=CONCATENATE(Contract!D30,\" MTS\")"
+        },
+        {
+          "cell": "D26",
+          "formula": "='Contract-SI-LC'!K24"
+        },
+        {
+          "cell": "D27",
+          "formula": "=IF(Bookings!B43=\"\",\"\",Bookings!B43)"
+        },
+        {
+          "cell": "D28",
+          "formula": "=CONCATENATE(\"(\",Bookings!C6,\" ,\",Bookings!C7,\")\")"
+        },
+        {
+          "cell": "D29",
+          "formula": "='Contract-SI-LC'!K20"
+        },
+        {
+          "cell": "D35",
+          "formula": "='Form Configuration'!B1"
+        }
+      ]
+    }
+  }
+}

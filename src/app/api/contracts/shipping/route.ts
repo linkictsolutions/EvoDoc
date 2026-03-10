@@ -1,0 +1,70 @@
+import { NextRequest } from "next/server";
+import {
+  validateAndNormalizeShippingInstructionPayload,
+} from "@/domain/contracts";
+import { shippingInstructionInputSchema } from "@/domain/schemas";
+import { requireActor } from "@/lib/auth/server";
+import { fail, getRequestId, ok } from "@/lib/api/response";
+import {
+  appendAuditLog,
+  getContract,
+  upsertContractSourceInput,
+  upsertContract,
+} from "@/lib/repositories/firestore-repository";
+
+export async function POST(request: NextRequest) {
+  const requestId = getRequestId();
+
+  try {
+    const body = await request.json();
+    const parsed = shippingInstructionInputSchema.parse(body);
+    const actor = await requireActor(parsed.orgId, ["admin", "editor"]);
+    const normalized = validateAndNormalizeShippingInstructionPayload(body);
+    const existing = await getContract(parsed.orgId, parsed.contractId);
+
+    const mergedShipping = {
+      ...existing.shipping,
+      ...normalized.shipping,
+    };
+
+    const contractId = await upsertContract(
+      parsed.orgId,
+      parsed.contractId,
+      {
+        orgId: existing.orgId,
+        contractNumber: existing.contractNumber,
+        status: existing.status,
+        terms: existing.terms,
+        shipping: mergedShipping,
+        banking: existing.banking,
+        processing: existing.processing,
+        derived: existing.derived,
+        createdBy: existing.createdBy,
+      },
+      existing.customerId,
+      existing.createdBy || actor.uid,
+    );
+    await upsertContractSourceInput(
+      parsed.orgId,
+      contractId,
+      "shipping_instruction_sheet",
+      normalized.shipping,
+      actor.uid,
+      requestId,
+    );
+
+    await appendAuditLog(
+      parsed.orgId,
+      actor.uid,
+      "contract.shipping.updated",
+      `organizations/${parsed.orgId}/contracts/${contractId}`,
+      { shipping: existing.shipping },
+      { shipping: mergedShipping },
+      requestId,
+    );
+
+    return ok(requestId, { contractId }, 200);
+  } catch (error) {
+    return fail(requestId, (error as Error).message, 400);
+  }
+}
