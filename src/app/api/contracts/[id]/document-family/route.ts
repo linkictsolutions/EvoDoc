@@ -2,16 +2,17 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 import { validateDocumentGenerationRules } from "@/domain/business-rules";
 import {
-  defaultVariantForFamily,
   displayVariant,
   getDocumentFamilyDefinition,
   makePreviewShipment,
   resolveDocumentFamily,
+  resolveVariantForFamily,
 } from "@/domain/documents/catalog";
 import { requireActor } from "@/lib/auth/server";
 import { fail, getRequestId, ok } from "@/lib/api/response";
 import { adminDb } from "@/lib/firebase/admin";
 import {
+  getCompanyConfiguration,
   getContract,
   getCustomer,
   getShipment,
@@ -47,7 +48,7 @@ export async function GET(
 
     const family = parsed.family as DocumentFamily;
     const familyDefinition = getDocumentFamilyDefinition(family);
-    const variant = (parsed.variant ?? defaultVariantForFamily(family)) as DocumentVariant;
+    const variant = resolveVariantForFamily(family, parsed.variant as DocumentVariant | undefined);
 
     const [contract, documents, shipmentSnap] = await Promise.all([
       getContract(orgId, contractId),
@@ -59,7 +60,10 @@ export async function GET(
         .get(),
     ]);
 
-    const customer = await getCustomer(orgId, contract.customerId);
+    const [customer, companyConfiguration] = await Promise.all([
+      getCustomer(orgId, contract.customerId),
+      getCompanyConfiguration(orgId).catch(() => undefined),
+    ]);
     const latestShipmentId = shipmentSnap.empty ? undefined : shipmentSnap.docs[0].id;
     const shipment = latestShipmentId
       ? await getShipment(orgId, contractId, latestShipmentId)
@@ -68,8 +72,7 @@ export async function GET(
     const revisions = documents
       .filter((document) => {
         const existingFamily = document.documentFamily ?? resolveDocumentFamily(document.docType);
-        const existingVariant =
-          document.docVariant ?? (existingFamily === "commercial_invoice" ? "final" : "standard");
+        const existingVariant = resolveVariantForFamily(existingFamily, document.docVariant);
 
         return existingFamily === family && existingVariant === variant;
       })
@@ -79,20 +82,23 @@ export async function GET(
         status: document.status,
         revisionNumber: document.revisionNumber ?? 1,
         generatedAt: document.generatedAt,
-        docVariant: document.docVariant ?? (family === "commercial_invoice" ? "final" : "standard"),
+        docVariant: resolveVariantForFamily(family, document.docVariant),
       }));
 
-    const canPreview = family === "commercial_invoice" && variant === "permit"
+    const canPreview =
+      (family === "commercial_invoice" && variant === "permit")
+      || (family === "packing_list" && variant === "permit")
       ? true
       : Boolean(latestShipmentId);
 
     const currentPreview = canPreview
-      ? buildDocumentOutput(familyDefinition.docType, {
+        ? buildDocumentOutput(familyDefinition.docType, {
           docType: familyDefinition.docType,
           docVariant: variant,
           contract,
           customer,
           shipment,
+          companyConfiguration,
         })
       : null;
 

@@ -4,6 +4,7 @@ loadEnvConfig(process.cwd());
 
 async function seed() {
   const { adminAuth, adminDb } = await import("../src/lib/firebase/admin");
+  const { defaultCompanyConfiguration } = await import("../src/domain/company-configuration");
   const orgId = process.env.NEXT_PUBLIC_DEFAULT_ORG_ID ?? "demo-org";
   const uid = "dev-admin";
   const devAuthEnabled = process.env.NEXT_PUBLIC_ENABLE_DEV_AUTH === "true"
@@ -28,6 +29,15 @@ async function seed() {
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   }, { merge: true });
+
+  await adminDb.doc(`organizations/${orgId}/settings/companyConfiguration`).set(
+    {
+      ...defaultCompanyConfiguration(orgId),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+    { merge: true },
+  );
 
   if (!devAuthEnabled) {
     try {

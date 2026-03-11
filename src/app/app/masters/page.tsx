@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
 export default function MastersPage() {
-  redirect("/app/masters/customers");
+  redirect("/app/masters/company-configuration");
 }

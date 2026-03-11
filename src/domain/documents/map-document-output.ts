@@ -1,4 +1,5 @@
 import { amountToWords } from "@/domain/amount-words";
+import { resolveCompanyConfiguration } from "@/domain/company-configuration";
 import { computeContractExcelParity, resolveContractSiLcFinalFields } from "@/domain/excel-parity";
 import { formatMoney, formatWeight } from "@/domain/rounding";
 import type {
@@ -7,17 +8,26 @@ import type {
   DocumentType,
 } from "@/types/models";
 
-function sellerIdentity() {
-  return "PRAXIS INTERNATIONAL BUSINESS PLC, NIFAS SILK LAFTO SUB CITY, WOREDA 08, HOUSE NO 1986, ADDIS ABABA, ETHIOPIA";
+function sellerIdentity(snapshot: DocumentInputSnapshot) {
+  const companyConfiguration = resolveCompanyConfiguration(
+    snapshot.contract.orgId,
+    snapshot.companyConfiguration,
+  );
+
+  return `${companyConfiguration.sellerName}, ${companyConfiguration.sellerAddress}`;
 }
 
 export function mapDocumentOutput(
   docType: DocumentType,
   snapshot: DocumentInputSnapshot,
 ): DocumentOutputSnapshot {
-  const parity = computeContractExcelParity(snapshot.contract.terms);
+  const companyConfiguration = resolveCompanyConfiguration(
+    snapshot.contract.orgId,
+    snapshot.companyConfiguration,
+  );
+  const parity = computeContractExcelParity(snapshot.contract.terms, companyConfiguration);
   const finalFields = resolveContractSiLcFinalFields(snapshot, parity);
-  const invoiceVariant = snapshot.docVariant ?? "final";
+  const documentVariant = snapshot.docVariant ?? (docType === "shipping_instructions" ? "standard" : "final");
 
   const sharedTotals = {
     totalBags: finalFields.noOfBags,
@@ -29,16 +39,16 @@ export function mapDocumentOutput(
 
   switch (docType) {
     case "invoice":
-      if (invoiceVariant === "permit") {
+      if (documentVariant === "permit") {
         return {
           docType,
-          docVariant: invoiceVariant,
+          docVariant: documentVariant,
           title: "Commercial Invoice - Permit",
           sections: [
             {
               heading: "Parties and Banking",
               rows: [
-                { label: "Shipper", value: sellerIdentity() },
+                { label: "Shipper", value: sellerIdentity(snapshot) },
                 { label: "Applicant", value: finalFields.applicant },
                 { label: "Contract Ref", value: snapshot.contract.contractNumber },
                 {
@@ -60,7 +70,7 @@ export function mapDocumentOutput(
             {
               heading: "Goods and Amount",
               rows: [
-                { label: "HS Code", value: "09011100" },
+                { label: "HS Code", value: companyConfiguration.defaultHsCode },
                 { label: "Packaging & Marking", value: finalFields.bagMarking },
                 { label: "Description", value: finalFields.description },
                 { label: "Quantity (LB)", value: parity.quantityLb.toFixed(3) },
@@ -80,13 +90,13 @@ export function mapDocumentOutput(
 
       return {
         docType,
-        docVariant: invoiceVariant,
+        docVariant: documentVariant,
         title: "Commercial Invoice - Final",
         sections: [
           {
             heading: "Parties and Reference",
             rows: [
-              { label: "Shipper", value: sellerIdentity() },
+              { label: "Shipper", value: sellerIdentity(snapshot) },
               { label: "Applicant", value: finalFields.applicant },
               { label: "Contract Ref", value: snapshot.contract.contractNumber },
               {
@@ -129,15 +139,56 @@ export function mapDocumentOutput(
       };
 
     case "packing_list":
+      if (documentVariant === "permit") {
+        return {
+          docType,
+          docVariant: documentVariant,
+          title: "Packing List - Permit",
+          sections: [
+            {
+              heading: "Parties and Reference",
+              rows: [
+                { label: "Shipper", value: sellerIdentity(snapshot) },
+                { label: "Notify", value: finalFields.notify },
+                { label: "Contract Ref", value: snapshot.contract.contractNumber },
+                {
+                  label: "Contract Date",
+                  value: new Date(snapshot.contract.createdAt).toISOString().slice(0, 10),
+                },
+                { label: "Payment Term", value: finalFields.paymentTerm },
+                { label: "LC Number", value: snapshot.contract.banking.lcNumber ?? "-" },
+                { label: "Delivery Term", value: finalFields.deliveryTerm },
+                { label: "Port of Loading", value: finalFields.portOfLoading },
+                { label: "Port of Discharge", value: finalFields.destination },
+                { label: "Final Destination", value: finalFields.destination },
+              ],
+            },
+            {
+              heading: "Cargo Details",
+              rows: [
+                { label: "HS Code", value: companyConfiguration.defaultHsCode },
+                { label: "Packaging & Marking", value: finalFields.bagMarking },
+                { label: "Description", value: finalFields.description },
+                { label: "Net Weight (KG)", value: parity.quantityKg.toFixed(3) },
+                { label: "Gross Weight (KG)", value: parity.grossWeightKg.toFixed(3) },
+                { label: "No of Bags", value: finalFields.noOfBags },
+                { label: "Full Marking", value: finalFields.bagMarking },
+              ],
+            },
+          ],
+          totals: sharedTotals,
+        };
+      }
+
       return {
         docType,
-        docVariant: "standard",
-        title: "Packing List",
+        docVariant: documentVariant,
+        title: "Packing List - Final",
         sections: [
           {
             heading: "Shipment Overview",
             rows: [
-              { label: "Shipper", value: sellerIdentity() },
+              { label: "Shipper", value: sellerIdentity(snapshot) },
               { label: "Applicant", value: finalFields.applicant },
               { label: "Consignee", value: finalFields.consignee },
               { label: "Contract Ref", value: snapshot.contract.contractNumber },
@@ -178,13 +229,13 @@ export function mapDocumentOutput(
     case "shipping_instructions":
       return {
         docType,
-        docVariant: "standard",
+        docVariant: documentVariant,
         title: "Shipping Instructions",
         sections: [
           {
             heading: "Parties",
             rows: [
-              { label: "Shipper", value: sellerIdentity() },
+              { label: "Shipper", value: sellerIdentity(snapshot) },
               { label: "Consignee", value: finalFields.consignee },
               { label: "Notify", value: finalFields.notify },
               { label: "Second Notify", value: finalFields.secondNotify },

@@ -9,13 +9,19 @@ import { requireActor } from "@/lib/auth/server";
 import { fail, getRequestId, ok } from "@/lib/api/response";
 import {
   appendAuditLog,
+  getCompanyConfiguration,
   createGeneratedDocument,
   getContract,
   getCustomer,
   getShipment,
   listGeneratedDocuments,
 } from "@/lib/repositories/firestore-repository";
-import { defaultVariantForFamily, makePreviewShipment, resolveDocumentFamily } from "@/domain/documents/catalog";
+import {
+  defaultVariantForFamily,
+  makePreviewShipment,
+  resolveDocumentFamily,
+  resolveVariantForFamily,
+} from "@/domain/documents/catalog";
 import { buildDocumentOutput, makeGeneratedDocumentPayload } from "@/lib/workflow/document-generation";
 
 export async function POST(request: NextRequest) {
@@ -26,7 +32,10 @@ export async function POST(request: NextRequest) {
     const parsed = generateDocumentSchema.parse(body);
     const actor = await requireActor(parsed.orgId, ["admin", "editor"]);
     const documentFamily = resolveDocumentFamily(parsed.docType);
-    const docVariant = parsed.docVariant ?? defaultVariantForFamily(documentFamily);
+    const docVariant = resolveVariantForFamily(
+      documentFamily,
+      (parsed.docVariant ?? defaultVariantForFamily(documentFamily)),
+    );
 
     const [contract, shipment, existingDocuments] = await Promise.all([
       getContract(parsed.orgId, parsed.contractId),
@@ -36,12 +45,14 @@ export async function POST(request: NextRequest) {
       listGeneratedDocuments(parsed.orgId, parsed.contractId),
     ]);
 
-    const customer = await getCustomer(parsed.orgId, contract.customerId);
+    const [customer, companyConfiguration] = await Promise.all([
+      getCustomer(parsed.orgId, contract.customerId),
+      getCompanyConfiguration(parsed.orgId).catch(() => undefined),
+    ]);
     const revisionNumber =
       existingDocuments.filter((document) => {
         const existingFamily = document.documentFamily ?? resolveDocumentFamily(document.docType);
-        const existingVariant =
-          document.docVariant ?? (existingFamily === "commercial_invoice" ? "final" : "standard");
+        const existingVariant = resolveVariantForFamily(existingFamily, document.docVariant);
 
         return existingFamily === documentFamily && existingVariant === docVariant;
       }).length + 1;
@@ -52,6 +63,7 @@ export async function POST(request: NextRequest) {
       contract,
       customer,
       shipment,
+      companyConfiguration,
     };
     const generationRules = validateDocumentGenerationRules(inputSnapshot);
     assertNoBusinessRuleErrors(generationRules);

@@ -4,11 +4,12 @@ import { useEffect, useState } from "react";
 import { DocumentPrintTemplate } from "@/components/documents/document-print-template";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
-import type { DocumentOutputSnapshot } from "@/types/models";
+import type { DocumentInputSnapshot, DocumentOutputSnapshot } from "@/types/models";
 
 type PrintPayload = {
   id: string;
   outputSnapshot: DocumentOutputSnapshot;
+  inputSnapshot: DocumentInputSnapshot;
 };
 
 export default function DocumentPrintPage({
@@ -63,14 +64,20 @@ export default function DocumentPrintPage({
   }
 
   return (
-    <main className="page-shell">
-      <section className="card print-controls">
+    <main className="document-print-page">
+      <section className="card print-controls screen-only">
         <h1>Print Preview</h1>
         <button type="button" onClick={() => window.print()}>
           Print
         </button>
       </section>
-      <DocumentPrintTemplate output={payload.outputSnapshot} documentId={payload.id} />
+      <section className="document-print-root">
+        <DocumentPrintTemplate
+          output={payload.outputSnapshot}
+          input={payload.inputSnapshot}
+          documentId={payload.id}
+        />
+      </section>
     </main>
   );
 }

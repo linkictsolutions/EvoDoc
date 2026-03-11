@@ -445,6 +445,92 @@ td {
   padding: 0.28rem 0.35rem;
 }
 
+.document-print-page {
+  display: grid;
+  gap: 1rem;
+}
+
+.document-print-root {
+  width: min(980px, 100%);
+  margin: 0 auto;
+}
+
+.permit-invoice-sheet {
+  width: min(980px, 100%);
+  padding: 0.9rem 0.9rem 1.25rem;
+  color: #111;
+  font-family: "Times New Roman", Times, serif;
+}
+
+.permit-invoice-title {
+  text-align: center;
+  margin-bottom: 0.9rem;
+}
+
+.permit-invoice-title h1 {
+  font-size: 1.1rem;
+  text-decoration: underline;
+  letter-spacing: 0.02em;
+}
+
+.permit-sheet-top-meta {
+  width: 180px;
+  margin-left: auto;
+  margin-bottom: 0.7rem;
+  font-size: 0.75rem;
+  display: grid;
+  gap: 0.15rem;
+  text-decoration: underline;
+}
+
+.permit-invoice-table {
+  table-layout: fixed;
+}
+
+.permit-invoice-table th,
+.permit-invoice-table td {
+  border: 1px solid #2e2e2e;
+  font-size: 0.77rem;
+  padding: 0.18rem 0.26rem;
+  color: #111;
+}
+
+.permit-invoice-table th {
+  background: #fff;
+  font-weight: 700;
+}
+
+.permit-invoice-table td {
+  white-space: pre-wrap;
+}
+
+.permit-invoice-table .permit-goods-cell {
+  min-height: 7.5rem;
+  vertical-align: top;
+}
+
+.permit-full-marking {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 0.5rem;
+  align-items: start;
+  margin-top: 0.85rem;
+  font-family: "Times New Roman", Times, serif;
+}
+
+.permit-full-marking pre {
+  white-space: pre-wrap;
+  font: inherit;
+  line-height: 1.35;
+}
+
+.permit-doc-id {
+  margin-top: 0.75rem;
+  text-align: right;
+  font-size: 0.72rem;
+  color: #555;
+}
+
 .doc-row {
   display: grid;
   grid-template-columns: 220px 1fr;
@@ -667,23 +753,51 @@ td {
 }
 
 @media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm;
+  }
+
   body {
     background: white;
   }
 
   .app-sidebar,
   .app-toolbar,
-  .print-controls {
+  .print-controls,
+  .screen-only {
     display: none;
   }
 
-  .app-body {
+  body * {
+    visibility: hidden;
+  }
+
+  .document-print-root,
+  .document-print-root * {
+    visibility: visible;
+  }
+
+  .document-print-root {
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+    margin: 0;
+  }
+
+  .app-body,
+  .document-print-page {
     padding: 0;
+    margin: 0;
   }
 
   .print-sheet {
     border: none;
     width: 100%;
+    padding: 0;
+  }
+
+  .permit-invoice-sheet {
     padding: 0;
   }
 }

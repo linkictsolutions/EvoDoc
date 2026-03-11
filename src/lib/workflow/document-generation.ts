@@ -55,7 +55,7 @@ export function makeGeneratedDocumentPayload(args: {
     .digest("hex");
 
   return {
-    shipmentId: args.shipmentId,
+    ...(args.shipmentId ? { shipmentId: args.shipmentId } : {}),
     docType: args.docType,
     documentFamily,
     docVariant,

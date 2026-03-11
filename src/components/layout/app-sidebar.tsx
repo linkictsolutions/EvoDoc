@@ -30,6 +30,7 @@ const sections: NavSection[] = [
   {
     title: "Master Data",
     items: [
+      { href: "/app/masters/company-configuration", label: "Company Config", short: "CO", matchPrefix: "/app/masters/company-configuration" },
       { href: "/app/masters/customers", label: "Customers", short: "CU", matchPrefix: "/app/masters/customers" },
       { href: "/app/masters/items", label: "Items", short: "IT", matchPrefix: "/app/masters/items" },
     ],

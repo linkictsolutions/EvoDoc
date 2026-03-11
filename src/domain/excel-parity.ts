@@ -1,10 +1,9 @@
 import Decimal from "decimal.js";
+import { packagingDefinitionFor } from "@/domain/company-configuration";
 import { roundMoney, roundWeight } from "@/domain/rounding";
-import type { ContractTerms, DocumentInputSnapshot } from "@/types/models";
+import type { CompanyConfiguration, ContractTerms, DocumentInputSnapshot } from "@/types/models";
 
-const BULK_REFERENCE_KG = 19200;
 const KG_TO_LB = 2.20462;
-const BAG_TARE_WEIGHT_KG_60 = 0.75;
 
 function normalizeUnit(unit: string): string {
   return unit.trim().toLowerCase();
@@ -18,24 +17,28 @@ function divideSafe(value: Decimal, by: Decimal.Value): Decimal {
   return value.div(denominator);
 }
 
-function resolveQuantityKg(terms: ContractTerms): Decimal {
+function resolveQuantityKg(terms: ContractTerms, companyConfiguration?: CompanyConfiguration): Decimal {
   const quantity = new Decimal(terms.quantityBags);
   const unit = normalizeUnit(terms.packagingUnit);
+  const bag60 = packagingDefinitionFor(companyConfiguration, "Bag of 60Kg");
+  const bag50 = packagingDefinitionFor(companyConfiguration, "Bag of 50Kg");
+  const bag30 = packagingDefinitionFor(companyConfiguration, "Bag of 30Kg");
+  const bulkReferenceKg = companyConfiguration?.bulkReferenceKg ?? 19200;
 
   if (unit === "kg") {
     return quantity;
   }
 
   if (unit === "bag of 60kg") {
-    return quantity.mul(60);
+    return quantity.mul(bag60?.netWeightKg ?? 60);
   }
 
   if (unit === "bag of 50kg") {
-    return quantity.mul(50);
+    return quantity.mul(bag50?.netWeightKg ?? 50);
   }
 
   if (unit === "bag of 30kg") {
-    return quantity.mul(30);
+    return quantity.mul(bag30?.netWeightKg ?? 30);
   }
 
   if (unit === "lbs" || unit === "lb") {
@@ -47,7 +50,7 @@ function resolveQuantityKg(terms: ContractTerms): Decimal {
   }
 
   if (unit === "bulk") {
-    return quantity.mul(BULK_REFERENCE_KG);
+    return quantity.mul(bulkReferenceKg);
   }
 
   // Fallback for free-form values.
@@ -62,6 +65,27 @@ function resolveNoOfBags(terms: ContractTerms, quantityKg: Decimal): Decimal {
   }
 
   return quantityKg.div(60).toDecimalPlaces(0, Decimal.ROUND_HALF_UP);
+}
+
+function resolveTareWeightKg(
+  terms: ContractTerms,
+  companyConfiguration: CompanyConfiguration | undefined,
+): Decimal {
+  const unit = normalizeUnit(terms.packagingUnit);
+
+  if (unit === "bag of 60kg") {
+    return new Decimal(packagingDefinitionFor(companyConfiguration, "Bag of 60Kg")?.tareWeightKg ?? 0.75);
+  }
+
+  if (unit === "bag of 50kg") {
+    return new Decimal(packagingDefinitionFor(companyConfiguration, "Bag of 50Kg")?.tareWeightKg ?? 0.625);
+  }
+
+  if (unit === "bag of 30kg") {
+    return new Decimal(packagingDefinitionFor(companyConfiguration, "Bag of 30Kg")?.tareWeightKg ?? 0.375);
+  }
+
+  return new Decimal(0);
 }
 
 export interface ContractExcelParity {
@@ -81,23 +105,31 @@ export interface ContractExcelParity {
   noOfBags: number;
 }
 
-export function computeContractExcelParity(terms: ContractTerms): ContractExcelParity {
-  const quantityKg = resolveQuantityKg(terms);
+export function computeContractExcelParity(
+  terms: ContractTerms,
+  companyConfiguration?: CompanyConfiguration,
+): ContractExcelParity {
+  const quantityKg = resolveQuantityKg(terms, companyConfiguration);
   const quantityLb = quantityKg.mul(KG_TO_LB);
+  const bag60 = packagingDefinitionFor(companyConfiguration, "Bag of 60Kg");
+  const bag50 = packagingDefinitionFor(companyConfiguration, "Bag of 50Kg");
+  const bag30 = packagingDefinitionFor(companyConfiguration, "Bag of 30Kg");
+  const bulkReferenceKg = companyConfiguration?.bulkReferenceKg ?? 19200;
 
   const priceUnitForPrice = terms.priceUnitForPrice ?? 100;
   const totalPrice = divideSafe(new Decimal(terms.unitPrice), priceUnitForPrice).mul(quantityLb);
 
-  const quantityBag60 = divideSafe(quantityKg, 60);
-  const quantityBag50 = divideSafe(quantityKg, 50);
-  const quantityBag30 = divideSafe(quantityKg, 30);
+  const quantityBag60 = divideSafe(quantityKg, bag60?.netWeightKg ?? 60);
+  const quantityBag50 = divideSafe(quantityKg, bag50?.netWeightKg ?? 50);
+  const quantityBag30 = divideSafe(quantityKg, bag30?.netWeightKg ?? 30);
 
-  const grossWeightKg = quantityKg.plus(quantityBag60.mul(BAG_TARE_WEIGHT_KG_60));
+  const noOfBagsDecimal = resolveNoOfBags(terms, quantityKg);
+  const grossWeightKg = quantityKg.plus(noOfBagsDecimal.mul(resolveTareWeightKg(terms, companyConfiguration)));
   const quantityMt = divideSafe(quantityKg, 1000);
   const grossWeightMt = divideSafe(grossWeightKg, 1000);
 
-  const containerCount = Math.max(1, divideSafe(quantityKg, BULK_REFERENCE_KG).ceil().toNumber());
-  const noOfBags = resolveNoOfBags(terms, quantityKg);
+  const containerCount = Math.max(1, divideSafe(quantityKg, bulkReferenceKg).ceil().toNumber());
+  const noOfBags = noOfBagsDecimal;
 
   return {
     totalPrice: roundMoney(totalPrice),

@@ -164,6 +164,36 @@ export const itemMasterInputSchema = z.object({
   }),
 });
 
+export const companyConfigurationInputSchema = z.object({
+  orgId: z.string().min(1),
+  companyConfiguration: z.object({
+    sellerName: z.string().min(1),
+    sellerAddress: z.string().min(1),
+    sellerAmharicName: z.string().optional(),
+    companyEmail: z.string().email().optional().or(z.literal("")),
+    companyPhone: z.string().optional(),
+    defaultOrigin: z.string().min(1),
+    defaultHsCode: z.string().min(1),
+    icoReferencePrefix: z.string().min(1),
+    placeOfIssue: z.string().min(1),
+    transitorCompanyName: z.string().optional(),
+    transitorPhoneNumber: z.string().optional(),
+    transitorLocation: z.string().optional(),
+    paymentTermCad: z.string().min(1),
+    paymentTermLc: z.string().min(1),
+    paymentTermAdvanceCad: z.string().min(1),
+    paymentTermAdvance: z.string().min(1),
+    bulkReferenceKg: z.number().positive(),
+    packagingDefinitions: z.array(z.object({
+      label: z.string().min(1),
+      uom: z.string().min(1),
+      netWeightKg: z.number().positive(),
+      tareWeightKg: z.number().nonnegative(),
+      grossWeightKg: z.number().positive(),
+    })).min(1),
+  }),
+});
+
 export const bookingLineSchema = z.object({
   lineNo: z.number().int().positive(),
   truckNumber: z.string().optional(),

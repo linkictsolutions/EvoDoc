@@ -87,7 +87,7 @@ export default function DocumentReviewPage({
               </ul>
             </div>
           ) : null}
-          <Link href={`/app/contracts/${contractId}/documents/generated/${docId}/print`}>
+          <Link href={`/app/contracts/${contractId}/documents/generated/${docId}/print`} target="_blank">
             <button type="button" style={{ marginTop: "0.8rem" }}>Open Print View</button>
           </Link>
         </section>

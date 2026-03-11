@@ -18,7 +18,7 @@ export const documentFamilies: DocumentFamilyDefinition[] = [
     family: "packing_list",
     label: "Packing List",
     docType: "packing_list",
-    variants: ["standard"],
+    variants: ["permit", "final"],
   },
   {
     family: "shipping_instruction",
@@ -50,7 +50,22 @@ export function resolveDocumentFamily(docType: DocumentType): DocumentFamily {
 }
 
 export function defaultVariantForFamily(family: DocumentFamily): DocumentVariant {
-  return family === "commercial_invoice" ? "final" : "standard";
+  if (family === "shipping_instruction") {
+    return "standard";
+  }
+
+  return "final";
+}
+
+export function resolveVariantForFamily(
+  family: DocumentFamily,
+  variant?: DocumentVariant,
+): DocumentVariant {
+  if (!variant || variant === "standard") {
+    return defaultVariantForFamily(family);
+  }
+
+  return variant;
 }
 
 export function displayVariant(variant: DocumentVariant): string {

@@ -3,6 +3,7 @@ import { withTimestamps } from "@/domain/contracts";
 import { assertTransition } from "@/domain/workflow";
 import type {
   Actor,
+  CompanyConfiguration,
   Contract,
   ContractSourceInput,
   Customer,
@@ -21,6 +22,10 @@ function nowIso(): string {
 
 function orgPath(orgId: string): string {
   return `organizations/${orgId}`;
+}
+
+function companyConfigurationPath(orgId: string): string {
+  return `${orgPath(orgId)}/settings/companyConfiguration`;
 }
 
 export async function listContracts(orgId: string) {
@@ -97,6 +102,32 @@ export async function listItems(orgId: string) {
     .get();
 
   return snapshot.docs.map((doc) => ({ id: doc.id, ...(doc.data() as Omit<Item, "id">) }));
+}
+
+export async function getCompanyConfiguration(orgId: string) {
+  const ref = adminDb.doc(companyConfigurationPath(orgId));
+  const snap = await ref.get();
+
+  if (!snap.exists) {
+    throw new Error("Company configuration not found");
+  }
+
+  return snap.data() as CompanyConfiguration;
+}
+
+export async function upsertCompanyConfiguration(
+  orgId: string,
+  companyConfiguration: Omit<CompanyConfiguration, "createdAt" | "updatedAt">,
+) {
+  const ref = adminDb.doc(companyConfigurationPath(orgId));
+  const existing = await ref.get();
+
+  await ref.set(
+    withTimestamps(companyConfiguration, existing.data() as { createdAt?: string }),
+    { merge: true },
+  );
+
+  return ref.path;
 }
 
 export async function upsertItem(

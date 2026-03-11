@@ -1,11 +1,8 @@
 import { amountToWords } from "@/domain/amount-words";
+import { resolveCompanyConfiguration } from "@/domain/company-configuration";
 import { buildContractSiLcReport } from "@/domain/contract-si-lc";
 import { computeContractExcelParity } from "@/domain/excel-parity";
-import type { Contract, Customer, Shipment } from "@/types/models";
-
-const DEFAULT_SELLER_NAME = "PRAXIS INTERNATIONAL BUSINESS PLC";
-const DEFAULT_SELLER_ADDRESS = "NIFAS SILK LAFTO SUB CITY, WOREDA 08, HOUSE NO 1986, ADDIS ABABA, ETHIOPIA.";
-const DEFAULT_HS_CODE = "09011100";
+import type { CompanyConfiguration, Contract, Customer, Shipment } from "@/types/models";
 
 interface InvoiceRow {
   rowNumber: number;
@@ -145,13 +142,15 @@ export function buildCommercialInvoiceIccSample(
   contract: Contract,
   customer: Customer,
   latestShipment?: Shipment,
+  companyConfigurationInput?: Partial<CompanyConfiguration> | null,
 ): CommercialInvoiceIccSample {
-  const parity = computeContractExcelParity(contract.terms);
+  const companyConfiguration = resolveCompanyConfiguration(contract.orgId, companyConfigurationInput);
+  const parity = computeContractExcelParity(contract.terms, companyConfiguration);
   const report = buildContractSiLcReport(contract, customer);
   const rowAmount = resolveFromK(report.rows, 12);
   const parsedRowAmount = parseAmount(rowAmount);
   const totalAmount = parsedRowAmount ?? parity.totalPrice;
-  const sellerLine = `${DEFAULT_SELLER_NAME}, ${DEFAULT_SELLER_ADDRESS}`;
+  const sellerLine = `${companyConfiguration.sellerName}, ${companyConfiguration.sellerAddress}`;
 
   const paymentTerm = resolveFromK(report.rows, 16) || clean(contract.terms.paymentTerm);
   const deliveryTerm = resolveFromK(report.rows, 17) || clean(contract.terms.deliveryTerm);
@@ -189,7 +188,7 @@ export function buildCommercialInvoiceIccSample(
     },
     goodsLine: {
       descriptionOfGoods: description,
-      hsCode: DEFAULT_HS_CODE,
+      hsCode: companyConfiguration.defaultHsCode,
       quantityLbNet: parity.quantityLb.toFixed(2),
       quantityKgNet: parity.quantityKg.toFixed(2),
       quantityKgGross: parity.grossWeightKg.toFixed(2),
@@ -203,7 +202,7 @@ export function buildCommercialInvoiceIccSample(
       bankOfBeneficiary: clean(contract.banking.beneficiaryBank),
       beneficiaryBankAddress: clean(contract.banking.bankAddress),
       swiftNumber: clean(contract.banking.receiver),
-      beneficiaryName: DEFAULT_SELLER_NAME,
+      beneficiaryName: companyConfiguration.sellerName,
       beneficiaryAccountNumber: clean(contract.banking.beneficiaryAccountNumber),
       correspondentBankName: clean(contract.banking.correspondentBank),
       correspondentBankAddress: clean(contract.banking.bankAddress),
@@ -211,8 +210,8 @@ export function buildCommercialInvoiceIccSample(
       correspondentAccountNumber: clean(contract.banking.accountNumber),
     },
     footer: {
-      countryOfOrigin: clean(contract.terms.origin),
-      placeOfIssue: "ADDIS ABABA, ETHIOPIA",
+      countryOfOrigin: companyConfiguration.defaultOrigin,
+      placeOfIssue: companyConfiguration.placeOfIssue,
       portOfLoading,
       portOfDischarge: destination,
       finalDestination: destination,
@@ -227,6 +226,7 @@ export function buildCommercialInvoiceIccSample(
     mappingNotes: [
       "Contract-SI-LC final precedence is applied (Revised LC > LC > Revised SI > SI > Contract).",
       "Commercial Invoice(ICC) sample uses row K values for final fields and row F35 for Packaging & Marking label, matching the workbook formulas.",
+      "Workbook-level seller, HS code, and place-of-issue values come from Company Configuration.",
       "Bookings-derived fields are mapped from the latest saved shipment (vessel, voyage, booking reference) when available.",
     ],
   };

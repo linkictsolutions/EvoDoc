@@ -1,6 +1,6 @@
 import { cert, getApps, initializeApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
-import { getFirestore } from "firebase-admin/firestore";
+import { getFirestore, initializeFirestore } from "firebase-admin/firestore";
 
 function parsePrivateKey(value?: string): string | undefined {
   return value?.replace(/\\n/g, "\n");
@@ -28,8 +28,32 @@ function getAdminApp() {
   return initializeApp();
 }
 
-const app = getAdminApp();
+type FirebaseAdminCache = {
+  app?: ReturnType<typeof getAdminApp>;
+  auth?: ReturnType<typeof getAuth>;
+  db?: ReturnType<typeof getFirestore>;
+};
 
-export const adminAuth = getAuth(app);
-export const adminDb = getFirestore(app);
-adminDb.settings({ ignoreUndefinedProperties: true });
+const globalCache = globalThis as typeof globalThis & {
+  __evodocFirebaseAdmin?: FirebaseAdminCache;
+};
+
+const cache = globalCache.__evodocFirebaseAdmin ?? {};
+const app = cache.app ?? getAdminApp();
+const adminAuth = cache.auth ?? getAuth(app);
+const adminDb =
+  cache.db ??
+  initializeFirestore(
+    app,
+    {
+      ignoreUndefinedProperties: true,
+    } as Parameters<typeof initializeFirestore>[1],
+  );
+
+globalCache.__evodocFirebaseAdmin = {
+  app,
+  auth: adminAuth,
+  db: adminDb,
+};
+
+export { adminAuth, adminDb };

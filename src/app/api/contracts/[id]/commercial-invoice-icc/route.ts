@@ -3,7 +3,7 @@ import { buildCommercialInvoiceIccSample } from "@/domain/commercial-invoice-icc
 import { requireActor } from "@/lib/auth/server";
 import { fail, getRequestId, ok } from "@/lib/api/response";
 import { adminDb } from "@/lib/firebase/admin";
-import { getContract, getCustomer } from "@/lib/repositories/firestore-repository";
+import { getCompanyConfiguration, getContract, getCustomer } from "@/lib/repositories/firestore-repository";
 import type { Shipment } from "@/types/models";
 
 export async function GET(
@@ -33,7 +33,8 @@ export async function GET(
       ? undefined
       : ({ id: shipmentSnap.docs[0].id, ...shipmentSnap.docs[0].data() } as Shipment);
 
-    const sample = buildCommercialInvoiceIccSample(contract, customer, latestShipment);
+    const companyConfiguration = await getCompanyConfiguration(orgId).catch(() => undefined);
+    const sample = buildCommercialInvoiceIccSample(contract, customer, latestShipment, companyConfiguration);
     return ok(requestId, sample);
   } catch (error) {
     return fail(requestId, (error as Error).message, 400);

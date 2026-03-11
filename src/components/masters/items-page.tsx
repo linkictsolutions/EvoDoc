@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
-import type { Item } from "@/types/models";
+import type { CompanyConfiguration, Item } from "@/types/models";
 
 type ItemFormState = {
   itemCode: string;
@@ -21,8 +21,8 @@ const initialForm: ItemFormState = {
   itemCode: "",
   name: "",
   description: "",
-  hsCode: "09011100",
-  origin: "Ethiopia",
+  hsCode: "",
+  origin: "",
   grade: "",
   defaultPackagingUnit: "Bag of 60Kg",
   defaultBagWeightKg: "60",
@@ -32,6 +32,7 @@ const initialForm: ItemFormState = {
 export function ItemsPage() {
   const [items, setItems] = useState<Item[]>([]);
   const [form, setForm] = useState<ItemFormState>(initialForm);
+  const [companyConfiguration, setCompanyConfiguration] = useState<CompanyConfiguration | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -52,6 +53,18 @@ export function ItemsPage() {
 
   useEffect(() => {
     void loadItems();
+    void apiClient<CompanyConfiguration>(`/api/company-configuration?orgId=${DEFAULT_ORG_ID}`)
+      .then((data) => {
+        setCompanyConfiguration(data);
+        setForm((current) => ({
+          ...current,
+          hsCode: current.hsCode || data.defaultHsCode,
+          origin: current.origin || data.defaultOrigin,
+        }));
+      })
+      .catch(() => {
+        setCompanyConfiguration(null);
+      });
   }, []);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -78,7 +91,11 @@ export function ItemsPage() {
         }),
       });
 
-      setForm(initialForm);
+      setForm({
+        ...initialForm,
+        hsCode: companyConfiguration?.defaultHsCode ?? "",
+        origin: companyConfiguration?.defaultOrigin ?? "",
+      });
       await loadItems();
     } catch (submitError) {
       setError((submitError as Error).message);

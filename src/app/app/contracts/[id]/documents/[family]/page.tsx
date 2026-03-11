@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { GenerateDocumentButton } from "@/components/forms/document-actions";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
+import { defaultVariantForFamily } from "@/domain/documents/catalog";
 import type { DocumentFamily, DocumentOutputSnapshot, DocumentType, DocumentVariant } from "@/types/models";
 
 type FamilyPayload = {
@@ -55,7 +56,7 @@ export default function ContractDocumentFamilyPage({
 
         setContractId(id);
         setFamily(family);
-        const initialVariant = family === "commercial_invoice" ? "final" : "standard";
+        const initialVariant = defaultVariantForFamily(family);
         setVariant(initialVariant);
       })
       .catch((loadError: Error) => {

@@ -64,6 +64,36 @@ export interface Item extends Timestamped {
   active: boolean;
 }
 
+export interface PackagingDefinition {
+  label: string;
+  uom: string;
+  netWeightKg: number;
+  tareWeightKg: number;
+  grossWeightKg: number;
+}
+
+export interface CompanyConfiguration extends Timestamped {
+  orgId: string;
+  sellerName: string;
+  sellerAddress: string;
+  sellerAmharicName?: string;
+  companyEmail?: string;
+  companyPhone?: string;
+  defaultOrigin: string;
+  defaultHsCode: string;
+  icoReferencePrefix: string;
+  placeOfIssue: string;
+  transitorCompanyName?: string;
+  transitorPhoneNumber?: string;
+  transitorLocation?: string;
+  paymentTermCad: string;
+  paymentTermLc: string;
+  paymentTermAdvanceCad: string;
+  paymentTermAdvance: string;
+  bulkReferenceKg: number;
+  packagingDefinitions: PackagingDefinition[];
+}
+
 export interface ContractTerms {
   quality: string;
   origin: string;
@@ -210,6 +240,7 @@ export interface DocumentInputSnapshot<TDocType extends DocumentType = DocumentT
   contract: Contract;
   customer: Customer;
   shipment: Shipment;
+  companyConfiguration?: CompanyConfiguration;
 }
 
 export interface DocumentOutputSnapshot<TDocType extends DocumentType = DocumentType> {
