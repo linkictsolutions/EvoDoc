@@ -1,4 +1,4 @@
-import { amountToWords } from "@/domain/amount-words";
+import { buildCommercialInvoiceIccSample } from "@/domain/commercial-invoice-icc";
 import { resolveCompanyConfiguration } from "@/domain/company-configuration";
 import { computeContractExcelParity, resolveContractSiLcFinalFields } from "@/domain/excel-parity";
 import { formatMoney, formatWeight } from "@/domain/rounding";
@@ -15,6 +15,10 @@ function sellerIdentity(snapshot: DocumentInputSnapshot) {
   );
 
   return `${companyConfiguration.sellerName}, ${companyConfiguration.sellerAddress}`;
+}
+
+function sectionRowsFromRecord(values: Record<string, string>) {
+  return Object.entries(values).map(([label, value]) => ({ label, value }));
 }
 
 export function mapDocumentOutput(
@@ -46,110 +50,91 @@ export function mapDocumentOutput(
 
   switch (docType) {
     case "invoice":
-      if (documentVariant === "permit") {
+      {
+        const sample = buildCommercialInvoiceIccSample(
+          snapshot.contract,
+          snapshot.customer,
+          snapshot.shipment,
+          companyConfiguration,
+          snapshot.executionData?.bookings,
+        );
+
         return {
           docType,
-          docVariant: documentVariant,
-          title: "Commercial Invoice - Permit",
+          docVariant: "standard",
+          title: "Commercial Invoice (ICC)",
           sections: [
             {
-              heading: "Parties and Banking",
-              rows: [
-                { label: "Shipper", value: sellerIdentity(snapshot) },
-                { label: "Applicant", value: finalFields.applicant },
-                { label: "Contract Ref", value: snapshot.contract.contractNumber },
-                {
-                  label: "Contract Date",
-                  value: new Date(snapshot.contract.createdAt).toISOString().slice(0, 10),
-                },
-                { label: "Payment Term", value: finalFields.paymentTerm },
-                { label: "LC Number", value: snapshot.contract.banking.lcNumber ?? "-" },
-                { label: "Delivery Term", value: finalFields.deliveryTerm },
-                { label: "Port of Loading", value: finalFields.portOfLoading },
-                { label: "Port of Discharge", value: finalFields.destination },
-                { label: "Final Destination", value: finalFields.destination },
-                { label: "Bill of Lading", value: bookings?.billOfLadingNumber ?? "-" },
-                { label: "Vessel", value: bookings?.vesselName ?? "-" },
-                { label: "Voyage", value: bookings?.voyageNo ?? "-" },
-                { label: "Bank of Beneficiary", value: snapshot.contract.banking.beneficiaryBank ?? "-" },
-                { label: "Beneficiary Bank Address", value: snapshot.contract.banking.bankAddress ?? "-" },
-                { label: "SWIFT Number", value: snapshot.contract.banking.receiver ?? "-" },
-                { label: "Beneficiary Account Number", value: snapshot.contract.banking.beneficiaryAccountNumber ?? "-" },
-              ],
+              heading: "ICC Header",
+              rows: sectionRowsFromRecord({
+                Date: sample.header.date,
+                "Ref No": sample.header.refNo,
+                "Sales Contract Ref": sample.header.salesContractRef,
+                "Sales Contract Date": sample.header.salesContractDate,
+                "Exporter/Beneficiary/Seller": sample.header.exporterBeneficiarySeller,
+                "Bank Permit Number": sample.header.bankPermitNumber,
+                "Applicant/Notify": sample.header.applicantNotify,
+                Consignee: sample.header.consignee,
+                "Bill of Lading Number": sample.header.billOfLadingNumber,
+                "Method of Dispatch": sample.header.methodOfDispatch,
+                "ECCSA Certificate of Origin Number": sample.header.eccsaCertificateOfOriginNumber,
+                "Vessel & Voyage Number": sample.header.vesselAndVoyageNumber,
+                "Shipped on Board Date": sample.header.shippedOnBoardDate,
+              }),
             },
             {
-              heading: "Goods and Amount",
-              rows: [
-                { label: "HS Code", value: companyConfiguration.defaultHsCode },
-                { label: "Packaging & Marking", value: finalFields.bagMarking },
-                { label: "Description", value: finalFields.description },
-                { label: "Quantity (LB)", value: parity.quantityLb.toFixed(3) },
-                { label: "Net Weight (KG)", value: parity.quantityKg.toFixed(3) },
-                { label: "Gross Weight (KG)", value: parity.grossWeightKg.toFixed(3) },
-                { label: "No of Bags", value: finalFields.noOfBags },
-                { label: "Unit Price", value: snapshot.contract.terms.unitPrice.toFixed(2) },
-                { label: "Total Price", value: formatMoney(parity.totalPrice, snapshot.contract.terms.currency) },
-                { label: "Amount in Words", value: amountToWords(parity.totalPrice, snapshot.contract.terms.currency) },
-                { label: "Full Marking", value: finalFields.bagMarking },
-              ],
+              heading: "ICC Goods",
+              rows: sectionRowsFromRecord({
+                "Description of Goods": sample.goodsLine.descriptionOfGoods,
+                "HS Code": sample.goodsLine.hsCode,
+                "Quantity in LB (Net)": sample.goodsLine.quantityLbNet,
+                "Quantity in KG (Net)": sample.goodsLine.quantityKgNet,
+                "Quantity in KG (Gross)": sample.goodsLine.quantityKgGross,
+                "Packages in Bags": sample.goodsLine.packagesInBags,
+                "Unit Price USC/LB": sample.goodsLine.unitPriceUscPerLb,
+                "Total Price USD": sample.goodsLine.totalPriceUsd,
+                "Total Amount USD": sample.goodsLine.totalAmountUsd,
+                "Amount in Words": sample.goodsLine.amountInWords,
+              }),
+            },
+            {
+              heading: "ICC Bank Details",
+              rows: sectionRowsFromRecord({
+                "Bank of Beneficiary": sample.bank.bankOfBeneficiary,
+                "Beneficiary Bank Address": sample.bank.beneficiaryBankAddress,
+                "SWIFT Number": sample.bank.swiftNumber,
+                "Beneficiary Name": sample.bank.beneficiaryName,
+                "Beneficiary Account Number": sample.bank.beneficiaryAccountNumber,
+                "Correspondent Bank Name": sample.bank.correspondentBankName,
+                "Correspondent Bank Address": sample.bank.correspondentBankAddress,
+                "Correspondent SWIFT Number": sample.bank.correspondentSwiftNumber,
+                "Correspondent Account Number": sample.bank.correspondentAccountNumber,
+              }),
+            },
+            {
+              heading: "ICC Footer",
+              rows: sectionRowsFromRecord({
+                "Country of Origin": sample.footer.countryOfOrigin,
+                "Place of Issue": sample.footer.placeOfIssue,
+                "Port of Loading": sample.footer.portOfLoading,
+                "Port of Discharge": sample.footer.portOfDischarge,
+                "Final Destination": sample.footer.finalDestination,
+                "Date of Issue": sample.footer.dateOfIssue,
+                "Delivery/Trade Term": sample.footer.deliveryTradeTerm,
+                "Type of Shipment": sample.footer.typeOfShipment,
+                Incoterm: sample.footer.incoterm,
+                "Term/Method of Payment": sample.footer.termMethodOfPayment,
+                "Packaging & Marking (Label)": sample.footer.packagingAndMarkingLabel,
+                "Full Marking": sample.footer.fullMarking,
+              }),
             },
           ],
-          totals: sharedTotals,
+          totals: {
+            ...sharedTotals,
+            totalAmount: sample.goodsLine.totalAmountUsd,
+          },
         };
       }
-
-      return {
-        docType,
-        docVariant: documentVariant,
-        title: "Commercial Invoice - Final",
-        sections: [
-          {
-            heading: "Parties and Reference",
-            rows: [
-              { label: "Shipper", value: sellerIdentity(snapshot) },
-              { label: "Applicant", value: finalFields.applicant },
-              { label: "Contract Ref", value: snapshot.contract.contractNumber },
-              {
-                label: "Contract Date",
-                value: new Date(snapshot.contract.createdAt).toISOString().slice(0, 10),
-              },
-              { label: "Bill of Lading", value: bookings?.billOfLadingNumber ?? "-" },
-              { label: "Vessel", value: bookings?.vesselName ?? "-" },
-              { label: "Voyage", value: bookings?.voyageNo ?? "-" },
-            ],
-          },
-          {
-            heading: "Commercial Terms",
-            rows: [
-              { label: "Payment Term", value: finalFields.paymentTerm },
-              { label: "Delivery Term", value: finalFields.deliveryTerm },
-              { label: "Port of Loading", value: finalFields.portOfLoading },
-              { label: "Destination", value: finalFields.destination },
-              { label: "Description", value: finalFields.description },
-              { label: "Bag Marking", value: finalFields.bagMarking },
-            ],
-          },
-          {
-            heading: "Weights and Price",
-            rows: [
-              { label: "No of Bags", value: finalFields.noOfBags },
-              { label: "Quantity (LB)", value: parity.quantityLb.toFixed(3) },
-              { label: "Net Weight (KG)", value: parity.quantityKg.toFixed(3) },
-              { label: "Gross Weight (KG)", value: parity.grossWeightKg.toFixed(3) },
-              { label: "Unit Price", value: snapshot.contract.terms.unitPrice.toFixed(2) },
-              {
-                label: "Total Price",
-                value: formatMoney(parity.totalPrice, snapshot.contract.terms.currency),
-              },
-              {
-                label: "Amount in Words",
-                value: amountToWords(parity.totalPrice, snapshot.contract.terms.currency),
-              },
-            ],
-          },
-        ],
-        totals: sharedTotals,
-      };
 
     case "packing_list":
       if (documentVariant === "permit") {

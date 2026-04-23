@@ -4,10 +4,11 @@ import { useEffect, useState } from "react";
 import { DocumentPrintTemplate } from "@/components/documents/document-print-template";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
-import type { DocumentInputSnapshot, DocumentOutputSnapshot } from "@/types/models";
+import type { CompanyConfiguration, DocumentInputSnapshot, DocumentOutputSnapshot } from "@/types/models";
 
 type PrintPayload = {
   id: string;
+  isFinal?: boolean;
   outputSnapshot: DocumentOutputSnapshot;
   inputSnapshot: DocumentInputSnapshot;
 };
@@ -24,12 +25,21 @@ export default function DocumentPrintPage({
     let mounted = true;
     Promise.resolve(params)
       .then(async ({ id, docId }) => {
-        const data = await apiClient<PrintPayload>(
-          `/api/documents/${docId}/print-data?orgId=${DEFAULT_ORG_ID}&contractId=${id}`,
-        );
+        const [data, companyConfiguration] = await Promise.all([
+          apiClient<PrintPayload>(
+            `/api/documents/${docId}/print-data?orgId=${DEFAULT_ORG_ID}&contractId=${id}`,
+          ),
+          apiClient<CompanyConfiguration>(`/api/company-configuration?orgId=${DEFAULT_ORG_ID}`),
+        ]);
 
         if (mounted) {
-          setPayload(data);
+          setPayload({
+            ...data,
+            inputSnapshot: {
+              ...data.inputSnapshot,
+              companyConfiguration,
+            },
+          });
         }
       })
       .catch((loadError: Error) => {
@@ -76,6 +86,7 @@ export default function DocumentPrintPage({
           output={payload.outputSnapshot}
           input={payload.inputSnapshot}
           documentId={payload.id}
+          isFinal={payload.isFinal ?? false}
         />
       </section>
     </main>

@@ -1,5 +1,10 @@
 import { companyConfigurationInputSchema } from "@/domain/schemas";
-import type { CompanyConfiguration, PackagingDefinition } from "@/types/models";
+import type {
+  CompanyConfiguration,
+  DocumentBrandingSettings,
+  DocumentBrandingSlotSettings,
+  PackagingDefinition,
+} from "@/types/models";
 
 const DEFAULT_PACKAGING_DEFINITIONS: PackagingDefinition[] = [
   {
@@ -33,6 +38,27 @@ function cleanOptional(value?: string): string | undefined {
 const DEFAULT_PAYMENT_TERMS = ["CAD", "LC", "Advance & CAD", "Advance"];
 const DEFAULT_DELIVERY_TERMS = ["F.O.B"];
 const DEFAULT_PRICE_UOMS = ["Lbs", "Bag of 60Kg", "Bag of 50Kg", "Bag of 30Kg", "Kg", "Metric Ton"];
+const MAX_BRANDING_IMAGE_DATA_URL_LENGTH = 950_000;
+
+const DEFAULT_DOCUMENT_BRANDING: DocumentBrandingSettings = {
+  header: {
+    heightMm: 24,
+    fit: "contain",
+    positionXPercent: 50,
+    positionYPercent: 50,
+  },
+  footer: {
+    heightMm: 20,
+    fit: "contain",
+    positionXPercent: 50,
+    positionYPercent: 50,
+  },
+  applyByDocType: {
+    invoice: { header: false, footer: false },
+    packing_list: { header: false, footer: false },
+    shipping_instructions: { header: false, footer: false },
+  },
+};
 
 type LegacyPaymentTermFields = {
   paymentTermCad?: string;
@@ -122,6 +148,61 @@ function normalizePackagingDefinition(
   };
 }
 
+function cleanImageDataUrl(value?: string): string | undefined {
+  const normalized = value?.trim();
+  if (!normalized) {
+    return undefined;
+  }
+
+  if (!normalized.startsWith("data:image/")) {
+    return undefined;
+  }
+
+  return normalized.slice(0, MAX_BRANDING_IMAGE_DATA_URL_LENGTH);
+}
+
+function normalizeBrandingSlot(
+  slot: Partial<DocumentBrandingSlotSettings> | undefined,
+  defaults: DocumentBrandingSlotSettings,
+): DocumentBrandingSlotSettings {
+  return {
+    imageDataUrl: cleanImageDataUrl(slot?.imageDataUrl),
+    heightMm: slot?.heightMm ?? defaults.heightMm,
+    fit: slot?.fit ?? defaults.fit,
+    positionXPercent: slot?.positionXPercent ?? defaults.positionXPercent,
+    positionYPercent: slot?.positionYPercent ?? defaults.positionYPercent,
+  };
+}
+
+function resolveDocumentBranding(
+  configuration?: Partial<CompanyConfiguration> | null,
+): DocumentBrandingSettings {
+  return {
+    header: normalizeBrandingSlot(configuration?.documentBranding?.header, DEFAULT_DOCUMENT_BRANDING.header),
+    footer: normalizeBrandingSlot(configuration?.documentBranding?.footer, DEFAULT_DOCUMENT_BRANDING.footer),
+    applyByDocType: {
+      invoice: {
+        header: configuration?.documentBranding?.applyByDocType?.invoice?.header
+          ?? DEFAULT_DOCUMENT_BRANDING.applyByDocType.invoice.header,
+        footer: configuration?.documentBranding?.applyByDocType?.invoice?.footer
+          ?? DEFAULT_DOCUMENT_BRANDING.applyByDocType.invoice.footer,
+      },
+      packing_list: {
+        header: configuration?.documentBranding?.applyByDocType?.packing_list?.header
+          ?? DEFAULT_DOCUMENT_BRANDING.applyByDocType.packing_list.header,
+        footer: configuration?.documentBranding?.applyByDocType?.packing_list?.footer
+          ?? DEFAULT_DOCUMENT_BRANDING.applyByDocType.packing_list.footer,
+      },
+      shipping_instructions: {
+        header: configuration?.documentBranding?.applyByDocType?.shipping_instructions?.header
+          ?? DEFAULT_DOCUMENT_BRANDING.applyByDocType.shipping_instructions.header,
+        footer: configuration?.documentBranding?.applyByDocType?.shipping_instructions?.footer
+          ?? DEFAULT_DOCUMENT_BRANDING.applyByDocType.shipping_instructions.footer,
+      },
+    },
+  };
+}
+
 export function defaultCompanyConfiguration(orgId: string): CompanyConfiguration {
   return {
     orgId,
@@ -140,6 +221,7 @@ export function defaultCompanyConfiguration(orgId: string): CompanyConfiguration
     paymentTerms: DEFAULT_PAYMENT_TERMS,
     deliveryTerms: DEFAULT_DELIVERY_TERMS,
     priceUoms: DEFAULT_PRICE_UOMS,
+    documentBranding: DEFAULT_DOCUMENT_BRANDING,
     bulkReferenceKg: 19200,
     packagingDefinitions: DEFAULT_PACKAGING_DEFINITIONS,
     createdAt: new Date(0).toISOString(),
@@ -174,6 +256,7 @@ export function resolveCompanyConfiguration(
     paymentTerms: resolvePaymentTerms(configuration),
     deliveryTerms: resolveDeliveryTerms(configuration),
     priceUoms: resolvePriceUoms(configuration),
+    documentBranding: resolveDocumentBranding(configuration),
     bulkReferenceKg: configuration?.bulkReferenceKg ?? defaults.bulkReferenceKg,
     packagingDefinitions:
       configuration?.packagingDefinitions?.map(normalizePackagingDefinition) ??
@@ -211,6 +294,7 @@ export function validateAndNormalizeCompanyConfigurationPayload(
       paymentTerms: normalizePaymentTerms(normalized.paymentTerms),
       deliveryTerms: normalizePaymentTerms(normalized.deliveryTerms),
       priceUoms: normalizePaymentTerms(normalized.priceUoms),
+      documentBranding: resolveDocumentBranding(normalized),
       bulkReferenceKg: normalized.bulkReferenceKg,
       packagingDefinitions: normalized.packagingDefinitions.map(normalizePackagingDefinition),
     },

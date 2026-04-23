@@ -10,9 +10,9 @@ export interface DocumentFamilyDefinition {
 export const documentFamilies: DocumentFamilyDefinition[] = [
   {
     family: "commercial_invoice",
-    label: "Commercial Invoice",
+    label: "Commercial Invoice (ICC)",
     docType: "invoice",
-    variants: ["permit", "final"],
+    variants: ["standard"],
   },
   {
     family: "packing_list",
@@ -50,7 +50,7 @@ export function resolveDocumentFamily(docType: DocumentType): DocumentFamily {
 }
 
 export function defaultVariantForFamily(family: DocumentFamily): DocumentVariant {
-  if (family === "shipping_instruction") {
+  if (family === "shipping_instruction" || family === "commercial_invoice") {
     return "standard";
   }
 
@@ -61,6 +61,10 @@ export function resolveVariantForFamily(
   family: DocumentFamily,
   variant?: DocumentVariant,
 ): DocumentVariant {
+  if (family === "commercial_invoice") {
+    return "standard";
+  }
+
   if (!variant || variant === "standard") {
     return defaultVariantForFamily(family);
   }

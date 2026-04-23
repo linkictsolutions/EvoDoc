@@ -71,6 +71,25 @@ export interface PackagingDefinition {
   grossWeightKg: number;
 }
 
+export interface DocumentBrandingSlotSettings {
+  imageDataUrl?: string;
+  heightMm: number;
+  fit: "cover" | "contain";
+  positionXPercent: number;
+  positionYPercent: number;
+}
+
+export interface DocumentBrandingToggle {
+  header: boolean;
+  footer: boolean;
+}
+
+export interface DocumentBrandingSettings {
+  header: DocumentBrandingSlotSettings;
+  footer: DocumentBrandingSlotSettings;
+  applyByDocType: Record<DocumentType, DocumentBrandingToggle>;
+}
+
 export interface CompanyConfiguration extends Timestamped {
   orgId: string;
   sellerName: string;
@@ -88,6 +107,7 @@ export interface CompanyConfiguration extends Timestamped {
   paymentTerms: string[];
   deliveryTerms: string[];
   priceUoms: string[];
+  documentBranding: DocumentBrandingSettings;
   bulkReferenceKg: number;
   packagingDefinitions: PackagingDefinition[];
 }
@@ -356,6 +376,9 @@ export interface GeneratedDocument extends Timestamped {
   approvedSnapshotHash?: string;
   inputSnapshot: DocumentInputSnapshot;
   outputSnapshot: DocumentOutputSnapshot;
+  isFinal?: boolean;
+  finalizedAt?: string;
+  finalizedBy?: string;
   printUrl?: string;
   generatedAt: string;
   generatedBy: string;

@@ -184,6 +184,36 @@ export const companyConfigurationInputSchema = z.object({
     paymentTerms: z.array(z.string().min(1)).min(1),
     deliveryTerms: z.array(z.string().min(1)).min(1),
     priceUoms: z.array(z.string().min(1)).min(1),
+    documentBranding: z.object({
+      header: z.object({
+        imageDataUrl: z.string().optional(),
+        heightMm: z.number().positive(),
+        fit: z.enum(["cover", "contain"]),
+        positionXPercent: z.number().min(0).max(100),
+        positionYPercent: z.number().min(0).max(100),
+      }),
+      footer: z.object({
+        imageDataUrl: z.string().optional(),
+        heightMm: z.number().positive(),
+        fit: z.enum(["cover", "contain"]),
+        positionXPercent: z.number().min(0).max(100),
+        positionYPercent: z.number().min(0).max(100),
+      }),
+      applyByDocType: z.object({
+        invoice: z.object({
+          header: z.boolean(),
+          footer: z.boolean(),
+        }),
+        packing_list: z.object({
+          header: z.boolean(),
+          footer: z.boolean(),
+        }),
+        shipping_instructions: z.object({
+          header: z.boolean(),
+          footer: z.boolean(),
+        }),
+      }),
+    }),
     bulkReferenceKg: z.number().positive(),
     packagingDefinitions: z.array(z.object({
       label: z.string().min(1),

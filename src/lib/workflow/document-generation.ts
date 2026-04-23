@@ -61,6 +61,7 @@ export function makeGeneratedDocumentPayload(args: {
     docVariant,
     revisionNumber: args.revisionNumber,
     status: "draft",
+    isFinal: false,
     templateVersion: args.templateVersion,
     logicVersion: getLogicVersion(),
     snapshotHash,

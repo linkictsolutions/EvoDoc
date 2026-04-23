@@ -251,7 +251,7 @@ function prettifySegment(segment: string): string {
     "bank-lc": "Bank & LC",
     "contract-si-lc": "Contract-SI-LC",
     "commercial-invoice-icc": "Commercial Invoice ICC",
-    "commercial_invoice": "Commercial Invoice",
+    "commercial_invoice": "Commercial Invoice (ICC)",
     "packing_list": "Packing List",
     "shipping_instruction": "Shipping Instruction",
   };

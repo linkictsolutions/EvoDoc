@@ -5,14 +5,15 @@ import { useEffect, useState } from "react";
 import { ReviewActions } from "@/components/forms/document-actions";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
-import type { DocumentOutputSnapshot } from "@/types/models";
+import type { DocumentOutputSnapshot, DocumentType } from "@/types/models";
 
 type PrintPayload = {
   id: string;
-  docType: string;
+  docType: DocumentType;
   docVariant?: string;
   revisionNumber?: number;
   status: string;
+  isFinal?: boolean;
   snapshotHash: string;
   approvedSnapshotHash?: string;
   validationWarnings?: string[];
@@ -75,6 +76,14 @@ export default function DocumentReviewPage({
             <strong>Status:</strong>{" "}
             <span className={`status-pill status-${data.status.toLowerCase().replace(/\s+/g, "-")}`}>{data.status}</span>
           </p>
+          {data.docType === "invoice" ? (
+            <p>
+              <strong>Invoice State:</strong>{" "}
+              <span className={`status-pill ${data.isFinal ? "status-approved" : "status-draft"}`}>
+                {data.isFinal ? "Final" : "Original"}
+              </span>
+            </p>
+          ) : null}
           <p><strong>Title:</strong> {data.outputSnapshot.title}</p>
           <p><strong>Snapshot Hash:</strong> <code>{data.snapshotHash}</code></p>
           {data.approvedSnapshotHash ? (
@@ -98,7 +107,17 @@ export default function DocumentReviewPage({
         <section className="card"><p>Loading document...</p></section>
       )}
 
-      {contractId && docId ? <ReviewActions contractId={contractId} documentId={docId} /> : null}
+      {contractId && docId && data ? (
+        <ReviewActions
+          contractId={contractId}
+          documentId={docId}
+          docType={data.docType}
+          isFinal={Boolean(data.isFinal)}
+          onMarkedFinal={() => {
+            setData((current) => (current ? { ...current, isFinal: true } : current));
+          }}
+        />
+      ) : null}
     </section>
   );
 }

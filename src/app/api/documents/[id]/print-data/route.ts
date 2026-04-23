@@ -28,6 +28,7 @@ export async function GET(
       docVariant: document.docVariant,
       revisionNumber: document.revisionNumber,
       status: document.status,
+      isFinal: document.isFinal ?? false,
       snapshotHash: document.snapshotHash,
       approvedSnapshotHash: document.approvedSnapshotHash,
       validationWarnings: document.validationWarnings ?? [],

@@ -1,9 +1,12 @@
-import type { DocumentInputSnapshot, DocumentOutputSnapshot } from "@/types/models";
+import type { CSSProperties, ReactNode } from "react";
+import { resolveCompanyConfiguration } from "@/domain/company-configuration";
+import type { DocumentInputSnapshot, DocumentOutputSnapshot, DocumentType } from "@/types/models";
 
 type Props = {
   output: DocumentOutputSnapshot;
   documentId: string;
   input?: DocumentInputSnapshot;
+  isFinal?: boolean;
 };
 
 type Row = { label: string; value: string };
@@ -16,227 +19,174 @@ function value(rows: Row[], label: string): string {
   return rows.find((row) => row.label === label)?.value ?? "-";
 }
 
-function PermitInvoicePrintView({ output, documentId, input }: Props) {
+function display(value: string | undefined): string {
+  if (!value) {
+    return "";
+  }
+
+  const normalized = value.trim();
+  if (!normalized || normalized === "-") {
+    return "";
+  }
+
+  return value;
+}
+
+function IccInvoicePrintView({ output, documentId, isFinal }: Props) {
   const rows = flattenRows(output);
-  const shipper = value(rows, "Shipper");
-  const applicant = value(rows, "Applicant");
-  const contractRef = value(rows, "Contract Ref");
-  const contractDate = value(rows, "Contract Date");
-  const paymentTerm = value(rows, "Payment Term");
-  const lcNumber = value(rows, "LC Number");
-  const deliveryTerm = value(rows, "Delivery Term");
-  const portOfLoading = value(rows, "Port of Loading");
-  const portOfDischarge = value(rows, "Port of Discharge");
-  const finalDestination = value(rows, "Final Destination");
-  const hsCode = value(rows, "HS Code");
-  const packagingMarking = value(rows, "Packaging & Marking");
-  const description = value(rows, "Description");
-  const quantityLb = value(rows, "Quantity (LB)");
-  const netWeightKg = value(rows, "Net Weight (KG)");
-  const grossWeightKg = value(rows, "Gross Weight (KG)");
-  const noOfBags = value(rows, "No of Bags");
-  const unitPrice = value(rows, "Unit Price");
-  const totalPrice = value(rows, "Total Price");
-  const amountInWords = value(rows, "Amount in Words");
-  const bankOfBeneficiary = value(rows, "Bank of Beneficiary");
-  const bankAddress = value(rows, "Beneficiary Bank Address");
-  const swiftNumber = value(rows, "SWIFT Number");
-  const beneficiaryAccountNumber = value(rows, "Beneficiary Account Number");
-  const fullMarking = value(rows, "Full Marking");
-  const sellerName = input?.companyConfiguration?.sellerName ?? shipper.split(",")[0] ?? shipper;
 
   return (
-    <article className="print-sheet permit-invoice-sheet">
-      <header className="permit-invoice-title">
-        <h1>COMMERCIAL INVOICE</h1>
-      </header>
-
-      <table className="print-table permit-invoice-table">
+    <article className="print-sheet icc-sheet">
+      <table className="print-table icc-table">
         <tbody>
           <tr>
-            <th>SHIPPER</th>
-            <td colSpan={6}>{shipper}</td>
+            <td colSpan={5}><strong>COMMERCIAL INVOICE</strong></td>
+            <td colSpan={5} className="table-align-right">
+              <strong>PAGE 1 OF 1 | {isFinal ? "FINAL" : "ORIGINAL"}</strong>
+            </td>
           </tr>
           <tr>
-            <th>APPLICANTS NAME</th>
-            <td colSpan={6}>{applicant}</td>
+            <td colSpan={5}><strong>Date:</strong> {display(value(rows, "Date"))}</td>
+            <td colSpan={3}><strong>Sales Contract Ref:</strong> {display(value(rows, "Sales Contract Ref"))}</td>
+            <td colSpan={2}><strong>Ref No:</strong> {display(value(rows, "Ref No"))}</td>
           </tr>
           <tr>
-            <th>REFERENCE</th>
-            <th>SALES CONTRACT REF. NO</th>
-            <td>{contractRef}</td>
-            <th>DATED</th>
-            <td colSpan={3}>{contractDate}</td>
+            <td colSpan={5}><strong>Ref No:</strong> {display(value(rows, "Ref No"))}</td>
+            <td colSpan={5}><strong>Sales Contract Date:</strong> {display(value(rows, "Sales Contract Date"))}</td>
           </tr>
           <tr>
-            <th>IF TERM OF PAYMENT</th>
-            <td colSpan={6}>{paymentTerm}</td>
+            <td colSpan={5}><strong>Exporter/Beneficiary/Seller</strong><br />{display(value(rows, "Exporter/Beneficiary/Seller"))}</td>
+            <td colSpan={5}><strong>Bank Permit Number:</strong> {display(value(rows, "Bank Permit Number"))}</td>
           </tr>
           <tr>
-            <th>L.C NO</th>
-            <td colSpan={6}>{lcNumber}</td>
+            <td colSpan={5}><strong>Applicant/Notify</strong><br />{display(value(rows, "Applicant/Notify"))}</td>
+            <td colSpan={5}><strong>Bill of Lading Number:</strong> {display(value(rows, "Bill of Lading Number"))}</td>
           </tr>
           <tr>
-            <th>DELIVEY TERM</th>
-            <td>{deliveryTerm}</td>
-            <th>PORT OF LOADING</th>
-            <td colSpan={4}>{portOfLoading}</td>
+            <td colSpan={5}><strong>Consignee</strong><br />{display(value(rows, "Consignee"))}</td>
+            <td colSpan={5}><strong>Method of Dispatch:</strong> {display(value(rows, "Method of Dispatch"))}</td>
           </tr>
           <tr>
-            <th>PORT OF DISCHARGE</th>
-            <td>{portOfDischarge}</td>
-            <th>FINAL DESTINATION</th>
-            <td colSpan={4}>{finalDestination}</td>
+            <td colSpan={5}><strong>ECCSA - Certificate of Origin Number:</strong> {display(value(rows, "ECCSA Certificate of Origin Number"))}</td>
+            <td colSpan={5}><strong>Vessel &amp; Voyage Number:</strong> {display(value(rows, "Vessel & Voyage Number"))}</td>
           </tr>
           <tr>
-            <th>HS CODE</th>
-            <td colSpan={6}>{hsCode}</td>
-          </tr>
-          <tr>
-            <th>PACKAGING &amp; MARKING</th>
-            <td colSpan={6}>{packagingMarking}</td>
-          </tr>
-          <tr>
-            <th rowSpan={3}>DESCRIPTION OF GOODS</th>
-            <th>QUANTITY IN LB</th>
-            <th colSpan={2}>QUANTITY IN KG</th>
-            <th>PACKAGES IN BAGS</th>
-            <th>UNIT PRICE USC/LB</th>
-            <th>TOTAL AMOUNT IN USD</th>
-          </tr>
-          <tr>
-            <th>NET</th>
-            <th>NET</th>
-            <th>GROSS</th>
-            <th rowSpan={2}>{noOfBags}</th>
-            <th rowSpan={2}>{unitPrice}</th>
-            <th rowSpan={2}>{totalPrice}</th>
-          </tr>
-          <tr>
-            <td className="permit-goods-cell">{description}</td>
-            <td>{quantityLb}</td>
-            <td>{netWeightKg}</td>
-            <td>{grossWeightKg}</td>
-          </tr>
-          <tr>
-            <th>TOTAL USD</th>
-            <td colSpan={6}>{amountInWords}</td>
-          </tr>
-          <tr>
-            <th colSpan={7}>BENEFICIARY ACCOUNT DETAILS</th>
-          </tr>
-          <tr>
-            <th>BANK OF BENEFICIARY:</th>
-            <td colSpan={6}>{bankOfBeneficiary}</td>
-          </tr>
-          <tr>
-            <th>ADDRESS OF BANK:</th>
-            <td colSpan={6}>{bankAddress}</td>
-          </tr>
-          <tr>
-            <th>SWIFT NUMBER:</th>
-            <td colSpan={6}>{swiftNumber}</td>
-          </tr>
-          <tr>
-            <th>NAME OF BENEFICIARY (ACC. NAME):</th>
-            <td colSpan={6}>{sellerName}</td>
-          </tr>
-          <tr>
-            <th>BENEFICIERIES ACC. NO:</th>
-            <td colSpan={6}>{beneficiaryAccountNumber}</td>
+            <td colSpan={5}></td>
+            <td colSpan={5}><strong>Shipped on Board Date:</strong> {display(value(rows, "Shipped on Board Date"))}</td>
           </tr>
         </tbody>
       </table>
 
-      <section className="permit-full-marking">
-        <strong>FULL MARKING:</strong>
-        <pre>{fullMarking}</pre>
-      </section>
+      <table className="print-table icc-table mt-sm">
+        <thead>
+          <tr>
+            <th>S / N</th>
+            <th>DESCRIPTION OF GOODS</th>
+            <th>HS CODE</th>
+            <th>QUANTITY IN LB (NET)</th>
+            <th>QUANTITY IN KG (NET)</th>
+            <th>QUANTITY IN KG (GROSS)</th>
+            <th>PACKAGES IN BAGS</th>
+            <th>UNIT PRICE USC/LB</th>
+            <th>TOTAL PRICE USD</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>{display(value(rows, "Description of Goods"))}</td>
+            <td>{display(value(rows, "HS Code"))}</td>
+            <td>{display(value(rows, "Quantity in LB (Net)"))}</td>
+            <td>{display(value(rows, "Quantity in KG (Net)"))}</td>
+            <td>{display(value(rows, "Quantity in KG (Gross)"))}</td>
+            <td>{display(value(rows, "Packages in Bags"))}</td>
+            <td>{display(value(rows, "Unit Price USC/LB"))}</td>
+            <td>{display(value(rows, "Total Price USD"))}</td>
+          </tr>
+          <tr>
+            <td colSpan={8} className="table-align-right"><strong>TOTAL AMOUNT IN USD</strong></td>
+            <td><strong>{display(value(rows, "Total Amount USD"))}</strong></td>
+          </tr>
+          <tr>
+            <td colSpan={9}><strong>AMOUNT IN WORDS:</strong> {display(value(rows, "Amount in Words"))}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table className="print-table icc-table mt-sm">
+        <tbody>
+          <tr>
+            <td colSpan={5}><strong>Bank Details (Beneficiary)</strong></td>
+            <td colSpan={4}><strong>Correspondent Bank</strong></td>
+          </tr>
+          <tr>
+            <td colSpan={3}><strong>Bank of Beneficiary:</strong> {display(value(rows, "Bank of Beneficiary"))}</td>
+            <td colSpan={2}><strong>Address of Bank:</strong> {display(value(rows, "Beneficiary Bank Address"))}</td>
+            <td colSpan={2}><strong>Bank Name:</strong> {display(value(rows, "Correspondent Bank Name"))}</td>
+            <td colSpan={2}><strong>Address:</strong> {display(value(rows, "Correspondent Bank Address"))}</td>
+          </tr>
+          <tr>
+            <td colSpan={3}><strong>Name of Beneficiary:</strong> {display(value(rows, "Beneficiary Name"))}</td>
+            <td colSpan={2}><strong>SWIFT Number:</strong> {display(value(rows, "SWIFT Number"))}</td>
+            <td colSpan={2}><strong>SWIFT Number:</strong> {display(value(rows, "Correspondent SWIFT Number"))}</td>
+            <td colSpan={2}><strong>Acc. No:</strong> {display(value(rows, "Correspondent Account Number"))}</td>
+          </tr>
+          <tr>
+            <td colSpan={5}><strong>Beneficiaries Acc. No:</strong> {display(value(rows, "Beneficiary Account Number"))}</td>
+            <td colSpan={4}></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table className="print-table icc-table mt-sm">
+        <tbody>
+          <tr>
+            <td><strong>Country of Origin:</strong> {display(value(rows, "Country of Origin"))}</td>
+            <td><strong>Place of Issue:</strong> {display(value(rows, "Place of Issue"))}</td>
+          </tr>
+          <tr>
+            <td><strong>Port of Loading:</strong> {display(value(rows, "Port of Loading"))}</td>
+            <td><strong>Date of Issue:</strong> {display(value(rows, "Date of Issue"))}</td>
+          </tr>
+          <tr>
+            <td><strong>Port of Discharge:</strong> {display(value(rows, "Port of Discharge"))}</td>
+            <td><strong>Signatory Company:</strong> -</td>
+          </tr>
+          <tr>
+            <td><strong>Final Destination:</strong> {display(value(rows, "Final Destination"))}</td>
+            <td><strong>Name of Authorized Signatory:</strong> -</td>
+          </tr>
+          <tr>
+            <td><strong>Delivery/Trade Term:</strong> {display(value(rows, "Delivery/Trade Term"))}</td>
+            <td rowSpan={2}>
+              We hereby certify that this invoice is in all respects correct and true, as regards to both
+              the prices and description of the goods referred to herein, and that the country of origin
+              of the goods is Ethiopia.
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Type of Shipment:</strong> {display(value(rows, "Type of Shipment"))}</td>
+          </tr>
+          <tr>
+            <td><strong>Incoterm:</strong> {display(value(rows, "Incoterm"))}</td>
+            <td><strong>Authorized Signature &amp; Company Seal/Stamp</strong></td>
+          </tr>
+          <tr>
+            <td><strong>Term/Method of Payment:</strong> {display(value(rows, "Term/Method of Payment"))}</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td><strong>Packaging &amp; Marking (Label):</strong> {display(value(rows, "Packaging & Marking (Label)"))}</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td><strong>FULL MARKING</strong><br />{display(value(rows, "Full Marking"))}</td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
 
       <p className="permit-doc-id">Document ID: {documentId}</p>
-    </article>
-  );
-}
-
-function InvoicePrintView({ output, documentId }: Props) {
-  const rows = flattenRows(output);
-  const shipper = value(rows, "Shipper");
-
-  return (
-    <article className="print-sheet print-invoice">
-      <header className="doc-header doc-header-stack">
-        <div>
-          <p className="doc-company">{shipper}</p>
-        </div>
-        <div className="doc-header-right">
-          <p className="doc-meta">COMMERCIAL INVOICE</p>
-          <p className="doc-meta">Document ID: {documentId}</p>
-        </div>
-      </header>
-
-      <section className="doc-section">
-        <table className="print-table">
-          <tbody>
-            <tr>
-              <th>Shipper</th>
-              <td>{value(rows, "Shipper")}</td>
-              <th>Applicant</th>
-              <td>{value(rows, "Applicant")}</td>
-            </tr>
-            <tr>
-              <th>Contract Ref</th>
-              <td>{value(rows, "Contract Ref")}</td>
-              <th>Contract Date</th>
-              <td>{value(rows, "Contract Date")}</td>
-            </tr>
-            <tr>
-              <th>Payment Term</th>
-              <td>{value(rows, "Payment Term")}</td>
-              <th>Delivery Term</th>
-              <td>{value(rows, "Delivery Term")}</td>
-            </tr>
-            <tr>
-              <th>Port of Loading</th>
-              <td>{value(rows, "Port of Loading")}</td>
-              <th>Destination</th>
-              <td>{value(rows, "Destination")}</td>
-            </tr>
-            <tr>
-              <th>Description</th>
-              <td colSpan={3}>{value(rows, "Description")}</td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
-
-      <section className="doc-section">
-        <table className="print-table">
-          <thead>
-            <tr>
-              <th>No. Bags</th>
-              <th>Quantity (LB)</th>
-              <th>Net Weight (KG)</th>
-              <th>Gross Weight (KG)</th>
-              <th>Unit Price</th>
-              <th>Total Price</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>{value(rows, "No of Bags")}</td>
-              <td>{value(rows, "Quantity (LB)")}</td>
-              <td>{value(rows, "Net Weight (KG)")}</td>
-              <td>{value(rows, "Gross Weight (KG)")}</td>
-              <td>{value(rows, "Unit Price")}</td>
-              <td>{value(rows, "Total Price")}</td>
-            </tr>
-            <tr>
-              <th>Amount in Words</th>
-              <td colSpan={5}>{value(rows, "Amount in Words")}</td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
     </article>
   );
 }
@@ -501,22 +451,88 @@ function SiPrintView({ output, documentId }: Props) {
   );
 }
 
-export function DocumentPrintTemplate({ output, documentId, input }: Props) {
-  if (output.docType === "invoice" && output.docVariant === "permit") {
-    return <PermitInvoicePrintView output={output} documentId={documentId} input={input} />;
-  }
+function DocumentPrintPageFrame(
+  {
+    children,
+    input,
+    docType,
+  }: {
+    children: ReactNode;
+    input?: DocumentInputSnapshot;
+    docType: DocumentType;
+  },
+) {
+  const companyConfiguration = resolveCompanyConfiguration(input?.contract.orgId ?? "default", input?.companyConfiguration);
+  const branding = companyConfiguration.documentBranding;
+  const apply = branding.applyByDocType[docType];
+  const showHeader = Boolean(apply.header && branding.header.imageDataUrl);
+  const showFooter = Boolean(apply.footer && branding.footer.imageDataUrl);
+
+  const style = {
+    "--brand-header-height": showHeader ? `${branding.header.heightMm}mm` : "0mm",
+    "--brand-footer-height": showFooter ? `${branding.footer.heightMm}mm` : "0mm",
+  } as CSSProperties;
+
+  return (
+    <article className="document-branded-page" style={style}>
+      {showHeader ? (
+        <div className="document-brand-slot document-brand-slot-top">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={branding.header.imageDataUrl}
+            alt="Document header"
+            style={{
+              objectFit: branding.header.fit,
+              objectPosition: `${branding.header.positionXPercent}% ${branding.header.positionYPercent}%`,
+            }}
+          />
+        </div>
+      ) : null}
+
+      <div className="document-branded-content">
+        {children}
+      </div>
+
+      {showFooter ? (
+        <div className="document-brand-slot document-brand-slot-bottom">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={branding.footer.imageDataUrl}
+            alt="Document footer"
+            style={{
+              objectFit: branding.footer.fit,
+              objectPosition: `${branding.footer.positionXPercent}% ${branding.footer.positionYPercent}%`,
+            }}
+          />
+        </div>
+      ) : null}
+    </article>
+  );
+}
+
+export function DocumentPrintTemplate({
+  output,
+  documentId,
+  input,
+  isFinal = false,
+}: Props) {
+  let content: ReactNode;
 
   if (output.docType === "invoice") {
-    return <InvoicePrintView output={output} documentId={documentId} />;
-  }
-
-  if (output.docType === "packing_list") {
+    content = <IccInvoicePrintView output={output} documentId={documentId} input={input} isFinal={isFinal} />;
+  } else if (output.docType === "packing_list") {
     if (output.docVariant === "permit") {
-      return <PermitPackingListPrintView output={output} documentId={documentId} input={input} />;
+      content = <PermitPackingListPrintView output={output} documentId={documentId} input={input} />;
+    } else {
+      content = <PackingListPrintView output={output} documentId={documentId} input={input} />;
     }
-
-    return <PackingListPrintView output={output} documentId={documentId} input={input} />;
+  } else {
+    content = <SiPrintView output={output} documentId={documentId} input={input} />;
   }
 
-  return <SiPrintView output={output} documentId={documentId} input={input} />;
+  return (
+    <DocumentPrintPageFrame input={input} docType={output.docType}>
+      {content}
+    </DocumentPrintPageFrame>
+  );
 }

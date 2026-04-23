@@ -31,9 +31,9 @@ type FamilyCard = {
 const families: FamilyCard[] = [
   {
     family: "commercial_invoice",
-    label: "Commercial Invoice",
-    description: "Invoice family with permit and final variants tied to the same contract history.",
-    variants: ["permit", "final"],
+    label: "Commercial Invoice (ICC)",
+    description: "Single ICC invoice template. Missing fields remain blank until source data is available.",
+    variants: ["standard"],
   },
   {
     family: "packing_list",
@@ -48,6 +48,14 @@ const families: FamilyCard[] = [
     variants: ["standard"],
   },
 ];
+
+function displayFamilyVariants(family: FamilyCard): string {
+  if (family.family === "commercial_invoice") {
+    return "ICC";
+  }
+
+  return family.variants.join(" / ");
+}
 
 function familyMatches(
   family: FamilyCard["family"],
@@ -124,7 +132,7 @@ export default function ContractDocumentsPage({ params }: { params: Promise<{ id
                 <span className="source-badge source-contract">{revisions.length} rev</span>
               </div>
 
-              <p><strong>Variants:</strong> {family.variants.join(" / ")}</p>
+              <p><strong>Variants:</strong> {displayFamilyVariants(family)}</p>
               <p><strong>Latest Revision:</strong> {latest ? `v${latest.revisionNumber ?? 1}` : "None yet"}</p>
               <p>
                 <strong>Latest Status:</strong>{" "}

@@ -57,10 +57,22 @@ export function GenerateDocumentButton({
   );
 }
 
-export function ReviewActions({ contractId, documentId }: { contractId: string; documentId: string }) {
+export function ReviewActions({
+  contractId,
+  documentId,
+  docType,
+  isFinal = false,
+  onMarkedFinal,
+}: {
+  contractId: string;
+  documentId: string;
+  docType?: DocumentType;
+  isFinal?: boolean;
+  onMarkedFinal?: () => void;
+}) {
   const [comment, setComment] = useState("Looks good");
   const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState<"submit" | "approve" | "reject" | null>(null);
+  const [busy, setBusy] = useState<"submit" | "approve" | "reject" | "markFinal" | null>(null);
   const router = useRouter();
 
   async function submitForReview() {
@@ -103,12 +115,38 @@ export function ReviewActions({ contractId, documentId }: { contractId: string; 
     }
   }
 
+  async function markFinal() {
+    setBusy("markFinal");
+    setError(null);
+    try {
+      await apiClient(`/api/documents/${documentId}/mark-final`, {
+        method: "POST",
+        body: JSON.stringify({
+          orgId: DEFAULT_ORG_ID,
+          contractId,
+        }),
+      });
+      onMarkedFinal?.();
+      router.refresh();
+    } catch (markError) {
+      setError((markError as Error).message);
+    } finally {
+      setBusy(null);
+    }
+  }
+
   return (
     <section className="card form-grid">
       <h3>Workflow Actions</h3>
       <button type="button" onClick={submitForReview} disabled={busy !== null}>
         {busy === "submit" ? "Submitting..." : "Submit for Review"}
       </button>
+
+      {docType === "invoice" ? (
+        <button type="button" onClick={markFinal} disabled={busy !== null || isFinal}>
+          {isFinal ? "Already Final" : busy === "markFinal" ? "Marking..." : "Mark as Final"}
+        </button>
+      ) : null}
 
       <label>
         Decision Comment

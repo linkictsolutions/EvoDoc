@@ -228,11 +228,11 @@ export const excelFieldMap: ExcelFieldMapEntry[] = [
     workbook: "Coffee Doc-Praxis-V2.xlsm",
     sheet: "Commercial Invoice(ICC)",
     excelCellOrRange:
-      "N11,N12,B14,H14,H16,B19,H20,B23,C28,E28,G28,K28,L28,N28,O28,P28,P29,D30,D35,D36,H36,D37,D38,D40,D41,D42,D43,D44,B48,B50,B52",
+      "I11,I12,I13,C14,I15,I18,I19,C22,C28,D28,F28,H28,L28,M28,O28,P28,C30,C35,C36,C37,C38,M35:M38,C40,C41,C42,C43,C44,C47,C49,C51",
     mappedField: "invoiceIcc.templateBindings",
     docTypes: ["invoice"],
     notes:
-      "Sample ICC mapping uses Contract-SI-LC precedence for K-values, Contract weights/pricing parity, and Bank & LC bank fields.",
+      "Formula links verified from workbook sheet XML (sheet12): Contract, Contract-SI-LC, Form Configuration, Bank & LC, and Bookings feed ICC output.",
   },
   {
     workbook: "Coffee Doc-Praxis-V2.xlsm",

@@ -80,6 +80,14 @@ function vesselVoyage(shipment?: Shipment): string {
   return vessel || voyage;
 }
 
+function formatNumber(value: number, digits = 2): string {
+  if (!Number.isFinite(value)) {
+    return "";
+  }
+
+  return value.toFixed(digits);
+}
+
 export interface CommercialInvoiceIccSample {
   contractId: string;
   contractNumber: string;
@@ -168,6 +176,8 @@ export function buildCommercialInvoiceIccSample(
   const today = formatDate(new Date().toISOString());
   const containerCount = Number.isFinite(parity.containerCount) ? parity.containerCount : 0;
   const typeOfShipment = `${Math.max(0, containerCount)} X 20FT (FCL)`;
+  const billOfLadingNumber = clean(bookings?.billOfLadingNumber) || clean(latestShipment?.bookingReference) || clean(contract.shipping.bookingNumber);
+  const vesselAndVoyageNumber = [clean(bookings?.vesselName), clean(bookings?.voyageNo)].filter(Boolean).join(" , ") || vesselVoyage(latestShipment);
 
   return {
     contractId: contract.id,
@@ -179,9 +189,9 @@ export function buildCommercialInvoiceIccSample(
       salesContractDate: contractDate,
       exporterBeneficiarySeller: sellerLine,
       bankPermitNumber: clean(contract.banking.permitNumber),
-      billOfLadingNumber: clean(bookings?.billOfLadingNumber) || clean(latestShipment?.bookingReference) || clean(contract.shipping.bookingNumber),
+      billOfLadingNumber,
       methodOfDispatch: "VESSEL",
-      vesselAndVoyageNumber: [clean(bookings?.vesselName), clean(bookings?.voyageNo)].filter(Boolean).join(" , ") || vesselVoyage(latestShipment),
+      vesselAndVoyageNumber,
       shippedOnBoardDate: clean(contract.banking.latestShipmentDate),
       applicantNotify,
       consignee,
@@ -190,9 +200,9 @@ export function buildCommercialInvoiceIccSample(
     goodsLine: {
       descriptionOfGoods: description,
       hsCode: companyConfiguration.defaultHsCode,
-      quantityLbNet: parity.quantityLb.toFixed(2),
-      quantityKgNet: parity.quantityKg.toFixed(2),
-      quantityKgGross: parity.grossWeightKg.toFixed(2),
+      quantityLbNet: formatNumber(parity.quantityLb),
+      quantityKgNet: formatNumber(parity.quantityKg),
+      quantityKgGross: formatNumber(parity.grossWeightKg),
       packagesInBags: noOfBags,
       unitPriceUscPerLb: Number(contract.terms.unitPrice).toFixed(2),
       totalPriceUsd: totalAmount.toFixed(2),
@@ -225,10 +235,10 @@ export function buildCommercialInvoiceIccSample(
       fullMarking: bagMarking,
     },
     mappingNotes: [
-      "Contract-SI-LC final precedence is applied (Revised LC > LC > Revised SI > SI > Contract).",
-      "Commercial Invoice(ICC) sample uses row K values for final fields and row F35 for Packaging & Marking label, matching the workbook formulas.",
-      "Workbook-level seller, HS code, and place-of-issue values come from Company Configuration.",
-      "Bookings-derived fields are mapped from the latest saved shipment (vessel, voyage, booking reference) when available.",
+      "Commercial Invoice(ICC) uses formulas from sheet12 in Coffee Doc-Praxis-V2.xlsm.",
+      "Key links: I11=Contract!C5, I12=Contract!C7, I13=concat(Form Configuration seller+address), C14=Bank & LC!H5, I15=Bookings!B43, I18=Contract-SI-LC!K30, C22=Contract-SI-LC!K29.",
+      "Goods row links: C28=K28, D28=Form Configuration!D16, F28=Contract!D28, H28=Contract!D26, L28=Contract!H26, M28=K25, O28=Contract!D16, P28=K12, C30=NumberToWords(P29).",
+      "Footer links: C40=Form Configuration!K7, C41=K24, C42/C43=K20, C44=K17, C47=K16, C49=F35, C51=K27.",
     ],
   };
 }

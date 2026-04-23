@@ -41,7 +41,7 @@ export default function ContractDocumentFamilyPage({
 }) {
   const [contractId, setContractId] = useState("");
   const [family, setFamily] = useState<DocumentFamily>("commercial_invoice");
-  const [variant, setVariant] = useState<DocumentVariant>("final");
+  const [variant, setVariant] = useState<DocumentVariant>("standard");
   const [payload, setPayload] = useState<FamilyPayload | null>(null);
   const [error, setError] = useState<string | null>(null);
 

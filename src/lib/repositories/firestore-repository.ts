@@ -556,6 +556,38 @@ export async function transitionDocument(
   });
 }
 
+export async function markGeneratedDocumentFinal(
+  orgId: string,
+  contractId: string,
+  docId: string,
+  actorUid: string,
+) {
+  const ref = adminDb.doc(`${orgPath(orgId)}/contracts/${contractId}/documents/${docId}`);
+
+  await adminDb.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    if (!snap.exists) {
+      throw new Error("Document not found");
+    }
+
+    const current = snap.data() as GeneratedDocument;
+    if (current.docType !== "invoice") {
+      throw new Error("Only Commercial Invoice documents can be marked final.");
+    }
+
+    if (current.isFinal) {
+      return;
+    }
+
+    tx.set(ref, {
+      isFinal: true,
+      finalizedAt: nowIso(),
+      finalizedBy: actorUid,
+      updatedAt: nowIso(),
+    } satisfies Partial<GeneratedDocument>, { merge: true });
+  });
+}
+
 export async function listNotifications(orgId: string, limit = 30) {
   const snapshot = await adminDb
     .collection(`${orgPath(orgId)}/notifications`)

@@ -136,15 +136,13 @@ export function validateDocumentGenerationRules(
   snapshot: DocumentInputSnapshot,
 ): BusinessRuleResult {
   const result = makeResult();
-  const isPermitPreview =
-    snapshot.docVariant === "permit"
-    && (snapshot.docType === "invoice" || snapshot.docType === "packing_list");
+  const allowPartialSourceData = snapshot.docType === "invoice";
 
   if (snapshot.contract.status === "closed") {
     result.errors.push("Cannot generate document for a closed contract.");
   }
 
-  if (!isPermitPreview && snapshot.shipment.totals.totalNetWeightKg <= 0) {
+  if (!allowPartialSourceData && snapshot.shipment.totals.totalNetWeightKg <= 0) {
     result.errors.push("Cannot generate document with non-positive net shipment weight.");
   }
 
@@ -152,11 +150,11 @@ export function validateDocumentGenerationRules(
     result.errors.push("Customer name is required for document generation.");
   }
 
-  if (!snapshot.contract.shipping.destinationPort.trim()) {
+  if (!allowPartialSourceData && !snapshot.contract.shipping.destinationPort.trim()) {
     result.errors.push("Destination port is required for document generation.");
   }
 
-  if (!isPermitPreview && snapshot.shipment.status === "draft") {
+  if (!allowPartialSourceData && snapshot.shipment.status === "draft") {
     result.warnings.push("Shipment is still in draft status during document generation.");
   }
 

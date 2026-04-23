@@ -97,9 +97,8 @@ export async function GET(
       }));
 
     const canPreview =
-      (family === "commercial_invoice" && variant === "permit")
+      family === "commercial_invoice"
       || (family === "packing_list" && variant === "permit")
-      || (family === "commercial_invoice" && hasBookingHeader)
       ? true
       : Boolean(latestShipmentId);
 
@@ -131,10 +130,16 @@ export async function GET(
       familyLabel: familyDefinition.label,
       docType: familyDefinition.docType,
       variant,
-      variantLabel: displayVariant(variant),
+      variantLabel:
+        family === "commercial_invoice" && variant === "standard"
+          ? "ICC"
+          : displayVariant(variant),
       availableVariants: familyDefinition.variants.map((value) => ({
         value,
-        label: displayVariant(value),
+        label:
+          family === "commercial_invoice" && value === "standard"
+            ? "ICC"
+            : displayVariant(value),
       })),
       latestShipmentId: latestShipmentId ?? null,
       currentPreview,
