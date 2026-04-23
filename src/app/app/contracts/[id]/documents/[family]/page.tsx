@@ -210,7 +210,12 @@ export default function ContractDocumentFamilyPage({
                         </td>
                         <td>{new Date(revision.generatedAt).toLocaleString()}</td>
                         <td>
-                          <Link href={`/app/contracts/${contractId}/documents/generated/${revision.id}/review`}>Open</Link>
+                          <Link
+                            href={`/app/contracts/${contractId}/documents/generated/${revision.id}/review`}
+                            className="button-link button-link-secondary"
+                          >
+                            Open
+                          </Link>
                         </td>
                       </tr>
                     ))

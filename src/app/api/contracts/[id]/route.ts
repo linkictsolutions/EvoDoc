@@ -3,7 +3,7 @@ import { hydrateExecutionData } from "@/domain/execution";
 import { requireActor } from "@/lib/auth/server";
 import { fail, getRequestId, ok } from "@/lib/api/response";
 import { adminDb } from "@/lib/firebase/admin";
-import { getContract, getCustomer, getExecutionData } from "@/lib/repositories/firestore-repository";
+import { getContract, getCustomer, getExecutionData, resolveContractId } from "@/lib/repositories/firestore-repository";
 
 export async function GET(
   request: NextRequest,
@@ -19,20 +19,21 @@ export async function GET(
     }
 
     await requireActor(orgId, ["admin", "editor", "viewer"]);
-    const contract = await getContract(orgId, id);
+    const resolvedContractId = await resolveContractId(orgId, id);
+    const contract = await getContract(orgId, resolvedContractId);
     const customer = await getCustomer(orgId, contract.customerId).catch(() => null);
 
     const shipmentSnap = await adminDb
-      .collection(`organizations/${orgId}/contracts/${id}/shipments`)
+      .collection(`organizations/${orgId}/contracts/${resolvedContractId}/shipments`)
       .orderBy("updatedAt", "desc")
       .get();
 
     const documentSnap = await adminDb
-      .collection(`organizations/${orgId}/contracts/${id}/documents`)
+      .collection(`organizations/${orgId}/contracts/${resolvedContractId}/documents`)
       .orderBy("updatedAt", "desc")
       .get();
 
-    const executionData = hydrateExecutionData(await getExecutionData(orgId, id).catch(() => ({})));
+    const executionData = hydrateExecutionData(await getExecutionData(orgId, resolvedContractId).catch(() => ({})));
 
     return ok(requestId, {
       contract,

@@ -136,12 +136,12 @@ export function ContractSiLcReportView({ initialContractId }: ContractSiLcReport
                   <tr key={row.rowNumber}>
                     <td>{row.rowNumber}</td>
                     <td className="wrap">{row.label}</td>
-                    <td>{row.contractValue || "-"}</td>
-                    <td>{row.shippingValue || "-"}</td>
-                    <td>{row.revisedShippingValue || "-"}</td>
-                    <td>{row.lcValue || "-"}</td>
-                    <td>{row.revisedLcValue || "-"}</td>
-                    <td><strong>{row.finalValue}</strong></td>
+                    <td className="multiline-cell">{row.contractValue || "-"}</td>
+                    <td className="multiline-cell">{row.shippingValue || "-"}</td>
+                    <td className="multiline-cell">{row.revisedShippingValue || "-"}</td>
+                    <td className="multiline-cell">{row.lcValue || "-"}</td>
+                    <td className="multiline-cell">{row.revisedLcValue || "-"}</td>
+                    <td className="multiline-cell"><strong>{row.finalValue}</strong></td>
                     <td><span className={`source-badge source-${row.finalSource}`}>{row.finalSource}</span></td>
                   </tr>
                 ))}

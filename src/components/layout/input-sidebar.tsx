@@ -40,8 +40,8 @@ export function InputSidebar() {
 
   return (
     <aside className="input-sidebar module-sidebar card">
-      <h3>Input Category</h3>
-      <p className="sidebar-subtitle">Capture data in source-sheet order.</p>
+      <h3>Source Documents</h3>
+      <p className="sidebar-subtitle">Capture data in source-document order.</p>
       <nav className="sidebar-nav">
         {items.map((item) => (
           <Link

@@ -128,7 +128,7 @@ export function computeContractExcelParity(
   const quantityMt = divideSafe(quantityKg, 1000);
   const grossWeightMt = divideSafe(grossWeightKg, 1000);
 
-  const containerCount = Math.max(1, divideSafe(quantityKg, bulkReferenceKg).ceil().toNumber());
+  const containerCount = divideSafe(quantityKg, bulkReferenceKg).ceil().toNumber();
   const noOfBags = noOfBagsDecimal;
 
   return {

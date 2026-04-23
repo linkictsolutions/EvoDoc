@@ -3,7 +3,13 @@ import { buildCommercialInvoiceIccSample } from "@/domain/commercial-invoice-icc
 import { requireActor } from "@/lib/auth/server";
 import { fail, getRequestId, ok } from "@/lib/api/response";
 import { adminDb } from "@/lib/firebase/admin";
-import { getBookingsSheet, getCompanyConfiguration, getContract, getCustomer } from "@/lib/repositories/firestore-repository";
+import {
+  getBookingsSheet,
+  getCompanyConfiguration,
+  getContract,
+  getCustomer,
+  resolveContractId,
+} from "@/lib/repositories/firestore-repository";
 import type { Shipment } from "@/types/models";
 
 export async function GET(
@@ -20,11 +26,12 @@ export async function GET(
     }
 
     await requireActor(orgId, ["admin", "editor", "viewer"]);
-    const contract = await getContract(orgId, id);
+    const resolvedContractId = await resolveContractId(orgId, id);
+    const contract = await getContract(orgId, resolvedContractId);
     const customer = await getCustomer(orgId, contract.customerId);
 
     const shipmentSnap = await adminDb
-      .collection(`organizations/${orgId}/contracts/${id}/shipments`)
+      .collection(`organizations/${orgId}/contracts/${resolvedContractId}/shipments`)
       .orderBy("updatedAt", "desc")
       .limit(1)
       .get();
@@ -35,7 +42,7 @@ export async function GET(
 
     const [companyConfiguration, bookings] = await Promise.all([
       getCompanyConfiguration(orgId).catch(() => undefined),
-      getBookingsSheet(orgId, id).catch(() => undefined),
+      getBookingsSheet(orgId, resolvedContractId).catch(() => undefined),
     ]);
     const sample = buildCommercialInvoiceIccSample(contract, customer, latestShipment, companyConfiguration, bookings);
     return ok(requestId, sample);

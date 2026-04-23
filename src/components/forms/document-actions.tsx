@@ -39,7 +39,7 @@ export function GenerateDocumentButton({
         }),
       });
 
-      router.push(`/app/contracts/${contractId}/documents/generated/${data.docId}/review`);
+      router.push(`/app/contracts/${encodeURIComponent(contractId)}/documents/generated/${data.docId}/review`);
     } catch (generateError) {
       setError((generateError as Error).message);
     } finally {

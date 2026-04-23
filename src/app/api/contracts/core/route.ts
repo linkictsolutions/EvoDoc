@@ -12,6 +12,7 @@ import {
   appendAuditLog,
   findContractIdByNumber,
   getContract,
+  resolveContractId,
   upsertContractSourceInput,
   upsertContract,
   upsertCustomer,
@@ -26,7 +27,8 @@ export async function POST(request: NextRequest) {
     const actor = await requireActor(parsed.orgId, ["admin", "editor"]);
     const normalized = validateAndNormalizeContractCorePayload(body);
     const matchedContractId = parsed.contractId
-      ?? await findContractIdByNumber(parsed.orgId, normalized.contract.contractNumber);
+      ? await resolveContractId(parsed.orgId, parsed.contractId).catch(() => undefined)
+      : await findContractIdByNumber(parsed.orgId, normalized.contract.contractNumber);
     const existingContract = matchedContractId
       ? await getContract(parsed.orgId, matchedContractId).catch(() => undefined)
       : undefined;
@@ -52,7 +54,7 @@ export async function POST(request: NextRequest) {
     const customerId = await upsertCustomer(parsed.orgId, customerDocId, normalized.customer);
     const contractId = await upsertContract(
       parsed.orgId,
-      matchedContractId,
+      matchedContractId ?? normalized.contract.contractNumber,
       mergedContract,
       customerId,
       actor.uid,
@@ -76,7 +78,8 @@ export async function POST(request: NextRequest) {
       `organizations/${parsed.orgId}/contracts/${contractId}`,
       null,
       {
-        contractId,
+        contractId: normalized.contract.contractNumber,
+        contractDocId: contractId,
         customerId,
         warnings: contractRules.warnings,
       },
@@ -86,7 +89,8 @@ export async function POST(request: NextRequest) {
     return ok(
       requestId,
       {
-        contractId,
+        contractId: normalized.contract.contractNumber,
+        contractDocId: contractId,
         customerId,
         warnings: contractRules.warnings,
       },

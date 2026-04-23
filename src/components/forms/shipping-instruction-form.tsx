@@ -10,13 +10,12 @@ import { DEFAULT_ORG_ID } from "@/lib/config";
 import type { Contract } from "@/types/models";
 
 const schema = z.object({
-  contractId: z.string().min(1, "Contract ID is required"),
+  contractId: z.string().min(1, "Contract number is required"),
   destinationPort: z.string().min(1, "Destination is required"),
   shippingLine: z.string().min(1, "Shipping line is required"),
   serviceContract: z.string().optional(),
   alternative1: z.string().optional(),
   alternative1ServiceContract: z.string().optional(),
-  alternative1Selected: z.boolean(),
   alternative2: z.string().optional(),
   alternative2ServiceContract: z.string().optional(),
   portOfLoading: z.string().min(1, "Port of loading is required"),
@@ -29,11 +28,8 @@ const schema = z.object({
   bagMarkings: z.string().optional(),
   description: z.string().optional(),
   consignee: z.string().optional(),
-  revisedConsignee: z.string().optional(),
   notifyParty: z.string().optional(),
-  revisedNotifyParty: z.string().optional(),
   secondNotify: z.string().optional(),
-  revisedSecondNotify: z.string().optional(),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -46,6 +42,25 @@ interface ShippingInstructionFormProps {
 
 interface ContractDetailResponse {
   contract: Contract;
+}
+
+function toMonthInputValue(value?: string): string {
+  const normalized = value?.trim();
+  if (!normalized) {
+    return "";
+  }
+
+  const isoMonthMatch = normalized.match(/^(\d{4}-\d{2})(?:-\d{2})?/);
+  if (isoMonthMatch) {
+    return isoMonthMatch[1];
+  }
+
+  const parsed = new Date(normalized);
+  if (Number.isNaN(parsed.getTime())) {
+    return "";
+  }
+
+  return parsed.toISOString().slice(0, 7);
 }
 
 export function ShippingInstructionForm({
@@ -73,7 +88,6 @@ export function ShippingInstructionForm({
       serviceContract: "",
       alternative1: "",
       alternative1ServiceContract: "",
-      alternative1Selected: false,
       alternative2: "",
       alternative2ServiceContract: "",
       portOfLoading: "",
@@ -86,11 +100,8 @@ export function ShippingInstructionForm({
       bagMarkings: "",
       description: "",
       consignee: "",
-      revisedConsignee: "",
       notifyParty: "",
-      revisedNotifyParty: "",
       secondNotify: "",
-      revisedSecondNotify: "",
     },
   });
 
@@ -101,7 +112,7 @@ export function ShippingInstructionForm({
       return continueHref;
     }
     const id = savedContractId ?? contractIdInput;
-    return id ? `/app/contracts/${id}/inputs/bank-lc` : "/app/contracts";
+    return id ? `/app/contracts/${encodeURIComponent(id)}/inputs/bank-lc` : "/app/contracts";
   }, [contractIdInput, continueHref, savedContractId]);
 
   useEffect(() => {
@@ -136,14 +147,14 @@ export function ShippingInstructionForm({
         }
 
         const shipping = data.contract.shipping;
-        setSavedContractId(data.contract.id);
-        setValue("contractId", data.contract.id, { shouldValidate: true });
+        const contractIdentifier = data.contract.contractNumber;
+        setSavedContractId(contractIdentifier);
+        setValue("contractId", contractIdentifier, { shouldValidate: true });
         setValue("destinationPort", shipping.destinationPort ?? "");
         setValue("shippingLine", shipping.shippingLine ?? "");
         setValue("serviceContract", shipping.serviceContract ?? "");
         setValue("alternative1", shipping.alternative1 ?? "");
         setValue("alternative1ServiceContract", shipping.alternative1ServiceContract ?? "");
-        setValue("alternative1Selected", Boolean(shipping.alternative1Selected));
         setValue("alternative2", shipping.alternative2 ?? "");
         setValue("alternative2ServiceContract", shipping.alternative2ServiceContract ?? "");
         setValue("portOfLoading", shipping.portOfLoading ?? "");
@@ -152,15 +163,12 @@ export function ShippingInstructionForm({
         setValue("packagingValue", shipping.packagingValue ?? "");
         setValue("noOfBagsValue", shipping.noOfBagsValue ?? "");
         setValue("containerCountValue", shipping.containerCountValue ?? "");
-        setValue("shipmentMonth", shipping.shipmentMonth ?? "");
+        setValue("shipmentMonth", toMonthInputValue(shipping.shipmentMonth));
         setValue("bagMarkings", shipping.bagMarkings ?? "");
         setValue("description", shipping.description ?? "");
         setValue("consignee", shipping.consignee ?? "");
-        setValue("revisedConsignee", shipping.revisedConsignee ?? "");
         setValue("notifyParty", shipping.notifyParty ?? "");
-        setValue("revisedNotifyParty", shipping.revisedNotifyParty ?? "");
         setValue("secondNotify", shipping.secondNotify ?? "");
-        setValue("revisedSecondNotify", shipping.revisedSecondNotify ?? "");
       })
       .catch((error: Error) => {
         if (mounted) {
@@ -194,7 +202,6 @@ export function ShippingInstructionForm({
             serviceContract: form.serviceContract,
             alternative1: form.alternative1,
             alternative1ServiceContract: form.alternative1ServiceContract,
-            alternative1Selected: form.alternative1Selected,
             alternative2: form.alternative2,
             alternative2ServiceContract: form.alternative2ServiceContract,
             portOfLoading: form.portOfLoading,
@@ -207,11 +214,8 @@ export function ShippingInstructionForm({
             bagMarkings: form.bagMarkings,
             description: form.description,
             consignee: form.consignee,
-            revisedConsignee: form.revisedConsignee,
             notifyParty: form.notifyParty,
-            revisedNotifyParty: form.revisedNotifyParty,
             secondNotify: form.secondNotify,
-            revisedSecondNotify: form.revisedSecondNotify,
           },
         }),
       });
@@ -230,7 +234,7 @@ export function ShippingInstructionForm({
   return (
     <section className="page-shell">
       <header className="page-header">
-        <h1>Shipping Instruction Input</h1>
+        <h1>Shipping Instruction Source Document</h1>
         <p>
           {autoLoadExisting
             ? "Recreates the Shipping Instruction sheet and loads existing values for editing."
@@ -242,7 +246,7 @@ export function ShippingInstructionForm({
       <form className="card form-grid" onSubmit={handleSubmit(onSubmit)}>
         <h3 className="span-all">Contract Link</h3>
         <label>
-          Contract ID (link only, no auto-fill)
+          Contract Number (link only, no auto-fill)
           <input {...register("contractId")} readOnly={Boolean(initialContractId)} />
           <small>{errors.contractId?.message}</small>
         </label>
@@ -283,10 +287,6 @@ export function ShippingInstructionForm({
           Alternative 2 Service Contract - E11
           <input {...register("alternative2ServiceContract")} />
         </label>
-        <label className="span-all">
-          <span>Alternative 1 Selected - H9</span>
-          <input type="checkbox" {...register("alternative1Selected")} />
-        </label>
 
         <h3 className="span-all">Cargo Block (C15:C23)</h3>
         <label>
@@ -296,7 +296,7 @@ export function ShippingInstructionForm({
         </label>
         <label>
           Quality - C16
-          <input {...register("qualityValue")} />
+          <textarea rows={3} {...register("qualityValue")} />
           <small>{errors.qualityValue?.message}</small>
         </label>
         <label>
@@ -316,41 +316,29 @@ export function ShippingInstructionForm({
         </label>
         <label>
           Shipment Month - C21
-          <input {...register("shipmentMonth")} />
+          <input type="month" {...register("shipmentMonth")} />
         </label>
-        <label className="span-all">
+        <label>
           Bag Marking - C22
-          <textarea rows={3} {...register("bagMarkings")} />
+          <textarea rows={6} {...register("bagMarkings")} />
         </label>
-        <label className="span-all">
+        <label>
           Description - C23
-          <textarea rows={4} {...register("description")} />
+          <textarea rows={8} {...register("description")} />
         </label>
 
-        <h3 className="span-all">Revised Entry Section (C/E/F rows 25, 27, 29)</h3>
+        <h3 className="span-all">Consignee and Notify Parties</h3>
         <label>
           Consignee - C25
           <textarea rows={3} {...register("consignee")} />
-        </label>
-        <label>
-          Revised Consignee - F25
-          <textarea rows={3} {...register("revisedConsignee")} />
         </label>
         <label>
           Notify - C27
           <textarea rows={3} {...register("notifyParty")} />
         </label>
         <label>
-          Revised Notify - F27
-          <textarea rows={3} {...register("revisedNotifyParty")} />
-        </label>
-        <label>
           2nd Notify - C29
           <textarea rows={3} {...register("secondNotify")} />
-        </label>
-        <label>
-          Revised 2nd Notify - F29
-          <textarea rows={3} {...register("revisedSecondNotify")} />
         </label>
 
         <div className="row-actions">

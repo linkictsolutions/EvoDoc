@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { requireActor } from "@/lib/auth/server";
 import { fail, getRequestId, ok } from "@/lib/api/response";
-import { getGeneratedDocument } from "@/lib/repositories/firestore-repository";
+import { getGeneratedDocument, resolveContractId } from "@/lib/repositories/firestore-repository";
 
 export async function GET(
   request: NextRequest,
@@ -19,7 +19,8 @@ export async function GET(
     }
 
     await requireActor(orgId, ["admin", "editor", "viewer"]);
-    const document = await getGeneratedDocument(orgId, contractId, docId);
+    const resolvedContractId = await resolveContractId(orgId, contractId);
+    const document = await getGeneratedDocument(orgId, resolvedContractId, docId);
 
     return ok(requestId, {
       id: document.id,

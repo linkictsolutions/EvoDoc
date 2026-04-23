@@ -17,8 +17,8 @@ const tabs = [
   },
   {
     key: "inputs",
-    label: "Inputs",
-    hint: "Contract, shipping instruction, and bank LC sources.",
+    label: "Source Documents",
+    hint: "Contract, shipping instruction, and bank & LC source documents.",
     href: (id: string) => `/app/contracts/${id}/inputs`,
   },
   {

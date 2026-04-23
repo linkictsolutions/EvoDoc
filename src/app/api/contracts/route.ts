@@ -10,8 +10,10 @@ import { requireActor } from "@/lib/auth/server";
 import { fail, getRequestId, ok } from "@/lib/api/response";
 import {
   appendAuditLog,
+  deleteContractCascade,
   findContractIdByNumber,
   listContracts,
+  resolveContractId,
   upsertContract,
   upsertCustomer,
 } from "@/lib/repositories/firestore-repository";
@@ -43,7 +45,8 @@ export async function POST(request: NextRequest) {
     const actor = await requireActor(parsed.orgId, ["admin", "editor"]);
     const normalized = validateAndNormalizeContractPayload(body);
     const matchedContractId = parsed.contractId
-      ?? await findContractIdByNumber(parsed.orgId, normalized.contract.contractNumber);
+      ? await resolveContractId(parsed.orgId, parsed.contractId).catch(() => undefined)
+      : await findContractIdByNumber(parsed.orgId, normalized.contract.contractNumber);
     const contractRules = validateContractBusinessRules({
       ...normalized.contract,
       id: matchedContractId ?? "draft",
@@ -57,7 +60,7 @@ export async function POST(request: NextRequest) {
     const customerId = await upsertCustomer(parsed.orgId, parsed.customer.id, normalized.customer);
     const contractId = await upsertContract(
       parsed.orgId,
-      matchedContractId,
+      matchedContractId ?? normalized.contract.contractNumber,
       normalized.contract,
       customerId,
       actor.uid,
@@ -79,7 +82,8 @@ export async function POST(request: NextRequest) {
     return ok(
       requestId,
       {
-        contractId,
+        contractId: normalized.contract.contractNumber,
+        contractDocId: contractId,
         customerId,
         warnings: contractRules.warnings,
       },
@@ -89,6 +93,49 @@ export async function POST(request: NextRequest) {
     if (error instanceof BusinessRuleError) {
       return fail(requestId, `${error.message} ${error.issues.join(" ")}`, 422);
     }
+    return fail(requestId, (error as Error).message, 400);
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  const requestId = getRequestId();
+
+  try {
+    const orgId = request.nextUrl.searchParams.get("orgId");
+    const contractId = request.nextUrl.searchParams.get("contractId");
+    if (!orgId || !contractId) {
+      return fail(requestId, "Missing orgId or contractId", 400);
+    }
+
+    const actor = await requireActor(orgId, ["admin", "editor"]);
+    const resolvedContractId = await resolveContractId(orgId, contractId);
+    const deletion = await deleteContractCascade(orgId, resolvedContractId);
+
+    await appendAuditLog(
+      orgId,
+      actor.uid,
+      "contract.deleted",
+      `organizations/${orgId}/contracts/${deletion.contractDocId}`,
+      {
+        contractNumber: deletion.contractNumber,
+      },
+      {
+        deletedContractDocuments: deletion.deletedContractDocuments,
+        deletedAuditLogs: deletion.deletedAuditLogs,
+        deletedNotifications: deletion.deletedNotifications,
+      },
+      requestId,
+    );
+
+    return ok(requestId, {
+      deleted: true,
+      contractId: deletion.contractNumber,
+      contractDocId: deletion.contractDocId,
+      deletedContractDocuments: deletion.deletedContractDocuments,
+      deletedAuditLogs: deletion.deletedAuditLogs,
+      deletedNotifications: deletion.deletedNotifications,
+    });
+  } catch (error) {
     return fail(requestId, (error as Error).message, 400);
   }
 }

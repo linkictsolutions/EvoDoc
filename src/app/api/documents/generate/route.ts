@@ -15,6 +15,7 @@ import {
   getCustomer,
   getExecutionData,
   listGeneratedDocuments,
+  resolveContractId,
 } from "@/lib/repositories/firestore-repository";
 import {
   defaultVariantForFamily,
@@ -38,10 +39,12 @@ export async function POST(request: NextRequest) {
       (parsed.docVariant ?? defaultVariantForFamily(documentFamily)),
     );
 
+    const resolvedContractId = await resolveContractId(parsed.orgId, parsed.contractId);
+
     const [contract, execution, existingDocuments] = await Promise.all([
-      getContract(parsed.orgId, parsed.contractId),
-      getExecutionData(parsed.orgId, parsed.contractId),
-      listGeneratedDocuments(parsed.orgId, parsed.contractId),
+      getContract(parsed.orgId, resolvedContractId),
+      getExecutionData(parsed.orgId, resolvedContractId),
+      listGeneratedDocuments(parsed.orgId, resolvedContractId),
     ]);
 
     const [customer, companyConfiguration] = await Promise.all([
@@ -67,7 +70,7 @@ export async function POST(request: NextRequest) {
     );
     const shipment = hasExecutionData
       ? executionShipment
-      : makePreviewShipment(parsed.contractId, parsed.orgId);
+      : makePreviewShipment(resolvedContractId, parsed.orgId);
     const revisionNumber =
       existingDocuments.filter((document) => {
         const existingFamily = document.documentFamily ?? resolveDocumentFamily(document.docType);
@@ -101,13 +104,13 @@ export async function POST(request: NextRequest) {
       validationWarnings: generationRules.warnings,
     });
 
-    const docId = await createGeneratedDocument(parsed.orgId, parsed.contractId, payload);
+    const docId = await createGeneratedDocument(parsed.orgId, resolvedContractId, payload);
 
     await appendAuditLog(
       parsed.orgId,
       actor.uid,
       "document.generated",
-      `organizations/${parsed.orgId}/contracts/${parsed.contractId}/documents/${docId}`,
+      `organizations/${parsed.orgId}/contracts/${resolvedContractId}/documents/${docId}`,
       null,
       {
         docType: parsed.docType,

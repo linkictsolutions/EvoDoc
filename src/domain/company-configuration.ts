@@ -32,6 +32,7 @@ function cleanOptional(value?: string): string | undefined {
 
 const DEFAULT_PAYMENT_TERMS = ["CAD", "LC", "Advance & CAD", "Advance"];
 const DEFAULT_DELIVERY_TERMS = ["F.O.B"];
+const DEFAULT_PRICE_UOMS = ["Lbs", "Bag of 60Kg", "Bag of 50Kg", "Bag of 30Kg", "Kg", "Metric Ton"];
 
 type LegacyPaymentTermFields = {
   paymentTermCad?: string;
@@ -100,6 +101,15 @@ function resolveDeliveryTerms(
   return DEFAULT_DELIVERY_TERMS;
 }
 
+function resolvePriceUoms(configuration?: Partial<CompanyConfiguration> | null): string[] {
+  const fromList = normalizePaymentTerms(configuration?.priceUoms);
+  if (fromList.length > 0) {
+    return fromList;
+  }
+
+  return DEFAULT_PRICE_UOMS;
+}
+
 function normalizePackagingDefinition(
   definition: PackagingDefinition,
 ): PackagingDefinition {
@@ -129,6 +139,7 @@ export function defaultCompanyConfiguration(orgId: string): CompanyConfiguration
     transitorLocation: "DJIBOUTI",
     paymentTerms: DEFAULT_PAYMENT_TERMS,
     deliveryTerms: DEFAULT_DELIVERY_TERMS,
+    priceUoms: DEFAULT_PRICE_UOMS,
     bulkReferenceKg: 19200,
     packagingDefinitions: DEFAULT_PACKAGING_DEFINITIONS,
     createdAt: new Date(0).toISOString(),
@@ -162,6 +173,7 @@ export function resolveCompanyConfiguration(
     transitorLocation: cleanOptional(configuration?.transitorLocation) ?? defaults.transitorLocation,
     paymentTerms: resolvePaymentTerms(configuration),
     deliveryTerms: resolveDeliveryTerms(configuration),
+    priceUoms: resolvePriceUoms(configuration),
     bulkReferenceKg: configuration?.bulkReferenceKg ?? defaults.bulkReferenceKg,
     packagingDefinitions:
       configuration?.packagingDefinitions?.map(normalizePackagingDefinition) ??
@@ -198,6 +210,7 @@ export function validateAndNormalizeCompanyConfigurationPayload(
       transitorLocation: cleanOptional(normalized.transitorLocation),
       paymentTerms: normalizePaymentTerms(normalized.paymentTerms),
       deliveryTerms: normalizePaymentTerms(normalized.deliveryTerms),
+      priceUoms: normalizePaymentTerms(normalized.priceUoms),
       bulkReferenceKg: normalized.bulkReferenceKg,
       packagingDefinitions: normalized.packagingDefinitions.map(normalizePackagingDefinition),
     },

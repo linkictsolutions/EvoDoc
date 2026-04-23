@@ -20,6 +20,7 @@ type CompanyConfigurationFormState = {
   transitorLocation: string;
   paymentTerms: string[];
   deliveryTerms: string[];
+  priceUoms: string[];
   bulkReferenceKg: string;
   packagingDefinitions: PackagingDefinition[];
 };
@@ -40,6 +41,7 @@ function toFormState(configuration: CompanyConfiguration): CompanyConfigurationF
     transitorLocation: configuration.transitorLocation ?? "",
     paymentTerms: configuration.paymentTerms,
     deliveryTerms: configuration.deliveryTerms,
+    priceUoms: configuration.priceUoms,
     bulkReferenceKg: String(configuration.bulkReferenceKg),
     packagingDefinitions: configuration.packagingDefinitions,
   };
@@ -205,6 +207,52 @@ export function CompanyConfigurationPage() {
     });
   }
 
+  function updatePriceUom(index: number, value: string) {
+    setForm((current) => {
+      if (!current) {
+        return current;
+      }
+
+      const nextTerms = current.priceUoms.map((term, termIndex) => {
+        if (termIndex !== index) {
+          return term;
+        }
+        return value;
+      });
+
+      return {
+        ...current,
+        priceUoms: nextTerms,
+      };
+    });
+  }
+
+  function addPriceUom() {
+    setForm((current) => {
+      if (!current) {
+        return current;
+      }
+
+      return {
+        ...current,
+        priceUoms: [...current.priceUoms, ""],
+      };
+    });
+  }
+
+  function removePriceUom(index: number) {
+    setForm((current) => {
+      if (!current || current.priceUoms.length <= 1) {
+        return current;
+      }
+
+      return {
+        ...current,
+        priceUoms: current.priceUoms.filter((_, termIndex) => termIndex !== index),
+      };
+    });
+  }
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!form) {
@@ -329,7 +377,7 @@ export function CompanyConfigurationPage() {
 
         <div className="section-heading span-all mt-sm">
           <div>
-            <h3>Payment and Delivery Terms</h3>
+            <h3>Payment, Delivery, and Price Terms</h3>
             <p className="sidebar-subtitle">Maintain selectable options used in contract creation.</p>
           </div>
         </div>
@@ -412,6 +460,47 @@ export function CompanyConfigurationPage() {
           <div className="row-actions mt-sm">
             <button type="button" className="button-secondary" onClick={addDeliveryTerm}>
               Add Delivery Term
+            </button>
+          </div>
+        </div>
+
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style={{ width: "72px" }}>#</th>
+                <th>Price UoM</th>
+                <th style={{ width: "130px" }}>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {form.priceUoms.map((uom, index) => (
+                <tr key={`price-uom-${index + 1}`}>
+                  <td>{index + 1}</td>
+                  <td>
+                    <input
+                      value={uom}
+                      onChange={(event) => updatePriceUom(index, event.target.value)}
+                      required
+                    />
+                  </td>
+                  <td>
+                    <button
+                      type="button"
+                      className="button-secondary"
+                      onClick={() => removePriceUom(index)}
+                      disabled={form.priceUoms.length <= 1}
+                    >
+                      Remove
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="row-actions mt-sm">
+            <button type="button" className="button-secondary" onClick={addPriceUom}>
+              Add Price UoM
             </button>
           </div>
         </div>

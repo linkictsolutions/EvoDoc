@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
 import type { Contract } from "@/types/models";
@@ -9,6 +10,9 @@ import type { Contract } from "@/types/models";
 export default function ContractsPage() {
   const [items, setItems] = useState<Contract[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Contract | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -29,6 +33,39 @@ export default function ContractsPage() {
     };
   }, []);
 
+  async function handleDelete() {
+    if (!deleteTarget) {
+      return;
+    }
+
+    setDeleting(true);
+    setError(null);
+    setNotice(null);
+
+    try {
+      const deleted = await apiClient<{
+        deleted: boolean;
+        deletedContractDocuments: number;
+        deletedAuditLogs: number;
+        deletedNotifications: number;
+      }>(
+        `/api/contracts?orgId=${DEFAULT_ORG_ID}&contractId=${encodeURIComponent(deleteTarget.contractNumber)}`,
+        { method: "DELETE" },
+      );
+
+      setItems((current) => current.filter((contract) => contract.id !== deleteTarget.id));
+      setNotice(
+        `Contract ${deleteTarget.contractNumber} deleted. Removed ${deleted.deletedContractDocuments} records, `
+        + `${deleted.deletedAuditLogs} audit logs, ${deleted.deletedNotifications} notifications.`,
+      );
+      setDeleteTarget(null);
+    } catch (deleteError) {
+      setError((deleteError as Error).message);
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   return (
     <section className="page-shell">
       <header className="page-header">
@@ -42,6 +79,7 @@ export default function ContractsPage() {
       </header>
 
       <section className="card">
+        {notice ? <p>{notice}</p> : null}
         {error ? <p className="error-text">{error}</p> : null}
         <div className="table-wrap">
           <table>
@@ -51,7 +89,7 @@ export default function ContractsPage() {
                 <th>Status</th>
                 <th>Buyer ID</th>
                 <th>Updated</th>
-                <th>Open</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -71,7 +109,21 @@ export default function ContractsPage() {
                     <td>{contract.customerId}</td>
                     <td>{new Date(contract.updatedAt).toLocaleString()}</td>
                     <td>
-                      <Link href={`/app/contracts/${contract.id}`}>Open</Link>
+                      <div className="row-actions">
+                        <Link
+                          href={`/app/contracts/${encodeURIComponent(contract.contractNumber)}`}
+                          className="button-link button-link-secondary"
+                        >
+                          Open
+                        </Link>
+                        <button
+                          type="button"
+                          className="button-secondary"
+                          onClick={() => setDeleteTarget(contract)}
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -80,6 +132,24 @@ export default function ContractsPage() {
           </table>
         </div>
       </section>
+
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        title="Delete Contract"
+        message={deleteTarget
+          ? `Delete contract ${deleteTarget.contractNumber} and all linked records (inputs, execution, shipments, documents)?`
+          : ""}
+        confirmLabel="Delete Contract"
+        cancelLabel="Cancel"
+        destructive
+        busy={deleting}
+        onCancel={() => {
+          if (!deleting) {
+            setDeleteTarget(null);
+          }
+        }}
+        onConfirm={() => void handleDelete()}
+      />
     </section>
   );
 }

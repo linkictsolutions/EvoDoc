@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { requireActor } from "@/lib/auth/server";
 import { fail, getRequestId, ok } from "@/lib/api/response";
-import { listContractAuditLogs } from "@/lib/repositories/firestore-repository";
+import { listContractAuditLogs, resolveContractId } from "@/lib/repositories/firestore-repository";
 
 export async function GET(
   request: NextRequest,
@@ -17,7 +17,8 @@ export async function GET(
     }
 
     await requireActor(orgId, ["admin", "editor", "viewer"]);
-    const logs = await listContractAuditLogs(orgId, id);
+    const resolvedContractId = await resolveContractId(orgId, id);
+    const logs = await listContractAuditLogs(orgId, resolvedContractId);
     return ok(requestId, logs);
   } catch (error) {
     return fail(requestId, (error as Error).message, 400);

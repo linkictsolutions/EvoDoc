@@ -10,7 +10,7 @@ import { DEFAULT_ORG_ID } from "@/lib/config";
 import type { Contract } from "@/types/models";
 
 const schema = z.object({
-  contractId: z.string().min(1, "Contract ID is required"),
+  contractId: z.string().min(1, "Contract number is required"),
   lcNumber: z.string().optional(),
   permitNumber: z.string().optional(),
   sender: z.string().optional(),
@@ -22,11 +22,8 @@ const schema = z.object({
   goodsDescription: z.string().optional(),
   noOfBags: z.string().optional(),
   consignee: z.string().optional(),
-  revisedConsignee: z.string().optional(),
   notify: z.string().optional(),
-  revisedNotify: z.string().optional(),
   secondNotify: z.string().optional(),
-  revisedSecondNotify: z.string().optional(),
   currencyAmount: z.string().optional(),
   beneficiaryBank: z.string().optional(),
   bankAddress: z.string().optional(),
@@ -79,11 +76,8 @@ export function BankLcForm({
       goodsDescription: "",
       noOfBags: "",
       consignee: "",
-      revisedConsignee: "",
       notify: "",
-      revisedNotify: "",
       secondNotify: "",
-      revisedSecondNotify: "",
       currencyAmount: "",
       beneficiaryBank: "",
       bankAddress: "",
@@ -100,7 +94,7 @@ export function BankLcForm({
       return continueHref;
     }
     const id = savedContractId ?? contractIdInput;
-    return id ? `/app/contracts/${id}/resolved-values` : "/app/contracts";
+    return id ? `/app/contracts/${encodeURIComponent(id)}/resolved-values` : "/app/contracts";
   }, [contractIdInput, continueHref, savedContractId]);
 
   useEffect(() => {
@@ -135,8 +129,9 @@ export function BankLcForm({
         }
 
         const banking = data.contract.banking;
-        setSavedContractId(data.contract.id);
-        setValue("contractId", data.contract.id, { shouldValidate: true });
+        const contractIdentifier = data.contract.contractNumber;
+        setSavedContractId(contractIdentifier);
+        setValue("contractId", contractIdentifier, { shouldValidate: true });
         setValue("lcNumber", banking.lcNumber ?? "");
         setValue("permitNumber", banking.permitNumber ?? "");
         setValue("sender", banking.sender ?? "");
@@ -148,11 +143,8 @@ export function BankLcForm({
         setValue("goodsDescription", banking.goodsDescription ?? "");
         setValue("noOfBags", banking.noOfBags ?? "");
         setValue("consignee", banking.consignee ?? "");
-        setValue("revisedConsignee", banking.revisedConsignee ?? "");
         setValue("notify", banking.notify ?? "");
-        setValue("revisedNotify", banking.revisedNotify ?? "");
         setValue("secondNotify", banking.secondNotify ?? "");
-        setValue("revisedSecondNotify", banking.revisedSecondNotify ?? "");
         setValue("currencyAmount", banking.currencyAmount ?? "");
         setValue("beneficiaryBank", banking.beneficiaryBank ?? "");
         setValue("bankAddress", banking.bankAddress ?? "");
@@ -199,11 +191,8 @@ export function BankLcForm({
             goodsDescription: form.goodsDescription,
             noOfBags: form.noOfBags,
             consignee: form.consignee,
-            revisedConsignee: form.revisedConsignee,
             notify: form.notify,
-            revisedNotify: form.revisedNotify,
             secondNotify: form.secondNotify,
-            revisedSecondNotify: form.revisedSecondNotify,
             currencyAmount: form.currencyAmount,
             beneficiaryBank: form.beneficiaryBank,
             bankAddress: form.bankAddress,
@@ -229,15 +218,15 @@ export function BankLcForm({
   return (
     <section className="page-shell">
       <header className="page-header">
-        <h1>Bank & LC Input</h1>
-        <p>Recreates Bank & LC sheet as an independent source, including revised LC overrides.</p>
+        <h1>Bank &amp; LC Source Document</h1>
+        <p>Recreates Bank & LC sheet as an independent source input.</p>
         {loadingExisting ? <p>Loading existing Bank & LC data...</p> : null}
       </header>
 
       <form className="card form-grid" onSubmit={handleSubmit(onSubmit)}>
         <h3 className="span-all">Contract Link</h3>
         <label>
-          Contract ID (link only)
+          Contract Number (link only)
           <input {...register("contractId")} readOnly={Boolean(initialContractId)} />
           <small>{errors.contractId?.message}</small>
         </label>
@@ -272,18 +261,6 @@ export function BankLcForm({
           <input {...register("noOfBags")} />
         </label>
         <label>
-          Consignee - C22
-          <textarea rows={2} {...register("consignee")} />
-        </label>
-        <label>
-          Notify - C25
-          <textarea rows={2} {...register("notify")} />
-        </label>
-        <label>
-          2nd Notify - C26
-          <textarea rows={2} {...register("secondNotify")} />
-        </label>
-        <label>
           Currency Amount - C27
           <input {...register("currencyAmount")} />
         </label>
@@ -296,18 +273,18 @@ export function BankLcForm({
           <input {...register("receiver")} />
         </label>
 
-        <h3 className="span-all">Revised Entry Section (H column)</h3>
+        <h3 className="span-all">Consignee and Notify Parties</h3>
         <label>
-          Revised Consignee - H22
-          <textarea rows={2} {...register("revisedConsignee")} />
+          Consignee - C22
+          <textarea rows={2} {...register("consignee")} />
         </label>
         <label>
-          Revised Notify - H25
-          <textarea rows={2} {...register("revisedNotify")} />
+          Notify - C25
+          <textarea rows={2} {...register("notify")} />
         </label>
         <label>
-          Revised 2nd Notify - H26
-          <textarea rows={2} {...register("revisedSecondNotify")} />
+          2nd Notify - C26
+          <textarea rows={2} {...register("secondNotify")} />
         </label>
 
         <h3 className="span-all">Bank Information (G column)</h3>

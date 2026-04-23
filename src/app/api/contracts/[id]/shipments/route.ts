@@ -11,6 +11,7 @@ import { fail, getRequestId, ok } from "@/lib/api/response";
 import {
   appendAuditLog,
   getContract,
+  resolveContractId,
   upsertShipment,
 } from "@/lib/repositories/firestore-repository";
 
@@ -21,8 +22,10 @@ export async function POST(
   const requestId = getRequestId();
 
   try {
-    const { id: contractId } = await params;
+    const { id: contractIdentifier } = await params;
     const body = await request.json();
+    const parsedDraft = shipmentInputSchema.parse({ ...body, contractId: contractIdentifier });
+    const contractId = await resolveContractId(parsedDraft.orgId, parsedDraft.contractId);
     const parsed = shipmentInputSchema.parse({ ...body, contractId });
 
     const actor = await requireActor(parsed.orgId, ["admin", "editor"]);

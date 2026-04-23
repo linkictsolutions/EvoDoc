@@ -54,7 +54,7 @@ export function OperationsDashboard() {
     <section className="page-shell">
       <header className="page-header">
         <h1>Operations Overview</h1>
-        <p>Run export work from contracts outward: master data, source inputs, resolved values, shipments, and documents.</p>
+        <p>Run export work from contracts outward: master data, source documents, resolved values, shipments, and documents.</p>
         <div className="row-actions page-header-actions">
           <Link href="/app/contracts">
             <button type="button">Open Contracts</button>
@@ -101,7 +101,7 @@ export function OperationsDashboard() {
           <ol className="journey-list">
             <li>Create or reuse the buyer and item master records.</li>
             <li>Create one export contract as the parent workspace.</li>
-            <li>Complete the three source inputs: Contract, Shipping Instruction, Bank &amp; LC.</li>
+            <li>Complete the three source documents: Contract, Shipping Instruction, Bank &amp; LC.</li>
             <li>Review resolved values where LC or SI overrides contract terms.</li>
             <li>Add shipment and booking details, then generate the required documents.</li>
             <li>Review, approve, print, and track the export record to completion.</li>
@@ -142,7 +142,12 @@ export function OperationsDashboard() {
                       </td>
                       <td>{contract.customerId}</td>
                       <td>
-                        <Link href={`/app/contracts/${contract.id}`}>Open</Link>
+                        <Link
+                          href={`/app/contracts/${encodeURIComponent(contract.contractNumber)}`}
+                          className="button-link button-link-secondary"
+                        >
+                          Open
+                        </Link>
                       </td>
                     </tr>
                   ))

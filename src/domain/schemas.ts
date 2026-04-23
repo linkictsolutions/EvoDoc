@@ -1,5 +1,10 @@
 import { z } from "zod";
 
+const contractNumberSchema = z.string().min(1).refine(
+  (value) => !value.includes("/"),
+  { message: "Contract number cannot contain '/'." },
+);
+
 export const contractTermsSchema = z.object({
   quality: z.string().min(1),
   origin: z.string().min(1),
@@ -91,7 +96,7 @@ export const contractInputSchema = z.object({
     taxId: z.string().optional(),
   }),
   contract: z.object({
-    contractNumber: z.string().min(1),
+    contractNumber: contractNumberSchema,
     customerId: z.string().optional(),
     status: z.enum(["draft", "active", "closed"]).default("draft"),
     terms: contractTermsSchema,
@@ -114,7 +119,7 @@ export const contractCoreInputSchema = z.object({
     taxId: z.string().optional(),
   }),
   contract: z.object({
-    contractNumber: z.string().min(1),
+    contractNumber: contractNumberSchema,
     status: z.enum(["draft", "active", "closed"]).default("draft"),
     terms: contractTermsSchema,
   }),
@@ -178,6 +183,7 @@ export const companyConfigurationInputSchema = z.object({
     transitorLocation: z.string().optional(),
     paymentTerms: z.array(z.string().min(1)).min(1),
     deliveryTerms: z.array(z.string().min(1)).min(1),
+    priceUoms: z.array(z.string().min(1)).min(1),
     bulkReferenceKg: z.number().positive(),
     packagingDefinitions: z.array(z.object({
       label: z.string().min(1),

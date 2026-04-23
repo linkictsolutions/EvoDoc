@@ -6,7 +6,7 @@ import clsx from "clsx";
 
 const navItems = [
   { href: "/app/contracts", label: "Contracts" },
-  { href: "/app/input/contract", label: "Input" },
+  { href: "/app/input/contract", label: "Source Documents" },
   { href: "/app/documents/commercial-invoice-icc", label: "Documents" },
 ];
 

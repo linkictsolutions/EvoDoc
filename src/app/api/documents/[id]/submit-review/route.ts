@@ -5,6 +5,7 @@ import { fail, getRequestId, ok } from "@/lib/api/response";
 import {
   appendAuditLog,
   createNotification,
+  resolveContractId,
   transitionDocument,
 } from "@/lib/repositories/firestore-repository";
 
@@ -18,10 +19,11 @@ export async function POST(
     const { id: docId } = await params;
     const body = await request.json();
     const parsed = submitReviewSchema.parse(body);
+    const resolvedContractId = await resolveContractId(parsed.orgId, parsed.contractId);
 
     const actor = await requireActor(parsed.orgId, ["admin", "editor"]);
 
-    await transitionDocument(parsed.orgId, parsed.contractId, docId, "under_review", actor);
+    await transitionDocument(parsed.orgId, resolvedContractId, docId, "under_review", actor);
 
     await createNotification(parsed.orgId, {
       orgId: parsed.orgId,
@@ -37,7 +39,7 @@ export async function POST(
       parsed.orgId,
       actor.uid,
       "document.submitted_for_review",
-      `organizations/${parsed.orgId}/contracts/${parsed.contractId}/documents/${docId}`,
+      `organizations/${parsed.orgId}/contracts/${resolvedContractId}/documents/${docId}`,
       null,
       { status: "under_review" },
       requestId,

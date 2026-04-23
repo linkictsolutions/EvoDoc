@@ -70,7 +70,7 @@ export default function ContractDetailPage({ params }: { params: Promise<{ id: s
     <section className="page-shell">
       <header className="page-header">
         <h1>Contract Overview</h1>
-        <p>Parent workspace for one coffee export contract and all of its source inputs, execution records, and output documents.</p>
+        <p>Parent workspace for one coffee export contract and all of its source documents, execution records, and output documents.</p>
       </header>
 
       <section className="dashboard-grid">
@@ -100,7 +100,7 @@ export default function ContractDetailPage({ params }: { params: Promise<{ id: s
         <h2>Next Actions</h2>
         <div className="row-actions page-header-actions">
           <Link href={`/app/contracts/${contractId}/inputs/contract`}>
-            <button type="button">Open Inputs</button>
+            <button type="button">Open Source Documents</button>
           </Link>
           <Link href={`/app/contracts/${contractId}/resolved-values`}>
             <button type="button" className="button-secondary">Review Resolved Values</button>
@@ -117,7 +117,7 @@ export default function ContractDetailPage({ params }: { params: Promise<{ id: s
       <section className="card">
         <h2>Workspace Structure</h2>
         <ul className="journey-list">
-          <li><strong>Inputs</strong>: Contract, Shipping Instruction, and Bank &amp; LC source sheets.</li>
+          <li><strong>Source Documents</strong>: Contract, Shipping Instruction, and Bank &amp; LC source records.</li>
           <li><strong>Resolved Values</strong>: final field precedence after LC/SI overrides.</li>
           <li><strong>Execution</strong>: Bookings, Staffing, and Processing workbook sheets attached to this contract.</li>
           <li><strong>Documents</strong>: generated invoice, packing list, SI, and sample outputs.</li>

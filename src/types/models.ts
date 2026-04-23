@@ -87,6 +87,7 @@ export interface CompanyConfiguration extends Timestamped {
   transitorLocation?: string;
   paymentTerms: string[];
   deliveryTerms: string[];
+  priceUoms: string[];
   bulkReferenceKg: number;
   packagingDefinitions: PackagingDefinition[];
 }

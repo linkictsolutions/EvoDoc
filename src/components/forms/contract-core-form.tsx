@@ -37,6 +37,28 @@ type FormData = z.infer<typeof schema>;
 const packagingOptions = ["Bag of 60Kg", "Bag of 50Kg", "Bag of 30Kg", "Kg", "Lbs", "Metric Ton", "Bulk"];
 const fallbackPaymentTerms = ["CAD", "LC", "Advance & CAD", "Advance"];
 const fallbackDeliveryTerms = ["F.O.B"];
+const fallbackPriceUoms = ["Lbs", "Bag of 60Kg", "Bag of 50Kg", "Bag of 30Kg", "Kg", "Metric Ton"];
+
+function resolveBagWeightFromPackagingUnit(unit: string): number {
+  const normalized = unit.trim().toLowerCase();
+
+  if (normalized === "bag of 60kg") {
+    return 60;
+  }
+  if (normalized === "bag of 50kg") {
+    return 50;
+  }
+  if (normalized === "bag of 30kg") {
+    return 30;
+  }
+  if (normalized === "lbs" || normalized === "lb") {
+    return 0.453592;
+  }
+  if (normalized === "metric ton" || normalized === "mt") {
+    return 1000;
+  }
+  return 1;
+}
 
 interface ContractCoreFormProps {
   initialContractId?: string;
@@ -70,15 +92,15 @@ interface ContractDetailResponse {
   customer: Customer | null;
 }
 
-function toDateInputValue(value?: string): string {
+function toMonthInputValue(value?: string): string {
   const normalized = value?.trim();
   if (!normalized) {
     return "";
   }
 
-  const isoDateMatch = normalized.match(/^(\d{4}-\d{2}-\d{2})/);
-  if (isoDateMatch) {
-    return isoDateMatch[1];
+  const isoMonthMatch = normalized.match(/^(\d{4}-\d{2})(?:-\d{2})?/);
+  if (isoMonthMatch) {
+    return isoMonthMatch[1];
   }
 
   const parsed = new Date(normalized);
@@ -86,7 +108,7 @@ function toDateInputValue(value?: string): string {
     return "";
   }
 
-  return parsed.toISOString().slice(0, 10);
+  return parsed.toISOString().slice(0, 7);
 }
 
 export function ContractCoreForm({
@@ -105,25 +127,26 @@ export function ContractCoreForm({
   const [loadingExisting, setLoadingExisting] = useState(false);
   const [paymentTermOptions, setPaymentTermOptions] = useState<string[]>(fallbackPaymentTerms);
   const [deliveryTermOptions, setDeliveryTermOptions] = useState<string[]>(fallbackDeliveryTerms);
+  const [priceUomOptions, setPriceUomOptions] = useState<string[]>(fallbackPriceUoms);
 
-  const { register, watch, getValues, handleSubmit, setValue, formState: { errors } } = useForm<FormData>({
+  const { register, watch, handleSubmit, setValue, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
-      customerCountry: "Germany",
-      quality: "UNWASHED ARABICA",
-      origin: "ETHIOPIA",
-      grade: "G1",
-      quantityBags: 320,
+      customerName: "",
+      customerAddress: "",
+      customerCountry: "",
+      contractNumber: "",
+      quality: "",
+      origin: "",
+      grade: "",
       bagWeightKg: 60,
-      unitPrice: 154,
-      priceUnitForPrice: 100,
-      priceUom: "Lbs",
-      packagingUnit: "Bag of 60Kg",
-      currency: "USD",
-      paymentTerm: "CAD",
-      deliveryTerm: fallbackDeliveryTerms[0],
-      cropYear: "2025/26",
-      lastCertNo: 22,
+      priceUom: "",
+      packagingUnit: "",
+      currency: "",
+      shipmentPeriod: "",
+      paymentTerm: "",
+      deliveryTerm: "",
+      cropYear: "",
     },
   });
 
@@ -216,9 +239,7 @@ export function ContractCoreForm({
   }
 
   function onPackagingUnitChange(unit: string) {
-    if (unit === "Bag of 60Kg") setValue("bagWeightKg", 60);
-    if (unit === "Bag of 50Kg") setValue("bagWeightKg", 50);
-    if (unit === "Bag of 30Kg") setValue("bagWeightKg", 30);
+    setValue("bagWeightKg", resolveBagWeightFromPackagingUnit(unit));
   }
 
   useEffect(() => {
@@ -252,39 +273,48 @@ export function ContractCoreForm({
 
         const terms = configuration.paymentTerms?.filter((term) => term.trim().length > 0) ?? [];
         const deliveryTerms = configuration.deliveryTerms?.filter((term) => term.trim().length > 0) ?? [];
+        const priceUoms = configuration.priceUoms?.filter((uom) => uom.trim().length > 0) ?? [];
         if (terms.length === 0) {
           setPaymentTermOptions(fallbackPaymentTerms);
         } else {
           setPaymentTermOptions(terms);
         }
-        const currentTerm = (getValues("paymentTerm") ?? "").trim();
-        const normalizedPaymentTerms = terms.length > 0 ? terms : fallbackPaymentTerms;
-        if (!currentTerm || !normalizedPaymentTerms.includes(currentTerm)) {
-          setValue("paymentTerm", normalizedPaymentTerms[0]);
-        }
-
         if (deliveryTerms.length === 0) {
           setDeliveryTermOptions(fallbackDeliveryTerms);
         } else {
           setDeliveryTermOptions(deliveryTerms);
         }
-        const currentDeliveryTerm = (getValues("deliveryTerm") ?? "").trim();
-        const normalizedDeliveryTerms = deliveryTerms.length > 0 ? deliveryTerms : fallbackDeliveryTerms;
-        if (!currentDeliveryTerm || !normalizedDeliveryTerms.includes(currentDeliveryTerm)) {
-          setValue("deliveryTerm", normalizedDeliveryTerms[0]);
+        if (priceUoms.length === 0) {
+          setPriceUomOptions(fallbackPriceUoms);
+        } else {
+          setPriceUomOptions(priceUoms);
         }
       })
       .catch(() => {
         if (mounted) {
           setPaymentTermOptions(fallbackPaymentTerms);
           setDeliveryTermOptions(fallbackDeliveryTerms);
+          setPriceUomOptions(fallbackPriceUoms);
         }
       });
 
     return () => {
       mounted = false;
     };
-  }, [getValues, setValue]);
+  }, []);
+
+  useEffect(() => {
+    const currentPriceUom = (watch("priceUom") ?? "").trim();
+    if (currentPriceUom) {
+      return;
+    }
+
+    if (priceUomOptions.length === 0) {
+      return;
+    }
+
+    setValue("priceUom", priceUomOptions[0]);
+  }, [priceUomOptions, setValue, watch]);
 
   useEffect(() => {
     if (!autoLoadExisting || !initialContractId) {
@@ -303,9 +333,10 @@ export function ContractCoreForm({
 
         const terms = data.contract.terms;
         const customer = data.customer;
+        const contractIdentifier = data.contract.contractNumber;
 
-        setActiveContractId(data.contract.id);
-        setSavedContractId(data.contract.id);
+        setActiveContractId(contractIdentifier);
+        setSavedContractId(contractIdentifier);
         setSelectedBuyerId(customer?.id ?? "");
         setValue("contractNumber", data.contract.contractNumber);
         setValue("customerName", customer?.name ?? "");
@@ -321,7 +352,7 @@ export function ContractCoreForm({
         setValue("priceUom", terms.priceUom ?? "Lbs");
         setValue("packagingUnit", terms.packagingUnit);
         setValue("currency", terms.currency);
-        setValue("shipmentPeriod", toDateInputValue(terms.shipmentPeriod));
+        setValue("shipmentPeriod", toMonthInputValue(terms.shipmentPeriod));
         setValue("paymentTerm", terms.paymentTerm ?? paymentTermOptions[0] ?? "CAD");
         setValue("deliveryTerm", terms.deliveryTerm ?? deliveryTermOptions[0] ?? fallbackDeliveryTerms[0]);
         setValue("cropYear", terms.cropYear ?? "");
@@ -359,28 +390,14 @@ export function ContractCoreForm({
   }, [buyers, selectedBuyerId, setValue]);
 
   const shippingHref = continueHref ?? (savedContractId
-    ? `/app/contracts/${savedContractId}/inputs/shipping-instruction`
+    ? `/app/contracts/${encodeURIComponent(savedContractId)}/inputs/shipping-instruction`
     : "");
 
   return (
     <section className="page-shell">
       <header className="page-header">
-        <h1>Contract Input</h1>
-        <p>Fill Contract sheet fields first. Select a buyer from Buyer Master, then complete contract details.</p>
-        <div className="row-actions page-header-actions">
-          <Link href="/app/masters/customers">
-            <button type="button" className="button-secondary">Manage Buyers</button>
-          </Link>
-          <Link href="/app/masters/customers/new">
-            <button type="button" className="button-secondary">Add Buyer</button>
-          </Link>
-          <Link href="/app/masters/items">
-            <button type="button" className="button-secondary">Manage Items</button>
-          </Link>
-          <Link href="/app/masters/items/new">
-            <button type="button" className="button-secondary">Add Item</button>
-          </Link>
-        </div>
+        <h1>Contract Source Document</h1>
+        <p>Start the export workflow by completing the core contract source document.</p>
         {loadingExisting ? <p>Loading existing contract data...</p> : null}
       </header>
 
@@ -420,7 +437,7 @@ export function ContractCoreForm({
 
         <label>
           Quality
-          <input {...register("quality")} />
+          <textarea rows={3} {...register("quality")} />
         </label>
         <label>
           Origin
@@ -439,6 +456,7 @@ export function ContractCoreForm({
               onPackagingUnitChange(event.target.value);
             }}
           >
+            <option value="">Select packaging unit</option>
             {packagingOptions.map((option) => (
               <option key={option} value={option}>{option}</option>
             ))}
@@ -450,10 +468,6 @@ export function ContractCoreForm({
           <input type="number" step="0.001" {...register("quantityBags", { valueAsNumber: true })} />
         </label>
         <label>
-          Main Unit Weight (kg)
-          <input type="number" step="0.001" {...register("bagWeightKg", { valueAsNumber: true })} />
-        </label>
-        <label>
           Unit Price
           <input type="number" step="0.01" {...register("unitPrice", { valueAsNumber: true })} />
         </label>
@@ -463,20 +477,27 @@ export function ContractCoreForm({
         </label>
         <label>
           Price UoM
-          <input {...register("priceUom")} />
+          <select {...register("priceUom")}>
+            <option value="">Select price UoM</option>
+            {priceUomOptions.map((uom) => (
+              <option key={uom} value={uom}>{uom}</option>
+            ))}
+          </select>
         </label>
         <label>
           Currency
           <input {...register("currency")} />
         </label>
+        <input type="hidden" {...register("bagWeightKg", { valueAsNumber: true })} />
 
         <label>
           Shipment Period
-          <input type="date" {...register("shipmentPeriod")} />
+          <input type="month" {...register("shipmentPeriod")} />
         </label>
         <label>
           Payment Term
           <select {...register("paymentTerm")}>
+            <option value="">Select payment term</option>
             {paymentTermOptions.map((term) => (
               <option key={term} value={term}>{term}</option>
             ))}
@@ -485,6 +506,7 @@ export function ContractCoreForm({
         <label>
           Delivery Term
           <select {...register("deliveryTerm")}>
+            <option value="">Select delivery term</option>
             {deliveryTermOptions.map((term) => (
               <option key={term} value={term}>{term}</option>
             ))}

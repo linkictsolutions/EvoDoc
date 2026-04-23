@@ -17,6 +17,7 @@ import {
   getContract,
   getCustomer,
   listGeneratedDocuments,
+  resolveContractId,
 } from "@/lib/repositories/firestore-repository";
 import { buildDocumentOutput } from "@/lib/workflow/document-generation";
 import type { DocumentFamily, DocumentVariant } from "@/types/models";
@@ -33,7 +34,7 @@ export async function GET(
   const requestId = getRequestId();
 
   try {
-    const { id: contractId } = await params;
+    const { id: contractIdentifier } = await params;
     const orgId = request.nextUrl.searchParams.get("orgId");
     if (!orgId) {
       return fail(requestId, "Missing orgId", 400);
@@ -49,6 +50,8 @@ export async function GET(
     const family = parsed.family as DocumentFamily;
     const familyDefinition = getDocumentFamilyDefinition(family);
     const variant = resolveVariantForFamily(family, parsed.variant as DocumentVariant | undefined);
+
+    const contractId = await resolveContractId(orgId, contractIdentifier);
 
     const [contract, documents, execution] = await Promise.all([
       getContract(orgId, contractId),

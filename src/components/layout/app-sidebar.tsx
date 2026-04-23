@@ -107,7 +107,7 @@ function buildContractSections(contractId: string): NavSection[] {
       ],
     },
     {
-      title: "Inputs",
+      title: "Source Documents",
       items: [
         {
           href: `/app/contracts/${contractId}/inputs/contract`,
@@ -200,7 +200,7 @@ function toolbarCopy(pathname: string): { title: string; subtitle: string } {
     const contractId = pathname.split("/").filter(Boolean)[2];
     return {
       title: `Contract Workspace ${contractId ? `· ${contractId.slice(0, 8)}` : ""}`,
-      subtitle: "Manage this contract through inputs, execution, and documents in one workflow.",
+      subtitle: "Manage this contract through source documents, execution, and generated outputs.",
     };
   }
 
@@ -233,7 +233,7 @@ function prettifySegment(segment: string): string {
     "company-configuration": "Company Configuration",
     customers: "Buyers",
     items: "Items",
-    inputs: "Inputs",
+    inputs: "Source Documents",
     "resolved-values": "Resolved Values",
     execution: "Execution",
     bookings: "Bookings",
@@ -246,7 +246,7 @@ function prettifySegment(segment: string): string {
     print: "Print",
     activity: "Activity",
     shipments: "Shipments",
-    input: "Input",
+    input: "Source Documents",
     "shipping-instruction": "Shipping Instruction",
     "bank-lc": "Bank & LC",
     "contract-si-lc": "Contract-SI-LC",

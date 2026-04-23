@@ -9,6 +9,7 @@ import { fail, getRequestId, ok } from "@/lib/api/response";
 import {
   appendAuditLog,
   getBookingsSheet,
+  resolveContractId,
   upsertBookingsSheet,
 } from "@/lib/repositories/firestore-repository";
 
@@ -19,12 +20,13 @@ export async function GET(
   const requestId = getRequestId();
 
   try {
-    const { id: contractId } = await params;
+    const { id: contractIdentifier } = await params;
     const orgId = request.nextUrl.searchParams.get("orgId");
     if (!orgId) {
       return fail(requestId, "Missing orgId", 400);
     }
 
+    const contractId = await resolveContractId(orgId, contractIdentifier);
     await requireActor(orgId, ["admin", "editor", "viewer"]);
     const bookings = await getBookingsSheet(orgId, contractId).catch(() => defaultBookingsSheet(orgId, contractId));
     const payload = {
@@ -44,19 +46,21 @@ export async function POST(
   const requestId = getRequestId();
 
   try {
-    const { id: contractId } = await params;
+    const { id: contractIdentifier } = await params;
     const body = await request.json();
-    const normalized = normalizeBookingsPayload({ ...body, contractId });
+    const normalized = normalizeBookingsPayload({ ...body, contractId: contractIdentifier });
+    const contractId = await resolveContractId(normalized.bookings.orgId, normalized.bookings.contractId);
+    const resolvedPayload = normalizeBookingsPayload({ ...body, contractId });
     const actor = await requireActor(normalized.bookings.orgId, ["admin", "editor"]);
-    const targetPath = await upsertBookingsSheet(normalized.bookings.orgId, contractId, normalized.bookings);
+    const targetPath = await upsertBookingsSheet(resolvedPayload.bookings.orgId, contractId, resolvedPayload.bookings);
 
     await appendAuditLog(
-      normalized.bookings.orgId,
+      resolvedPayload.bookings.orgId,
       actor.uid,
       "execution.bookings.updated",
       targetPath,
       null,
-      normalized.bookings,
+      resolvedPayload.bookings,
       requestId,
     );
 

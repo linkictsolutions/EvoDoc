@@ -5,6 +5,7 @@ import { fail, getRequestId, ok } from "@/lib/api/response";
 import {
   appendAuditLog,
   createNotification,
+  resolveContractId,
   transitionDocument,
 } from "@/lib/repositories/firestore-repository";
 
@@ -18,6 +19,7 @@ export async function POST(
     const { id: docId } = await params;
     const body = await request.json();
     const parsed = decisionSchema.parse(body);
+    const resolvedContractId = await resolveContractId(parsed.orgId, parsed.contractId);
     const actor = await requireActor(parsed.orgId, ["admin"]);
 
     if (!actor.isApprover) {
@@ -26,7 +28,7 @@ export async function POST(
 
     const targetStatus = parsed.decision === "approve" ? "approved" : "draft";
 
-    await transitionDocument(parsed.orgId, parsed.contractId, docId, targetStatus, actor, parsed.comment);
+    await transitionDocument(parsed.orgId, resolvedContractId, docId, targetStatus, actor, parsed.comment);
 
     await createNotification(parsed.orgId, {
       orgId: parsed.orgId,
@@ -42,7 +44,7 @@ export async function POST(
       parsed.orgId,
       actor.uid,
       parsed.decision === "approve" ? "document.approved" : "document.rejected",
-      `organizations/${parsed.orgId}/contracts/${parsed.contractId}/documents/${docId}`,
+      `organizations/${parsed.orgId}/contracts/${resolvedContractId}/documents/${docId}`,
       null,
       {
         status: targetStatus,

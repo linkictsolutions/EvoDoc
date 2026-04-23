@@ -10,6 +10,7 @@ import { fail, getRequestId, ok } from "@/lib/api/response";
 import {
   appendAuditLog,
   getBookingsSheet,
+  resolveContractId,
   getStaffingSheet,
   upsertStaffingSheet,
 } from "@/lib/repositories/firestore-repository";
@@ -21,12 +22,13 @@ export async function GET(
   const requestId = getRequestId();
 
   try {
-    const { id: contractId } = await params;
+    const { id: contractIdentifier } = await params;
     const orgId = request.nextUrl.searchParams.get("orgId");
     if (!orgId) {
       return fail(requestId, "Missing orgId", 400);
     }
 
+    const contractId = await resolveContractId(orgId, contractIdentifier);
     await requireActor(orgId, ["admin", "editor", "viewer"]);
     const [bookings, staffing] = await Promise.all([
       getBookingsSheet(orgId, contractId).catch(() => undefined),
@@ -60,19 +62,21 @@ export async function POST(
   const requestId = getRequestId();
 
   try {
-    const { id: contractId } = await params;
+    const { id: contractIdentifier } = await params;
     const body = await request.json();
-    const normalized = normalizeStaffingPayload({ ...body, contractId });
+    const normalized = normalizeStaffingPayload({ ...body, contractId: contractIdentifier });
+    const contractId = await resolveContractId(normalized.staffing.orgId, normalized.staffing.contractId);
+    const resolvedPayload = normalizeStaffingPayload({ ...body, contractId });
     const actor = await requireActor(normalized.staffing.orgId, ["admin", "editor"]);
-    const targetPath = await upsertStaffingSheet(normalized.staffing.orgId, contractId, normalized.staffing);
+    const targetPath = await upsertStaffingSheet(resolvedPayload.staffing.orgId, contractId, resolvedPayload.staffing);
 
     await appendAuditLog(
-      normalized.staffing.orgId,
+      resolvedPayload.staffing.orgId,
       actor.uid,
       "execution.staffing.updated",
       targetPath,
       null,
-      normalized.staffing,
+      resolvedPayload.staffing,
       requestId,
     );
 

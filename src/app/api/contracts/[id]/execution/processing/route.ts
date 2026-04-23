@@ -6,6 +6,7 @@ import {
   appendAuditLog,
   getContract,
   getProcessingSheet,
+  resolveContractId,
   upsertProcessingSheet,
 } from "@/lib/repositories/firestore-repository";
 
@@ -16,12 +17,13 @@ export async function GET(
   const requestId = getRequestId();
 
   try {
-    const { id: contractId } = await params;
+    const { id: contractIdentifier } = await params;
     const orgId = request.nextUrl.searchParams.get("orgId");
     if (!orgId) {
       return fail(requestId, "Missing orgId", 400);
     }
 
+    const contractId = await resolveContractId(orgId, contractIdentifier);
     await requireActor(orgId, ["admin", "editor", "viewer"]);
     const processing = await getProcessingSheet(orgId, contractId).catch(async () => {
       const contract = await getContract(orgId, contractId);
@@ -46,19 +48,25 @@ export async function POST(
   const requestId = getRequestId();
 
   try {
-    const { id: contractId } = await params;
+    const { id: contractIdentifier } = await params;
     const body = await request.json();
-    const normalized = normalizeProcessingPayload({ ...body, contractId });
+    const normalized = normalizeProcessingPayload({ ...body, contractId: contractIdentifier });
+    const contractId = await resolveContractId(normalized.processing.orgId, normalized.processing.contractId);
+    const resolvedPayload = normalizeProcessingPayload({ ...body, contractId });
     const actor = await requireActor(normalized.processing.orgId, ["admin", "editor"]);
-    const targetPath = await upsertProcessingSheet(normalized.processing.orgId, contractId, normalized.processing);
+    const targetPath = await upsertProcessingSheet(
+      resolvedPayload.processing.orgId,
+      contractId,
+      resolvedPayload.processing,
+    );
 
     await appendAuditLog(
-      normalized.processing.orgId,
+      resolvedPayload.processing.orgId,
       actor.uid,
       "execution.processing.updated",
       targetPath,
       null,
-      normalized.processing,
+      resolvedPayload.processing,
       requestId,
     );
 

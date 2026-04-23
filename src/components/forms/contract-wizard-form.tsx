@@ -211,7 +211,7 @@ export function ContractWizardForm() {
         }),
       });
 
-      router.push(`/app/contracts/${data.contractId}`);
+      router.push(`/app/contracts/${encodeURIComponent(data.contractId)}`);
     } catch (error) {
       setApiError((error as Error).message);
     } finally {
@@ -321,7 +321,7 @@ export function ContractWizardForm() {
           </label>
           <label>
             Shipment Period
-            <input type="date" {...register("shipmentPeriod")} />
+            <input type="month" {...register("shipmentPeriod")} />
           </label>
           <label>
             Crop Year

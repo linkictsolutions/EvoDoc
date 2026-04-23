@@ -24,6 +24,24 @@ function nowIso(): string {
   return new Date().toISOString();
 }
 
+function stripUndefinedDeep<T>(value: T): T {
+  if (Array.isArray(value)) {
+    return value
+      .map((entry) => stripUndefinedDeep(entry))
+      .filter((entry) => entry !== undefined) as T;
+  }
+
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value)
+        .filter(([, entry]) => entry !== undefined)
+        .map(([key, entry]) => [key, stripUndefinedDeep(entry)]),
+    ) as T;
+  }
+
+  return value;
+}
+
 function orgPath(orgId: string): string {
   return `organizations/${orgId}`;
 }
@@ -36,6 +54,78 @@ function executionPath(orgId: string, contractId: string, key: "bookings" | "sta
   return `${orgPath(orgId)}/contracts/${contractId}/execution/${key}`;
 }
 
+async function deleteCollectionTree(
+  collectionRef: FirebaseFirestore.CollectionReference,
+): Promise<number> {
+  let deletedCount = 0;
+  const docs = await collectionRef.listDocuments();
+
+  for (const docRef of docs) {
+    deletedCount += await deleteDocumentTree(docRef);
+  }
+
+  return deletedCount;
+}
+
+async function deleteDocumentTree(
+  docRef: FirebaseFirestore.DocumentReference,
+): Promise<number> {
+  let deletedCount = 0;
+  const subcollections = await docRef.listCollections();
+
+  for (const subcollection of subcollections) {
+    deletedCount += await deleteCollectionTree(subcollection);
+  }
+
+  await docRef.delete();
+  return deletedCount + 1;
+}
+
+async function deleteByTargetPathPrefixes(
+  collectionPath: string,
+  prefixes: string[],
+): Promise<number> {
+  if (prefixes.length === 0) {
+    return 0;
+  }
+
+  const snapshot = await adminDb.collection(collectionPath).get();
+  const refsToDelete = snapshot.docs
+    .filter((doc) => {
+      const targetPath = doc.get("targetPath");
+      return typeof targetPath === "string"
+        && prefixes.some((prefix) => targetPath.startsWith(prefix));
+    })
+    .map((doc) => doc.ref);
+
+  if (refsToDelete.length === 0) {
+    return 0;
+  }
+
+  const chunkSize = 400;
+  for (let index = 0; index < refsToDelete.length; index += chunkSize) {
+    const batch = adminDb.batch();
+    refsToDelete.slice(index, index + chunkSize).forEach((ref) => batch.delete(ref));
+    await batch.commit();
+  }
+
+  return refsToDelete.length;
+}
+
+function normalizeContractIdentifier(value: string): string {
+  return value.trim();
+}
+
+function assertValidContractDocumentId(contractId: string): void {
+  if (!contractId) {
+    throw new Error("Contract number is required.");
+  }
+
+  if (contractId.includes("/")) {
+    throw new Error("Contract number cannot contain '/'.");
+  }
+}
+
 export async function listContracts(orgId: string) {
   const snapshot = await adminDb.collection(`${orgPath(orgId)}/contracts`).orderBy("updatedAt", "desc").limit(50).get();
 
@@ -43,9 +133,14 @@ export async function listContracts(orgId: string) {
 }
 
 export async function findContractIdByNumber(orgId: string, contractNumber: string): Promise<string | undefined> {
+  const normalizedNumber = normalizeContractIdentifier(contractNumber);
+  if (!normalizedNumber) {
+    return undefined;
+  }
+
   const snapshot = await adminDb
     .collection(`${orgPath(orgId)}/contracts`)
-    .where("contractNumber", "==", contractNumber)
+    .where("contractNumber", "==", normalizedNumber)
     .limit(1)
     .get();
 
@@ -56,8 +151,29 @@ export async function findContractIdByNumber(orgId: string, contractNumber: stri
   return snapshot.docs[0].id;
 }
 
+export async function resolveContractId(orgId: string, contractIdOrNumber: string): Promise<string> {
+  const normalized = normalizeContractIdentifier(contractIdOrNumber);
+  if (!normalized) {
+    throw new Error("Contract identifier is required.");
+  }
+
+  const directRef = adminDb.doc(`${orgPath(orgId)}/contracts/${normalized}`);
+  const directSnap = await directRef.get();
+  if (directSnap.exists) {
+    return normalized;
+  }
+
+  const byNumber = await findContractIdByNumber(orgId, normalized);
+  if (byNumber) {
+    return byNumber;
+  }
+
+  throw new Error("Contract not found");
+}
+
 export async function getContract(orgId: string, contractId: string) {
-  const contractRef = adminDb.doc(`${orgPath(orgId)}/contracts/${contractId}`);
+  const resolvedContractId = await resolveContractId(orgId, contractId);
+  const contractRef = adminDb.doc(`${orgPath(orgId)}/contracts/${resolvedContractId}`);
   const contractSnap = await contractRef.get();
 
   if (!contractSnap.exists) {
@@ -270,7 +386,11 @@ export async function upsertContract(
   createdBy: string,
 ): Promise<string> {
   const collection = adminDb.collection(`${orgPath(orgId)}/contracts`);
-  const ref = contractId ? collection.doc(contractId) : collection.doc();
+  const explicitContractId = normalizeContractIdentifier(contractId ?? "");
+  const normalizedContractNumber = normalizeContractIdentifier(contract.contractNumber);
+  const preferredDocId = explicitContractId || normalizedContractNumber;
+  assertValidContractDocumentId(preferredDocId);
+  const ref = collection.doc(preferredDocId);
   const existing = await ref.get();
 
   await ref.set(
@@ -286,6 +406,42 @@ export async function upsertContract(
   );
 
   return ref.id;
+}
+
+export async function deleteContractCascade(orgId: string, contractIdOrNumber: string): Promise<{
+  contractDocId: string;
+  contractNumber: string;
+  deletedContractDocuments: number;
+  deletedAuditLogs: number;
+  deletedNotifications: number;
+}> {
+  const contractDocId = await resolveContractId(orgId, contractIdOrNumber);
+  const contract = await getContract(orgId, contractDocId);
+
+  const contractRef = adminDb.doc(`${orgPath(orgId)}/contracts/${contractDocId}`);
+  const contractSnap = await contractRef.get();
+  const deletedContractDocuments = contractSnap.exists ? await deleteDocumentTree(contractRef) : 0;
+
+  const deletedAuditLogs = await deleteByTargetPathPrefixes(
+    `${orgPath(orgId)}/auditLogs`,
+    [`organizations/${orgId}/contracts/${contractDocId}`],
+  );
+
+  const deletedNotifications = await deleteByTargetPathPrefixes(
+    `${orgPath(orgId)}/notifications`,
+    [
+      `/app/contracts/${contract.contractNumber}`,
+      `/app/contracts/${contractDocId}`,
+    ],
+  );
+
+  return {
+    contractDocId,
+    contractNumber: contract.contractNumber,
+    deletedContractDocuments,
+    deletedAuditLogs,
+    deletedNotifications,
+  };
 }
 
 export async function upsertShipment(
@@ -425,12 +581,15 @@ export async function appendAuditLog(
   after: unknown,
   requestId: string,
 ) {
+  const sanitizedBefore = stripUndefinedDeep(before);
+  const sanitizedAfter = stripUndefinedDeep(after);
+
   await adminDb.collection(`${orgPath(orgId)}/auditLogs`).add({
     actorUid,
     action,
     targetPath,
-    before,
-    after,
+    before: sanitizedBefore,
+    after: sanitizedAfter,
     timestamp: nowIso(),
     requestId,
   });
@@ -461,6 +620,7 @@ export async function upsertContractSourceInput<TPayload>(
 ): Promise<string> {
   const sourceRef = adminDb.doc(`${orgPath(orgId)}/contracts/${contractId}/sourceInputs/${sourceType}`);
   const existing = await sourceRef.get();
+  const sanitizedPayload = stripUndefinedDeep(payload);
 
   await sourceRef.set(
     withTimestamps(
@@ -468,7 +628,7 @@ export async function upsertContractSourceInput<TPayload>(
         orgId,
         contractId,
         sourceType,
-        payload,
+        payload: sanitizedPayload,
         lastRequestId: requestId,
         updatedBy: actorUid,
       },
@@ -479,7 +639,7 @@ export async function upsertContractSourceInput<TPayload>(
 
   await sourceRef.collection("revisions").add({
     sourceType,
-    payload,
+    payload: sanitizedPayload,
     requestId,
     actorUid,
     timestamp: nowIso(),

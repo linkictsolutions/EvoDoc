@@ -114,6 +114,39 @@ button:disabled {
   cursor: not-allowed;
 }
 
+.button-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  padding: 0.58rem 0.9rem;
+  background: var(--brand);
+  color: #fff;
+  cursor: pointer;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 120ms ease, border-color 120ms ease, transform 120ms ease;
+}
+
+.button-link:hover {
+  background: var(--brand-strong);
+}
+
+.button-link:active {
+  transform: translateY(1px);
+}
+
+.button-link.button-link-secondary {
+  background: #fff;
+  color: var(--brand-strong);
+  border-color: var(--border-strong);
+}
+
+.button-link.button-link-secondary:hover {
+  background: var(--bg-muted);
+}
+
 button.button-secondary {
   background: #fff;
   color: var(--brand-strong);
@@ -545,6 +578,12 @@ tbody tr:hover {
 .table-wrap table th.wrap,
 .table-wrap table td.wrap {
   white-space: normal;
+}
+
+.table-wrap table td.multiline-cell {
+  white-space: pre-wrap;
+  word-break: break-word;
+  min-width: 180px;
 }
 
 .table-meta {

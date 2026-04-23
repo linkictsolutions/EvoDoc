@@ -177,7 +177,7 @@ export function validateAndNormalizeShippingInstructionPayload(
       serviceContract: cleanOptional(parsed.shipping.serviceContract),
       alternative1: cleanOptional(parsed.shipping.alternative1),
       alternative1ServiceContract: cleanOptional(parsed.shipping.alternative1ServiceContract),
-      alternative1Selected: parsed.shipping.alternative1Selected ?? false,
+      alternative1Selected: false,
       alternative2: cleanOptional(parsed.shipping.alternative2),
       alternative2ServiceContract: cleanOptional(parsed.shipping.alternative2ServiceContract),
       portOfLoading: parsed.shipping.portOfLoading.trim(),
@@ -192,11 +192,12 @@ export function validateAndNormalizeShippingInstructionPayload(
       vesselName: cleanOptional(parsed.shipping.vesselName),
       bookingNumber: cleanOptional(parsed.shipping.bookingNumber),
       consignee: cleanOptional(parsed.shipping.consignee),
-      revisedConsignee: cleanOptional(parsed.shipping.revisedConsignee),
       notifyParty: cleanOptional(parsed.shipping.notifyParty),
-      revisedNotifyParty: cleanOptional(parsed.shipping.revisedNotifyParty),
       secondNotify: cleanOptional(parsed.shipping.secondNotify),
-      revisedSecondNotify: cleanOptional(parsed.shipping.revisedSecondNotify),
+      // Keep revised fields synchronized for backward compatibility with existing precedence logic.
+      revisedConsignee: cleanOptional(parsed.shipping.consignee),
+      revisedNotifyParty: cleanOptional(parsed.shipping.notifyParty),
+      revisedSecondNotify: cleanOptional(parsed.shipping.secondNotify),
     },
   };
 }
@@ -220,9 +221,10 @@ export function validateAndNormalizeBankLcPayload(input: unknown): NormalizedBan
       notify: cleanOptional(parsed.banking.notify),
       secondNotify: cleanOptional(parsed.banking.secondNotify),
       currencyAmount: cleanOptional(parsed.banking.currencyAmount),
-      revisedConsignee: cleanOptional(parsed.banking.revisedConsignee),
-      revisedNotify: cleanOptional(parsed.banking.revisedNotify),
-      revisedSecondNotify: cleanOptional(parsed.banking.revisedSecondNotify),
+      // Keep revised fields synchronized for backward compatibility with existing precedence logic.
+      revisedConsignee: cleanOptional(parsed.banking.consignee),
+      revisedNotify: cleanOptional(parsed.banking.notify),
+      revisedSecondNotify: cleanOptional(parsed.banking.secondNotify),
       beneficiaryBank: cleanOptional(parsed.banking.beneficiaryBank),
       bankAddress: cleanOptional(parsed.banking.bankAddress),
       correspondentBank: cleanOptional(parsed.banking.correspondentBank),
