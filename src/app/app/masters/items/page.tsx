@@ -1,5 +1,5 @@
-import { ItemsListPage } from "@/components/masters/items-list-page";
+import { redirect } from "next/navigation";
 
 export default function ItemsMasterPage() {
-  return <ItemsListPage />;
+  redirect("/app/masters/customers");
 }

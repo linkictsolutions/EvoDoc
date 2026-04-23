@@ -12,16 +12,17 @@ type ContractDetail = {
   shipments: Array<{ id: string }>;
   documents: Array<{
     id: string;
-    docType: "invoice" | "packing_list" | "shipping_instructions" | "quality_certificate" | "weight_certificate";
-    docVariant?: "permit" | "final" | "standard";
+    docType: "invoice" | "packing_list" | "shipping_instructions" | "quality_certificate" | "weight_certificate" | "way_bill";
     documentFamily?:
       | "commercial_invoice"
       | "packing_list"
       | "shipping_instruction"
       | "certificate_of_quality"
-      | "certificate_of_weight";
+      | "certificate_of_weight"
+      | "way_bill";
     revisionNumber?: number;
     status: string;
+    isFinal?: boolean;
     updatedAt: string;
   }>;
 };
@@ -32,52 +33,44 @@ type FamilyCard = {
     | "packing_list"
     | "shipping_instruction"
     | "certificate_of_quality"
-    | "certificate_of_weight";
+    | "certificate_of_weight"
+    | "way_bill";
   label: string;
   description: string;
-  variants: Array<"permit" | "final" | "standard">;
 };
 
 const families: FamilyCard[] = [
   {
     family: "commercial_invoice",
     label: "Commercial Invoice (ICC)",
-    description: "Single ICC invoice template. Missing fields remain blank until source data is available.",
-    variants: ["standard"],
+    description: "ICC export invoice generated from contract, shipping, bank, and execution data.",
   },
   {
     family: "packing_list",
-    label: "Packing List",
-    description: "Packing certificate generated from resolved values plus bookings, staffing, and processing execution sheets.",
-    variants: ["permit", "final"],
+    label: "Packing List (ICC)",
+    description: "ICC packing list generated from contract, resolved values, bookings, staffing containers, and processing details.",
   },
   {
     family: "shipping_instruction",
     label: "Shipping Instruction",
     description: "Carrier-facing shipping instruction generated from final resolved contract values.",
-    variants: ["standard"],
   },
   {
     family: "certificate_of_quality",
     label: "Certificate of Quality",
     description: "Quality certificate generated from resolved values, bookings, processing moisture, and staffing containers.",
-    variants: ["standard"],
   },
   {
     family: "certificate_of_weight",
     label: "Certificate of Weight",
     description: "Weight certificate generated from resolved values and prepared staffing containers with per-container totals.",
-    variants: ["standard"],
+  },
+  {
+    family: "way_bill",
+    label: "Way Bill",
+    description: "Driver-based waybill generated from staffing rows with per-driver tabs including truck, trailer, and seal details.",
   },
 ];
-
-function displayFamilyVariants(family: FamilyCard): string {
-  if (family.family === "commercial_invoice") {
-    return "ICC";
-  }
-
-  return family.variants.join(" / ");
-}
 
 function familyMatches(
   family: FamilyCard["family"],
@@ -92,7 +85,9 @@ function familyMatches(
           ? "shipping_instruction"
           : document.docType === "quality_certificate"
             ? "certificate_of_quality"
-            : "certificate_of_weight");
+            : document.docType === "weight_certificate"
+              ? "certificate_of_weight"
+              : "way_bill");
 
   return storedFamily === family;
 }
@@ -139,8 +134,8 @@ export default function ContractDocumentsPage({ params }: { params: Promise<{ id
   return (
     <section className="page-shell">
       <header className="page-header">
-        <h1>Document Families</h1>
-        <p>Each document family renders from the current resolved contract state and keeps a revision history as the contract evolves.</p>
+        <h1>Documents</h1>
+        <p>Each document keeps one revision stream. Generate new revisions as data changes, then mark an approved revision as final.</p>
       </header>
 
       <section className="document-family-grid">
@@ -158,7 +153,6 @@ export default function ContractDocumentsPage({ params }: { params: Promise<{ id
                 <span className="source-badge source-contract">{revisions.length} rev</span>
               </div>
 
-              <p><strong>Variants:</strong> {displayFamilyVariants(family)}</p>
               <p><strong>Latest Revision:</strong> {latest ? `v${latest.revisionNumber ?? 1}` : "None yet"}</p>
               <p>
                 <strong>Latest Status:</strong>{" "}
@@ -169,7 +163,7 @@ export default function ContractDocumentsPage({ params }: { params: Promise<{ id
 
               <div className="row-actions mt-lg">
                 <Link href={`/app/contracts/${contractId}/documents/${family.family}`}>
-                  <button type="button">Open Family</button>
+                  <button type="button">Open Document</button>
                 </Link>
               </div>
             </article>

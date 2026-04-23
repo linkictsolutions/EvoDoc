@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     const documentFamily = resolveDocumentFamily(parsed.docType);
     const docVariant = resolveVariantForFamily(
       documentFamily,
-      (parsed.docVariant ?? defaultVariantForFamily(documentFamily)),
+      (parsed.docVariant ?? defaultVariantForFamily()),
     );
 
     const resolvedContractId = await resolveContractId(parsed.orgId, parsed.contractId);
@@ -63,9 +63,15 @@ export async function POST(request: NextRequest) {
       hasBookingHeader
       || 
       executionData.bookings?.entries.some(
-        (entry) => entry.containerNumber || entry.sealNumber || entry.tareWeightKg,
+        (entry) => entry.containerNumber || entry.sealNumber || entry.secondSealNumber || entry.tareWeightKg,
       ) || executionData.staffing?.finalRows.some(
-        (row) => row.containerNumber || row.sealNumber || row.netWeightKg,
+        (row) =>
+          row.containerNumber
+          || row.sealNumber
+          || row.netWeightKg
+          || row.plateNo
+          || row.driverName
+          || row.certNumber,
       ),
     );
     const shipment = hasExecutionData
@@ -74,9 +80,7 @@ export async function POST(request: NextRequest) {
     const revisionNumber =
       existingDocuments.filter((document) => {
         const existingFamily = document.documentFamily ?? resolveDocumentFamily(document.docType);
-        const existingVariant = resolveVariantForFamily(existingFamily, document.docVariant);
-
-        return existingFamily === documentFamily && existingVariant === docVariant;
+        return existingFamily === documentFamily;
       }).length + 1;
 
     const inputSnapshot = {

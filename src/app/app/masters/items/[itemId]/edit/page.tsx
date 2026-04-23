@@ -1,7 +1,7 @@
-import { ItemFormPage } from "@/components/masters/item-form-page";
+import { redirect } from "next/navigation";
 
 export default async function EditItemPage({ params }: { params: Promise<{ itemId: string }> }) {
-  const { itemId } = await params;
+  await params;
 
-  return <ItemFormPage itemId={itemId} />;
+  redirect("/app/masters/customers");
 }

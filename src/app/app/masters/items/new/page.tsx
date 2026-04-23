@@ -1,5 +1,5 @@
-import { ItemFormPage } from "@/components/masters/item-form-page";
+import { redirect } from "next/navigation";
 
 export default function NewItemPage() {
-  return <ItemFormPage />;
+  redirect("/app/masters/customers");
 }

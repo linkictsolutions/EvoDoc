@@ -60,13 +60,13 @@ export function GenerateDocumentButton({
 export function ReviewActions({
   contractId,
   documentId,
-  docType,
+  status,
   isFinal = false,
   onMarkedFinal,
 }: {
   contractId: string;
   documentId: string;
-  docType?: DocumentType;
+  status?: string;
   isFinal?: boolean;
   onMarkedFinal?: () => void;
 }) {
@@ -135,6 +135,9 @@ export function ReviewActions({
     }
   }
 
+  const normalizedStatus = (status ?? "").toLowerCase();
+  const canMarkFinal = normalizedStatus === "approved";
+
   return (
     <section className="card form-grid">
       <h3>Workflow Actions</h3>
@@ -142,11 +145,15 @@ export function ReviewActions({
         {busy === "submit" ? "Submitting..." : "Submit for Review"}
       </button>
 
-      {docType === "invoice" ? (
-        <button type="button" onClick={markFinal} disabled={busy !== null || isFinal}>
-          {isFinal ? "Already Final" : busy === "markFinal" ? "Marking..." : "Mark as Final"}
-        </button>
-      ) : null}
+      <button type="button" onClick={markFinal} disabled={busy !== null || isFinal || !canMarkFinal}>
+        {isFinal
+          ? "Already Final"
+          : !canMarkFinal
+            ? "Approve to Mark Final"
+            : busy === "markFinal"
+              ? "Marking..."
+              : "Mark as Final"}
+      </button>
 
       <label>
         Decision Comment

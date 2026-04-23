@@ -139,7 +139,8 @@ export function validateDocumentGenerationRules(
   const allowPartialSourceData =
     snapshot.docType === "invoice"
     || snapshot.docType === "quality_certificate"
-    || snapshot.docType === "weight_certificate";
+    || snapshot.docType === "weight_certificate"
+    || snapshot.docType === "way_bill";
 
   if (snapshot.contract.status === "closed") {
     result.errors.push("Cannot generate document for a closed contract.");
@@ -184,6 +185,16 @@ export function validateDocumentGenerationRules(
 
     if (preparedContainers === 0) {
       result.warnings.push("No prepared staffing containers found; Certificate of Weight container table will be empty.");
+    }
+  }
+
+  if (snapshot.docType === "way_bill") {
+    const driverRows = snapshot.executionData?.staffing?.finalRows
+      ?.filter((row) => (row.driverName && row.driverName.trim() !== "") || (row.plateNo && row.plateNo.trim() !== ""))
+      .length ?? 0;
+
+    if (driverRows === 0) {
+      result.warnings.push("No driver/truck rows found in staffing; Way Bill tabs will be empty.");
     }
   }
 

@@ -3,14 +3,19 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
+import { computeContractExcelParity } from "@/domain/excel-parity";
 import { collectSealOptions, deriveFinalStaffingRows } from "@/domain/execution";
-import type { BookingsSheet, StaffingFinalRow, StaffingSheet } from "@/types/models";
+import type { BookingsSheet, Contract, StaffingFinalRow, StaffingSheet } from "@/types/models";
 
 type StaffingPayload = StaffingSheet & { finalRows: StaffingFinalRow[] };
+type ContractDetailResponse = {
+  contract: Pick<Contract, "terms" | "derived">;
+};
 
 export function StaffingPage({ contractId }: { contractId: string }) {
   const [bookings, setBookings] = useState<BookingsSheet | null>(null);
   const [form, setForm] = useState<StaffingPayload | null>(null);
+  const [contract, setContract] = useState<ContractDetailResponse["contract"] | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -20,12 +25,14 @@ export function StaffingPage({ contractId }: { contractId: string }) {
     setError(null);
 
     try {
-      const [bookingsData, staffingData] = await Promise.all([
+      const [bookingsData, staffingData, contractData] = await Promise.all([
         apiClient<BookingsSheet>(`/api/contracts/${contractId}/execution/bookings?orgId=${DEFAULT_ORG_ID}`),
         apiClient<StaffingPayload>(`/api/contracts/${contractId}/execution/staffing?orgId=${DEFAULT_ORG_ID}`),
+        apiClient<ContractDetailResponse>(`/api/contracts/${contractId}?orgId=${DEFAULT_ORG_ID}`),
       ]);
       setBookings(bookingsData);
       setForm(staffingData);
+      setContract(contractData.contract);
     } catch (loadError) {
       setError((loadError as Error).message);
     } finally {
@@ -38,6 +45,35 @@ export function StaffingPage({ contractId }: { contractId: string }) {
   }, [load]);
 
   const sealOptions = useMemo(() => collectSealOptions(bookings ?? undefined), [bookings]);
+  const containerCount = useMemo(() => {
+    if (contract?.derived?.containerCount && contract.derived.containerCount > 0) {
+      return contract.derived.containerCount;
+    }
+
+    if (contract?.terms) {
+      const parityContainerCount = computeContractExcelParity(contract.terms).containerCount;
+      if (parityContainerCount > 0) {
+        return parityContainerCount;
+      }
+    }
+
+    const truckRows = form?.instructionRows.filter((row) => row.vehicleType === "TRUCK").length ?? 0;
+    return Math.max(0, truckRows);
+  }, [contract, form]);
+  const certOptions = useMemo(() => {
+    if (containerCount <= 0) {
+      return [];
+    }
+
+    const start = Math.max(0, contract?.terms.lastCertNo ?? 0) + 1;
+    return Array.from({ length: containerCount }, (_, index) => String(start + index).padStart(4, "0"));
+  }, [containerCount, contract]);
+  const certSequenceHint = useMemo(() => {
+    if (certOptions.length === 0) {
+      return "Set Last Cert No on Contract and ensure container count is available to generate cert options.";
+    }
+    return `Cert sequence: ${certOptions[0]} to ${certOptions[certOptions.length - 1]} (${containerCount} containers).`;
+  }, [certOptions, containerCount]);
 
   function updateRow(index: number, key: keyof StaffingSheet["instructionRows"][number], value: string) {
     setForm((current) => {
@@ -95,13 +131,13 @@ export function StaffingPage({ contractId }: { contractId: string }) {
   }
 
   return (
-    <section className="page-shell">
+    <section className="page-shell staffing-page">
       <header className="page-header">
         <h1>Staffing</h1>
         <p>Staffing stays parallel to Bookings. Add or remove vehicles in Bookings first, then refresh here to sync rows and seal options before saving staffing details.</p>
       </header>
 
-      <section className="card">
+      <section className="card staffing-entry-card">
         <div className="section-heading">
           <div>
             <h3>Staffing Instruction &amp; Report</h3>
@@ -112,8 +148,9 @@ export function StaffingPage({ contractId }: { contractId: string }) {
             <button type="button" onClick={() => void save()} disabled={saving}>{saving ? "Saving..." : "Save Staffing"}</button>
           </div>
         </div>
-        <div className="table-wrap">
-          <table>
+        <p className="table-meta">{certSequenceHint}</p>
+        <div className="table-wrap staffing-main-wrap">
+          <table className="staffing-main-table">
             <thead>
               <tr>
                 <th>Row</th>
@@ -125,9 +162,7 @@ export function StaffingPage({ contractId }: { contractId: string }) {
                 <th>License</th>
                 <th>Container</th>
                 <th>Seal No</th>
-                <th>Seal No V2</th>
                 <th>Cert No</th>
-                <th>Cert No V2</th>
                 <th>Tare Kg</th>
                 <th>First Weight</th>
                 <th>Second Weight</th>
@@ -153,13 +188,15 @@ export function StaffingPage({ contractId }: { contractId: string }) {
                     </select>
                   </td>
                   <td>
-                    <select value={row.sealNumberV2 ?? ""} onChange={(event) => updateRow(index, "sealNumberV2", event.target.value)}>
-                      <option value="">No override</option>
-                      {sealOptions.map((seal) => <option key={`v2-${seal}`} value={seal}>{seal}</option>)}
+                    <select
+                      value={row.certNumber ?? ""}
+                      onChange={(event) => updateRow(index, "certNumber", event.target.value)}
+                      disabled={certOptions.length === 0}
+                    >
+                      <option value="">{certOptions.length > 0 ? "Select cert" : "No cert options yet"}</option>
+                      {certOptions.map((certNo) => <option key={certNo} value={certNo}>{certNo}</option>)}
                     </select>
                   </td>
-                  <td><input value={row.certNumber ?? ""} onChange={(event) => updateRow(index, "certNumber", event.target.value)} /></td>
-                  <td><input value={row.certNumberV2 ?? ""} onChange={(event) => updateRow(index, "certNumberV2", event.target.value)} /></td>
                   <td>{row.tareWeightKg ?? "-"}</td>
                   <td><input type="number" step="0.001" value={row.firstWeightKg ?? ""} onChange={(event) => updateRow(index, "firstWeightKg", event.target.value)} /></td>
                   <td><input type="number" step="0.001" value={row.secondWeightKg ?? ""} onChange={(event) => updateRow(index, "secondWeightKg", event.target.value)} /></td>
@@ -175,8 +212,8 @@ export function StaffingPage({ contractId }: { contractId: string }) {
 
       <section className="card">
         <h3>Final Staffing Report Preview</h3>
-        <div className="table-wrap mt-md">
-          <table>
+        <div className="table-wrap mt-md staffing-preview-wrap">
+          <table className="staffing-preview-table">
             <thead>
               <tr>
                 <th>Row</th>

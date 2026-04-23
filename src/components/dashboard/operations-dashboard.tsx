@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
-import type { Contract, Customer, Item, Notification } from "@/types/models";
+import type { Contract, Customer, Notification } from "@/types/models";
 
 function countDraftContracts(contracts: Contract[]) {
   return contracts.filter((contract) => contract.status === "draft").length;
@@ -13,7 +13,6 @@ function countDraftContracts(contracts: Contract[]) {
 export function OperationsDashboard() {
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
-  const [items, setItems] = useState<Item[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,17 +22,15 @@ export function OperationsDashboard() {
     Promise.all([
       apiClient<Contract[]>(`/api/contracts?orgId=${DEFAULT_ORG_ID}`),
       apiClient<Customer[]>(`/api/customers?orgId=${DEFAULT_ORG_ID}`),
-      apiClient<Item[]>(`/api/items?orgId=${DEFAULT_ORG_ID}`),
       apiClient<Notification[]>(`/api/notifications?orgId=${DEFAULT_ORG_ID}`),
     ])
-      .then(([contractData, customerData, itemData, notificationData]) => {
+      .then(([contractData, customerData, notificationData]) => {
         if (!mounted) {
           return;
         }
 
         setContracts(contractData);
         setCustomers(customerData);
-        setItems(itemData);
         setNotifications(notificationData);
       })
       .catch((loadError: Error) => {
@@ -79,11 +76,6 @@ export function OperationsDashboard() {
           <span className="metric-subvalue">master records</span>
         </article>
         <article className="metric-card">
-          <p className="metric-label">Items</p>
-          <strong className="metric-value">{items.length}</strong>
-          <span className="metric-subvalue">reusable coffee specs</span>
-        </article>
-        <article className="metric-card">
           <p className="metric-label">Pending Review</p>
           <strong className="metric-value">{openReviews}</strong>
           <span className="metric-subvalue">document tasks</span>
@@ -99,7 +91,7 @@ export function OperationsDashboard() {
             </div>
           </div>
           <ol className="journey-list">
-            <li>Create or reuse the buyer and item master records.</li>
+            <li>Create or reuse buyer master records.</li>
             <li>Create one export contract as the parent workspace.</li>
             <li>Complete the three source documents: Contract, Shipping Instruction, Bank &amp; LC.</li>
             <li>Review resolved values where LC or SI overrides contract terms.</li>

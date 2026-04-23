@@ -5,16 +5,12 @@ import { useEffect, useState } from "react";
 import { GenerateDocumentButton } from "@/components/forms/document-actions";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
-import { defaultVariantForFamily } from "@/domain/documents/catalog";
-import type { DocumentFamily, DocumentOutputSnapshot, DocumentType, DocumentVariant } from "@/types/models";
+import type { DocumentFamily, DocumentOutputSnapshot, DocumentType } from "@/types/models";
 
 type FamilyPayload = {
   family: DocumentFamily;
   familyLabel: string;
   docType: DocumentType;
-  variant: DocumentVariant;
-  variantLabel: string;
-  availableVariants: Array<{ value: DocumentVariant; label: string }>;
   latestShipmentId: string | null;
   currentPreview: DocumentOutputSnapshot | null;
   previewWarnings: string[];
@@ -25,9 +21,9 @@ type FamilyPayload = {
     status: string;
     revisionNumber: number;
     generatedAt: string;
-    docVariant: DocumentVariant;
+    isFinal: boolean;
   }>;
-  familyRevisionCount: number;
+  documentRevisionCount: number;
 };
 
 function renderValue(value: string) {
@@ -41,8 +37,8 @@ export default function ContractDocumentFamilyPage({
 }) {
   const [contractId, setContractId] = useState("");
   const [family, setFamily] = useState<DocumentFamily>("commercial_invoice");
-  const [variant, setVariant] = useState<DocumentVariant>("standard");
   const [payload, setPayload] = useState<FamilyPayload | null>(null);
+  const [activeWayBillTab, setActiveWayBillTab] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -56,8 +52,6 @@ export default function ContractDocumentFamilyPage({
 
         setContractId(id);
         setFamily(family);
-        const initialVariant = defaultVariantForFamily(family);
-        setVariant(initialVariant);
       })
       .catch((loadError: Error) => {
         if (mounted) {
@@ -78,7 +72,7 @@ export default function ContractDocumentFamilyPage({
     let mounted = true;
 
     apiClient<FamilyPayload>(
-      `/api/contracts/${contractId}/document-family?orgId=${DEFAULT_ORG_ID}&family=${family}&variant=${variant}`,
+      `/api/contracts/${contractId}/document-family?orgId=${DEFAULT_ORG_ID}&family=${family}`,
     )
       .then((data) => {
         if (mounted) {
@@ -95,33 +89,25 @@ export default function ContractDocumentFamilyPage({
     return () => {
       mounted = false;
     };
-  }, [contractId, family, variant]);
+  }, [contractId, family]);
 
   if (error) {
     return <section className="card"><p className="error-text">{error}</p></section>;
   }
 
   if (!payload) {
-    return <section className="card"><p>Loading document family...</p></section>;
+    return <section className="card"><p>Loading document...</p></section>;
   }
+
+  const wayBillSections = payload.currentPreview?.sections.filter((section) => section.heading.startsWith("Driver ")) ?? [];
+  const safeWayBillTabIndex = activeWayBillTab < wayBillSections.length ? activeWayBillTab : 0;
+  const activeWayBillSection = wayBillSections[safeWayBillTabIndex];
 
   return (
     <section className="page-shell">
       <header className="page-header">
         <h1>{payload.familyLabel}</h1>
-        <p>Current preview is rebuilt from the latest resolved contract state. Generated revisions remain immutable history.</p>
-        <div className="row-actions page-header-actions">
-          {payload.availableVariants.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              className={variant === option.value ? "workspace-tab active" : "workspace-tab"}
-              onClick={() => setVariant(option.value)}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
+        <p>Current preview is rebuilt from the latest resolved contract state. Each generation creates a new immutable revision.</p>
       </header>
 
       <section className="document-detail-grid">
@@ -129,9 +115,9 @@ export default function ContractDocumentFamilyPage({
           <div className="section-heading">
             <div>
               <h3>Current Preview</h3>
-              <p className="sidebar-subtitle">{payload.variantLabel} variant based on current contract data.</p>
+              <p className="sidebar-subtitle">Latest draft preview based on current resolved data.</p>
             </div>
-            <span className="source-badge source-lc">{payload.familyRevisionCount} total rev</span>
+            <span className="source-badge source-lc">{payload.documentRevisionCount} total rev</span>
           </div>
 
           {payload.unavailableReason ? (
@@ -149,23 +135,58 @@ export default function ContractDocumentFamilyPage({
                 </div>
               ) : null}
 
-              {payload.currentPreview.sections.map((section) => (
-                <div key={section.heading} className="preview-section">
-                  <h4>{section.heading}</h4>
-                  <div className="table-wrap">
-                    <table>
-                      <tbody>
-                        {section.rows.map((row) => (
-                          <tr key={`${section.heading}-${row.label}`}>
-                            <th className="wrap">{row.label}</th>
-                            <td className="wrap">{renderValue(row.value)}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+              {payload.docType === "way_bill" && wayBillSections.length > 0 ? (
+                <>
+                  <div className="workspace-tabs">
+                    {wayBillSections.map((section, index) => (
+                      <button
+                        key={section.heading}
+                        type="button"
+                        className={index === safeWayBillTabIndex ? "" : "button-secondary"}
+                        onClick={() => setActiveWayBillTab(index)}
+                      >
+                        {section.heading.replace(/^Driver\s+\d+\s+-\s+/, "")}
+                      </button>
+                    ))}
                   </div>
-                </div>
-              ))}
+
+                  {activeWayBillSection ? (
+                    <div className="preview-section">
+                      <h4>{activeWayBillSection.heading}</h4>
+                      <div className="table-wrap">
+                        <table>
+                          <tbody>
+                            {activeWayBillSection.rows.map((row) => (
+                              <tr key={`${activeWayBillSection.heading}-${row.label}`}>
+                                <th className="wrap">{row.label}</th>
+                                <td className="wrap">{renderValue(row.value)}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  ) : null}
+                </>
+              ) : (
+                payload.currentPreview.sections.map((section) => (
+                  <div key={section.heading} className="preview-section">
+                    <h4>{section.heading}</h4>
+                    <div className="table-wrap">
+                      <table>
+                        <tbody>
+                          {section.rows.map((row) => (
+                            <tr key={`${section.heading}-${row.label}`}>
+                              <th className="wrap">{row.label}</th>
+                              <td className="wrap">{renderValue(row.value)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                ))
+              )}
             </>
           ) : null}
         </section>
@@ -175,15 +196,14 @@ export default function ContractDocumentFamilyPage({
             contractId={contractId}
             shipmentId={payload.latestShipmentId ?? undefined}
             docType={payload.docType}
-            docVariant={payload.variant}
-            buttonLabel={`Generate ${payload.familyLabel} ${payload.variantLabel} Revision`}
+            buttonLabel={`Generate New ${payload.familyLabel} Revision`}
           />
 
           <section className="card">
             <div className="section-heading">
               <div>
                 <h3>Revision History</h3>
-                <p className="sidebar-subtitle">Previous generated versions for this variant.</p>
+                <p className="sidebar-subtitle">Previous generated versions for this document.</p>
               </div>
             </div>
             <div className="table-wrap">
@@ -191,6 +211,7 @@ export default function ContractDocumentFamilyPage({
                 <thead>
                   <tr>
                     <th>Revision</th>
+                    <th>Version</th>
                     <th>Status</th>
                     <th>Generated</th>
                     <th>Open</th>
@@ -198,11 +219,16 @@ export default function ContractDocumentFamilyPage({
                 </thead>
                 <tbody>
                   {payload.revisions.length === 0 ? (
-                    <tr><td colSpan={4}>No revisions yet.</td></tr>
+                    <tr><td colSpan={5}>No revisions yet.</td></tr>
                   ) : (
                     payload.revisions.map((revision) => (
                       <tr key={revision.id}>
                         <td>v{revision.revisionNumber}</td>
+                        <td>
+                          <span className={`status-pill ${revision.isFinal ? "status-approved" : "status-draft"}`}>
+                            {revision.isFinal ? "Final" : "Draft"}
+                          </span>
+                        </td>
                         <td>
                           <span className={`status-pill status-${revision.status.toLowerCase().replace(/\s+/g, "-")}`}>
                             {revision.status}

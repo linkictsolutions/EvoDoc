@@ -2,6 +2,7 @@ import { buildInvoiceOutput } from "@/domain/documents/invoice";
 import { buildPackingListOutput } from "@/domain/documents/packing";
 import { buildQualityCertificateOutput } from "@/domain/documents/quality";
 import { buildShippingInstructionsOutput } from "@/domain/documents/si";
+import { buildWayBillOutput } from "@/domain/documents/way-bill";
 import { buildWeightCertificateOutput } from "@/domain/documents/weight";
 import { defaultVariantForFamily, resolveDocumentFamily } from "@/domain/documents/catalog";
 import { getLogicVersion } from "@/domain/versioning";
@@ -29,6 +30,8 @@ export function buildDocumentOutput(
       return buildQualityCertificateOutput(snapshot as DocumentInputSnapshot<"quality_certificate">);
     case "weight_certificate":
       return buildWeightCertificateOutput(snapshot as DocumentInputSnapshot<"weight_certificate">);
+    case "way_bill":
+      return buildWayBillOutput(snapshot as DocumentInputSnapshot<"way_bill">);
     default:
       throw new Error(`Unsupported docType: ${docType}`);
   }
@@ -47,7 +50,7 @@ export function makeGeneratedDocumentPayload(args: {
 }): Omit<GeneratedDocument, "id" | "createdAt" | "updatedAt" | "orgId" | "contractId"> {
   const now = new Date().toISOString();
   const documentFamily = resolveDocumentFamily(args.docType);
-  const docVariant = args.docVariant ?? defaultVariantForFamily(documentFamily);
+  const docVariant = args.docVariant ?? defaultVariantForFamily();
   const snapshotHash = createHash("sha256")
     .update(
       JSON.stringify({

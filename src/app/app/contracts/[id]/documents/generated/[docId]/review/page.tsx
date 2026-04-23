@@ -10,7 +10,6 @@ import type { DocumentOutputSnapshot, DocumentType } from "@/types/models";
 type PrintPayload = {
   id: string;
   docType: DocumentType;
-  docVariant?: string;
   revisionNumber?: number;
   status: string;
   isFinal?: boolean;
@@ -70,20 +69,17 @@ export default function DocumentReviewPage({
       {data ? (
         <section className="card">
           <p><strong>Type:</strong> {data.docType}</p>
-          {data.docVariant ? <p><strong>Variant:</strong> {data.docVariant}</p> : null}
           {data.revisionNumber ? <p><strong>Revision:</strong> v{data.revisionNumber}</p> : null}
           <p>
             <strong>Status:</strong>{" "}
             <span className={`status-pill status-${data.status.toLowerCase().replace(/\s+/g, "-")}`}>{data.status}</span>
           </p>
-          {data.docType === "invoice" ? (
-            <p>
-              <strong>Invoice State:</strong>{" "}
-              <span className={`status-pill ${data.isFinal ? "status-approved" : "status-draft"}`}>
-                {data.isFinal ? "Final" : "Original"}
-              </span>
-            </p>
-          ) : null}
+          <p>
+            <strong>Version:</strong>{" "}
+            <span className={`status-pill ${data.isFinal ? "status-approved" : "status-draft"}`}>
+              {data.isFinal ? "Final" : "Draft"}
+            </span>
+          </p>
           <p><strong>Title:</strong> {data.outputSnapshot.title}</p>
           <p><strong>Snapshot Hash:</strong> <code>{data.snapshotHash}</code></p>
           {data.approvedSnapshotHash ? (
@@ -111,7 +107,7 @@ export default function DocumentReviewPage({
         <ReviewActions
           contractId={contractId}
           documentId={docId}
-          docType={data.docType}
+          status={data.status}
           isFinal={Boolean(data.isFinal)}
           onMarkedFinal={() => {
             setData((current) => (current ? { ...current, isFinal: true } : current));

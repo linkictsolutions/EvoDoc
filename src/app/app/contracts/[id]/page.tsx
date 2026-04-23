@@ -120,7 +120,7 @@ export default function ContractDetailPage({ params }: { params: Promise<{ id: s
           <li><strong>Source Documents</strong>: Contract, Shipping Instruction, and Bank &amp; LC source records.</li>
           <li><strong>Resolved Values</strong>: final field precedence after LC/SI overrides.</li>
           <li><strong>Execution</strong>: Bookings, Staffing, and Processing workbook sheets attached to this contract.</li>
-          <li><strong>Documents</strong>: generated Commercial Invoice (ICC), Packing List, Shipping Instruction, and Certificate of Quality outputs.</li>
+          <li><strong>Documents</strong>: generated Commercial Invoice (ICC), Packing List (ICC), Shipping Instruction, and certificate outputs.</li>
           <li><strong>Activity</strong>: audit trail of writes and workflow events.</li>
         </ul>
       </section>

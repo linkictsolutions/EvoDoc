@@ -2,11 +2,9 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 import { validateDocumentGenerationRules } from "@/domain/business-rules";
 import {
-  displayVariant,
   getDocumentFamilyDefinition,
   makePreviewShipment,
   resolveDocumentFamily,
-  resolveVariantForFamily,
 } from "@/domain/documents/catalog";
 import { buildExecutionShipment, hydrateExecutionData } from "@/domain/execution";
 import { requireActor } from "@/lib/auth/server";
@@ -20,11 +18,17 @@ import {
   resolveContractId,
 } from "@/lib/repositories/firestore-repository";
 import { buildDocumentOutput } from "@/lib/workflow/document-generation";
-import type { DocumentFamily, DocumentVariant } from "@/types/models";
+import type { DocumentFamily } from "@/types/models";
 
 const querySchema = z.object({
-  family: z.enum(["commercial_invoice", "packing_list", "shipping_instruction", "certificate_of_quality", "certificate_of_weight"]),
-  variant: z.enum(["permit", "final", "standard"]).optional(),
+  family: z.enum([
+    "commercial_invoice",
+    "packing_list",
+    "shipping_instruction",
+    "certificate_of_quality",
+    "certificate_of_weight",
+    "way_bill",
+  ]),
 });
 
 export async function GET(
@@ -42,14 +46,12 @@ export async function GET(
 
     const parsed = querySchema.parse({
       family: request.nextUrl.searchParams.get("family"),
-      variant: request.nextUrl.searchParams.get("variant") ?? undefined,
     });
 
     await requireActor(orgId, ["admin", "editor", "viewer"]);
 
     const family = parsed.family as DocumentFamily;
     const familyDefinition = getDocumentFamilyDefinition(family);
-    const variant = resolveVariantForFamily(family, parsed.variant as DocumentVariant | undefined);
 
     const contractId = await resolveContractId(orgId, contractIdentifier);
 
@@ -71,8 +73,18 @@ export async function GET(
       || executionData.bookings?.voyageNo,
     );
     const hasExecutionRows = Boolean(
-      executionData.bookings?.entries.some((entry) => entry.containerNumber || entry.sealNumber || entry.tareWeightKg)
-      || executionData.staffing?.finalRows.some((row) => row.containerNumber || row.sealNumber || row.netWeightKg),
+      executionData.bookings?.entries.some(
+        (entry) => entry.containerNumber || entry.sealNumber || entry.secondSealNumber || entry.tareWeightKg,
+      )
+      || executionData.staffing?.finalRows.some(
+        (row) =>
+          row.containerNumber
+          || row.sealNumber
+          || row.netWeightKg
+          || row.plateNo
+          || row.driverName
+          || row.certNumber,
+      ),
     );
     const hasExecutionData = hasBookingHeader || hasExecutionRows;
     const latestShipmentId = hasExecutionData ? "execution-derived" : undefined;
@@ -83,9 +95,7 @@ export async function GET(
     const revisions = documents
       .filter((document) => {
         const existingFamily = document.documentFamily ?? resolveDocumentFamily(document.docType);
-        const existingVariant = resolveVariantForFamily(existingFamily, document.docVariant);
-
-        return existingFamily === family && existingVariant === variant;
+        return existingFamily === family;
       })
       .map((document) => ({
         id: document.id,
@@ -93,19 +103,16 @@ export async function GET(
         status: document.status,
         revisionNumber: document.revisionNumber ?? 1,
         generatedAt: document.generatedAt,
-        docVariant: resolveVariantForFamily(family, document.docVariant),
+        isFinal: Boolean(document.isFinal),
       }));
 
-    const canPreview =
-      family === "commercial_invoice"
-      || (family === "packing_list" && variant === "permit")
+    const canPreview = family === "commercial_invoice"
       ? true
       : Boolean(latestShipmentId);
 
     const currentPreview = canPreview
         ? buildDocumentOutput(familyDefinition.docType, {
           docType: familyDefinition.docType,
-          docVariant: variant,
           contract,
           customer,
           shipment,
@@ -117,7 +124,6 @@ export async function GET(
     const previewRules = currentPreview
       ? validateDocumentGenerationRules({
           docType: familyDefinition.docType,
-          docVariant: variant,
           contract,
           customer,
           shipment,
@@ -129,24 +135,12 @@ export async function GET(
       family,
       familyLabel: familyDefinition.label,
       docType: familyDefinition.docType,
-      variant,
-      variantLabel:
-        family === "commercial_invoice" && variant === "standard"
-          ? "ICC"
-          : displayVariant(variant),
-      availableVariants: familyDefinition.variants.map((value) => ({
-        value,
-        label:
-          family === "commercial_invoice" && value === "standard"
-            ? "ICC"
-            : displayVariant(value),
-      })),
       latestShipmentId: latestShipmentId ?? null,
       currentPreview,
       previewWarnings: previewRules?.warnings ?? [],
       unavailableReason: canPreview ? null : "Add execution data in Bookings, Staffing, or Processing to preview this document.",
       revisions,
-      familyRevisionCount: documents.filter((document) => {
+      documentRevisionCount: documents.filter((document) => {
         const existingFamily = document.documentFamily ?? resolveDocumentFamily(document.docType);
         return existingFamily === family;
       }).length,

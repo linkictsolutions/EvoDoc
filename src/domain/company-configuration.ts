@@ -59,6 +59,7 @@ const DEFAULT_DOCUMENT_BRANDING: DocumentBrandingSettings = {
     shipping_instructions: { header: false, footer: false },
     quality_certificate: { header: false, footer: false },
     weight_certificate: { header: false, footer: false },
+    way_bill: { header: false, footer: false },
   },
 };
 
@@ -212,6 +213,12 @@ function resolveDocumentBranding(
           ?? DEFAULT_DOCUMENT_BRANDING.applyByDocType.weight_certificate.header,
         footer: configuration?.documentBranding?.applyByDocType?.weight_certificate?.footer
           ?? DEFAULT_DOCUMENT_BRANDING.applyByDocType.weight_certificate.footer,
+      },
+      way_bill: {
+        header: configuration?.documentBranding?.applyByDocType?.way_bill?.header
+          ?? DEFAULT_DOCUMENT_BRANDING.applyByDocType.way_bill.header,
+        footer: configuration?.documentBranding?.applyByDocType?.way_bill?.footer
+          ?? DEFAULT_DOCUMENT_BRANDING.applyByDocType.way_bill.footer,
       },
     },
   };

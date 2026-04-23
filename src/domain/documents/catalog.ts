@@ -16,9 +16,9 @@ export const documentFamilies: DocumentFamilyDefinition[] = [
   },
   {
     family: "packing_list",
-    label: "Packing List",
+    label: "Packing List (ICC)",
     docType: "packing_list",
-    variants: ["permit", "final"],
+    variants: ["standard"],
   },
   {
     family: "shipping_instruction",
@@ -36,6 +36,12 @@ export const documentFamilies: DocumentFamilyDefinition[] = [
     family: "certificate_of_weight",
     label: "Certificate of Weight",
     docType: "weight_certificate",
+    variants: ["standard"],
+  },
+  {
+    family: "way_bill",
+    label: "Way Bill",
+    docType: "way_bill",
     variants: ["standard"],
   },
 ];
@@ -66,39 +72,26 @@ export function resolveDocumentFamily(docType: DocumentType): DocumentFamily {
     return "certificate_of_weight";
   }
 
+  if (docType === "way_bill") {
+    return "way_bill";
+  }
+
   return "shipping_instruction";
 }
 
-export function defaultVariantForFamily(family: DocumentFamily): DocumentVariant {
-  if (
-    family === "shipping_instruction"
-    || family === "commercial_invoice"
-    || family === "certificate_of_quality"
-    || family === "certificate_of_weight"
-  ) {
-    return "standard";
-  }
-
-  return "final";
+export function defaultVariantForFamily(): DocumentVariant {
+  return "standard";
 }
 
 export function resolveVariantForFamily(
-  family: DocumentFamily,
+  _family: DocumentFamily,
   variant?: DocumentVariant,
 ): DocumentVariant {
-  if (
-    family === "commercial_invoice"
-    || family === "certificate_of_quality"
-    || family === "certificate_of_weight"
-  ) {
+  if (!variant || variant === "standard") {
     return "standard";
   }
 
-  if (!variant || variant === "standard") {
-    return defaultVariantForFamily(family);
-  }
-
-  return variant;
+  return "standard";
 }
 
 export function displayVariant(variant: DocumentVariant): string {

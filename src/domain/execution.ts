@@ -28,6 +28,15 @@ function normalizeNumber(value?: number | null): number | undefined {
   return typeof value === "number" && Number.isFinite(value) ? value : undefined;
 }
 
+function readLegacyOptionalString(row: StaffingInstructionRow, key: string): string | undefined {
+  const raw = (row as unknown as Record<string, unknown>)[key];
+  if (typeof raw !== "string") {
+    return undefined;
+  }
+  const normalized = raw.trim();
+  return normalized ? normalized : undefined;
+}
+
 function makeBookingEntry(
   rowNo: number,
   vehicleType: VehicleKind,
@@ -92,6 +101,7 @@ export function defaultBookingsSheet(orgId: string, contractId: string): Booking
   return {
     orgId,
     contractId,
+    hasSecondSeal: false,
     entries: defaultBookingEntries(),
     createdAt: new Date(0).toISOString(),
     updatedAt: new Date(0).toISOString(),
@@ -112,6 +122,7 @@ export function normalizeBookingsPayload(input: unknown) {
       voyageNo: cleanOptional(parsed.bookings.voyageNo),
       freeDays: cleanOptional(parsed.bookings.freeDays),
       billOfLadingNumber: cleanOptional(parsed.bookings.billOfLadingNumber),
+      hasSecondSeal: parsed.bookings.hasSecondSeal ?? false,
       entries: syncedEntries.map((entry) => ({
         rowNo: entry.rowNo,
         vehicleNo: entry.vehicleNo,
@@ -123,6 +134,7 @@ export function normalizeBookingsPayload(input: unknown) {
         licenseNo: cleanOptional(entry.licenseNo),
         containerNumber: cleanOptional(entry.containerNumber),
         sealNumber: cleanOptional(entry.sealNumber),
+        secondSealNumber: cleanOptional(entry.secondSealNumber),
         tareWeightKg: normalizeNumber(entry.tareWeightKg),
       })),
     } satisfies Omit<BookingsSheet, "createdAt" | "updatedAt">,
@@ -167,10 +179,8 @@ export function syncStaffingInstructionRows(
 
     return {
       ...row,
-      sealNumber: existing.sealNumber ?? row.sealNumber,
-      sealNumberV2: existing.sealNumberV2,
-      certNumber: existing.certNumber,
-      certNumberV2: existing.certNumberV2,
+      sealNumber: existing.sealNumber ?? readLegacyOptionalString(existing, "sealNumberV2") ?? row.sealNumber,
+      certNumber: existing.certNumber ?? readLegacyOptionalString(existing, "certNumberV2"),
       firstWeightKg: existing.firstWeightKg,
       secondWeightKg: existing.secondWeightKg,
       netWeightKg: existing.netWeightKg,
@@ -196,9 +206,7 @@ export function normalizeStaffingPayload(input: unknown) {
         licenseNo: cleanOptional(row.licenseNo),
         containerNumber: cleanOptional(row.containerNumber),
         sealNumber: cleanOptional(row.sealNumber),
-        sealNumberV2: cleanOptional(row.sealNumberV2),
         certNumber: cleanOptional(row.certNumber),
-        certNumberV2: cleanOptional(row.certNumberV2),
         tareWeightKg: normalizeNumber(row.tareWeightKg),
         firstWeightKg: normalizeNumber(row.firstWeightKg),
         secondWeightKg: normalizeNumber(row.secondWeightKg),
@@ -223,8 +231,8 @@ export function deriveFinalStaffingRows(staffing?: StaffingSheet): StaffingFinal
     driverPhoneNo: row.driverPhoneNo,
     licenseNo: row.licenseNo,
     containerNumber: row.containerNumber,
-    sealNumber: row.sealNumberV2 || row.sealNumber || "-",
-    certNumber: row.certNumberV2 || row.certNumber || "-",
+    sealNumber: row.sealNumber || "-",
+    certNumber: row.certNumber || "-",
     tareWeightKg: row.tareWeightKg,
     firstWeightKg: row.firstWeightKg,
     secondWeightKg: row.secondWeightKg,
@@ -267,7 +275,7 @@ export function collectSealOptions(bookings?: BookingsSheet): string[] {
 
   return Array.from(new Set(
     bookings.entries
-      .map((entry) => entry.sealNumber)
+      .flatMap((entry) => [entry.sealNumber, entry.secondSealNumber])
       .filter((value): value is string => Boolean(value && value.trim())),
   ));
 }

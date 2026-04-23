@@ -1,4 +1,6 @@
-import type { CSSProperties, ReactNode } from "react";
+"use client";
+
+import { useMemo, useState, type CSSProperties, type ReactNode } from "react";
 import { resolveCompanyConfiguration } from "@/domain/company-configuration";
 import type { DocumentInputSnapshot, DocumentOutputSnapshot, DocumentType } from "@/types/models";
 
@@ -191,75 +193,160 @@ function IccInvoicePrintView({ output, documentId, isFinal }: Props) {
   );
 }
 
-function PackingListPrintView({ output, documentId }: Props) {
+function PackingListIccPrintView({ output, documentId, isFinal }: Props) {
   const rows = flattenRows(output);
-  const shipper = value(rows, "Shipper");
+  const containers = indexedValues(rows, "Container No ");
+  const seals = indexedValues(rows, "Seal No ");
+  const packages = indexedValues(rows, "No. of Packages ");
+  const netWeights = indexedValues(rows, "Net Weight in KGS ");
+  const grossWeights = indexedValues(rows, "Gross Weight in KGS ");
+  const lineIndexes = Array.from(new Set([
+    ...containers.keys(),
+    ...seals.keys(),
+    ...packages.keys(),
+    ...netWeights.keys(),
+    ...grossWeights.keys(),
+  ])).sort((a, b) => a - b);
 
   return (
-    <article className="print-sheet print-packing">
-      <header className="doc-header doc-header-stack">
-        <div>
-          <p className="doc-company">{shipper}</p>
-          <p className="doc-meta">PACKING LIST CERTIFICATE</p>
-        </div>
-        <div className="doc-header-right">
-          <p className="doc-meta">Document ID: {documentId}</p>
-        </div>
-      </header>
+    <article className="print-sheet packing-icc-sheet">
+      <table className="print-table packing-icc-table">
+        <tbody>
+          <tr>
+            <td colSpan={5}><strong>PACKING LIST</strong></td>
+            <td colSpan={5} className="table-align-right"><strong>PAGE 1 OF 1 | {isFinal ? "FINAL" : "ORIGINAL"}</strong></td>
+          </tr>
+          <tr>
+            <td colSpan={5}><strong>Date:</strong> {display(value(rows, "Date"))}</td>
+            <td colSpan={5}><strong>Sales Contract Ref:</strong> {display(value(rows, "Sales Contract Ref"))}</td>
+          </tr>
+          <tr>
+            <td colSpan={5}><strong>Ref No:</strong> {display(value(rows, "Ref No"))}</td>
+            <td colSpan={5}><strong>Sales Contract Date:</strong> {display(value(rows, "Sales Contract Date"))}</td>
+          </tr>
+          <tr>
+            <td colSpan={5}><strong>Exporter/Beneficiary/Seller</strong><br />{display(value(rows, "Exporter/Beneficiary/Seller"))}</td>
+            <td colSpan={5}><strong>Bank Permit Number:</strong> {display(value(rows, "Bank Permit Number"))}</td>
+          </tr>
+          <tr>
+            <td colSpan={5}><strong>Applicant/Notify</strong><br />{display(value(rows, "Applicant/Notify"))}</td>
+            <td colSpan={5}><strong>Bill of Lading Number:</strong> {display(value(rows, "Bill of Lading Number"))}</td>
+          </tr>
+          <tr>
+            <td colSpan={5}><strong>Consignee</strong><br />{display(value(rows, "Consignee"))}</td>
+            <td colSpan={5}><strong>Shipped on Board Date:</strong> {display(value(rows, "Shipped on Board Date"))}</td>
+          </tr>
+          <tr>
+            <td colSpan={3}><strong>Shipping Line:</strong> {display(value(rows, "Shipping Line"))}</td>
+            <td colSpan={2}><strong>Vessel:</strong> {display(value(rows, "Vessel Name"))}</td>
+            <td colSpan={3}><strong>Voyage No:</strong> {display(value(rows, "Voyage No"))}</td>
+            <td colSpan={2}><strong>ECCSA - Certificate of Origin Number:</strong> {display(value(rows, "ECCSA Certificate of Origin Number"))}</td>
+          </tr>
+        </tbody>
+      </table>
 
-      <section className="doc-section">
-        <table className="print-table">
-          <tbody>
-            <tr>
-              <th>Shipper</th>
-              <td>{value(rows, "Shipper")}</td>
-              <th>Applicant</th>
-              <td>{value(rows, "Applicant")}</td>
-            </tr>
-            <tr>
-              <th>Consignee</th>
-              <td>{value(rows, "Consignee")}</td>
-              <th>Contract Ref</th>
-              <td>{value(rows, "Contract Ref")}</td>
-            </tr>
-            <tr>
-              <th>Vessel</th>
-              <td>{value(rows, "Vessel")}</td>
-              <th>Voyage</th>
-              <td>{value(rows, "Voyage")}</td>
-            </tr>
-            <tr>
-              <th>Booking Number</th>
-              <td>{value(rows, "Booking Number")}</td>
-              <th>Description</th>
-              <td>{value(rows, "Description")}</td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
+      <table className="print-table packing-icc-table mt-sm">
+        <tbody>
+          <tr>
+            <td colSpan={5}><strong>DESCRIPTION OF GOODS:</strong> {display(value(rows, "Description of Goods"))}</td>
+          </tr>
+          <tr>
+            <td colSpan={5}><strong>HS CODE:</strong> {display(value(rows, "HS Code"))}</td>
+          </tr>
+        </tbody>
+      </table>
 
-      <section className="doc-section">
-        <table className="print-table">
-          <thead>
+      <table className="print-table packing-icc-table mt-sm">
+        <thead>
+          <tr>
+            <th>CONTAINER NUMBER</th>
+            <th>SEAL NUMBER</th>
+            <th>NO. OF PACKAGES</th>
+            <th>NET WEIGHT IN KGS</th>
+            <th>GROSS WEIGHT IN KGS</th>
+          </tr>
+        </thead>
+        <tbody>
+          {lineIndexes.length > 0 ? (
+            lineIndexes.map((index) => (
+              <tr key={`packing-icc-line-${index}`}>
+                <td>{display(containers.get(index))}</td>
+                <td>{display(seals.get(index))}</td>
+                <td>{display(packages.get(index))}</td>
+                <td>{display(netWeights.get(index))}</td>
+                <td>{display(grossWeights.get(index))}</td>
+              </tr>
+            ))
+          ) : (
             <tr>
-              <th>No. Bags</th>
-              <th>Containers</th>
-              <th>Bags / Container</th>
-              <th>Gross Weight (MT)</th>
-              <th>Net Weight (MT)</th>
+              <td colSpan={5}>No prepared containers in staffing yet.</td>
             </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>{value(rows, "No of Bags")}</td>
-              <td>{value(rows, "Container Count")}</td>
-              <td>{value(rows, "Bags per Container")}</td>
-              <td>{value(rows, "Gross Weight (MT)")}</td>
-              <td>{value(rows, "Net Weight (MT)")}</td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
+          )}
+          <tr>
+            <td colSpan={2}><strong>Grand Total:</strong></td>
+            <td><strong>{display(value(rows, "Grand Total Packages"))}</strong></td>
+            <td><strong>{display(value(rows, "Grand Total Net Weight KGS"))}</strong></td>
+            <td><strong>{display(value(rows, "Grand Total Gross Weight KGS"))}</strong></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table className="print-table packing-icc-table mt-sm">
+        <tbody>
+          <tr>
+            <td><strong>Country of Origin:</strong> {display(value(rows, "Country of Origin"))}</td>
+            <td><strong>Place of Issue:</strong> {display(value(rows, "Place of Issue"))}</td>
+          </tr>
+          <tr>
+            <td><strong>Port of Loading:</strong> {display(value(rows, "Port of Loading"))}</td>
+            <td><strong>Date of Issue:</strong> {display(value(rows, "Date of Issue"))}</td>
+          </tr>
+          <tr>
+            <td><strong>Port of Discharge:</strong> {display(value(rows, "Port of Discharge"))}</td>
+            <td><strong>Signatory Company:</strong> {display(value(rows, "Signatory Company"))}</td>
+          </tr>
+          <tr>
+            <td><strong>Final Destination:</strong> {display(value(rows, "Final Destination"))}</td>
+            <td><strong>Authorized Signatory Name:</strong> {display(value(rows, "Authorized Signatory Name"))}</td>
+          </tr>
+          <tr>
+            <td><strong>Delivery/Trade Term:</strong> {display(value(rows, "Delivery/Trade Term"))}</td>
+            <td rowSpan={3} className="packing-icc-declaration-cell">{display(value(rows, "Declaration"))}</td>
+          </tr>
+          <tr>
+            <td><strong>Type of Shipment:</strong> {display(value(rows, "Type of Shipment"))}</td>
+          </tr>
+          <tr>
+            <td><strong>Incoterm:</strong> {display(value(rows, "Incoterm"))}</td>
+          </tr>
+          <tr>
+            <td><strong>Term/Method of Payment:</strong> {display(value(rows, "Term/Method of Payment"))}</td>
+            <td><strong>Total Net Weight (MT):</strong> {display(value(rows, "Total Net Weight (MT)"))}</td>
+          </tr>
+          <tr>
+            <td><strong>Packaging &amp; Marking (Label):</strong> {display(value(rows, "Packaging & Marking (Label)"))}</td>
+            <td><strong>Total Gross Weight (MT):</strong> {display(value(rows, "Total Gross Weight (MT)"))}</td>
+          </tr>
+          <tr>
+            <td><strong>Packing Date:</strong> {display(value(rows, "Packing Date"))}</td>
+            <td><strong>Packing Place:</strong> {display(value(rows, "Packing Place"))}</td>
+          </tr>
+          <tr>
+            <td colSpan={2}><strong>Address:</strong> {display(value(rows, "Address"))}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table className="print-table packing-icc-table mt-sm packing-icc-footer-table">
+        <tbody>
+          <tr className="packing-icc-full-marking-row">
+            <td className="packing-icc-marking-cell"><strong>FULL MARKING:</strong><br />{display(value(rows, "Full Marking"))}</td>
+            <td className="packing-icc-signature-cell"><strong>Authorized Signature &amp; Company Seal/Stamp</strong></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p className="permit-doc-id">Document ID: {documentId}</p>
     </article>
   );
 }
@@ -723,6 +810,186 @@ function CertificateOfWeightPrintView({ output, documentId }: Props) {
   );
 }
 
+function WayBillPrintView({ output, documentId }: Props) {
+  const driverTabs = useMemo(() => output.sections
+    .filter((section) => section.heading.startsWith("Driver "))
+    .map((section, index) => ({
+      key: `${section.heading}-${index + 1}`,
+      label: section.heading.replace(/^Driver\s+\d+\s+-\s+/, ""),
+      rows: section.rows,
+    })), [output.sections]);
+  const [activeTab, setActiveTab] = useState(0);
+  const activeRows = driverTabs[activeTab]?.rows ?? [];
+
+  return (
+    <article className="print-sheet way-bill-sheet">
+      <div className="way-bill-tabs screen-only">
+        {driverTabs.length > 0 ? (
+          driverTabs.map((tab, index) => (
+            <button
+              key={tab.key}
+              type="button"
+              className={index === activeTab ? "" : "button-secondary"}
+              onClick={() => setActiveTab(index)}
+            >
+              {tab.label}
+            </button>
+          ))
+        ) : (
+          <p>No staffing drivers found yet.</p>
+        )}
+      </div>
+
+      {driverTabs.length === 0 ? (
+        <section className="way-bill-page">
+          <p>No Way Bill tabs to display yet. Add driver/truck data in Staffing and generate again.</p>
+        </section>
+      ) : (
+        <section className="way-bill-page">
+          <header className="way-bill-header">
+            <h1>WAY BILL</h1>
+            <div className="way-bill-meta">
+              <p><strong>DATE:</strong> {display(value(activeRows, "Date"))}</p>
+              <p><strong>REF. No:</strong> {display(value(activeRows, "Ref No"))}</p>
+            </div>
+          </header>
+
+          <table className="print-table way-bill-table">
+            <tbody>
+              <tr>
+                <th>To:</th>
+                <td>{display(value(activeRows, "To"))}</td>
+              </tr>
+              <tr>
+                <th></th>
+                <td>{display(value(activeRows, "To Contact"))}</td>
+              </tr>
+              <tr>
+                <th>Truck No:</th>
+                <td>{display(value(activeRows, "Truck No"))}</td>
+              </tr>
+              <tr>
+                <th>Trailer No:</th>
+                <td>{display(value(activeRows, "Trailer No"))}</td>
+              </tr>
+              <tr>
+                <th>Driver Name:</th>
+                <td>{display(value(activeRows, "Driver Name"))}</td>
+              </tr>
+              <tr>
+                <th>Driver Phone No:</th>
+                <td>{display(value(activeRows, "Driver Phone No"))}</td>
+              </tr>
+              <tr>
+                <th>License No:</th>
+                <td>{display(value(activeRows, "License No"))}</td>
+              </tr>
+              <tr>
+                <th>Final Destination:</th>
+                <td>{display(value(activeRows, "Final Destination"))}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <section className="way-bill-declaration">
+            <h3>Driver&apos;s Declaration</h3>
+            <p>{display(value(activeRows, "Driver Declaration"))}</p>
+          </section>
+
+          <section className="way-bill-conditions">
+            <p><strong>{display(value(activeRows, "Terms Intro"))}</strong></p>
+            <p>{display(value(activeRows, "Condition 1"))}</p>
+            <p>{display(value(activeRows, "Condition 2"))}</p>
+            <p>{display(value(activeRows, "Condition 3"))}</p>
+          </section>
+
+          <table className="print-table way-bill-table mt-sm">
+            <tbody>
+              <tr>
+                <th colSpan={2}>Detail of Goods</th>
+              </tr>
+              <tr>
+                <th>Description</th>
+                <td>{display(value(activeRows, "Detail of Goods"))}</td>
+              </tr>
+              <tr>
+                <th>ICO No</th>
+                <td>{display(value(activeRows, "ICO No"))}</td>
+              </tr>
+              <tr>
+                <th>Cert No</th>
+                <td>{display(value(activeRows, "Cert No"))}</td>
+              </tr>
+              <tr>
+                <th>No of Bag</th>
+                <td>{display(value(activeRows, "No of Bag"))}</td>
+              </tr>
+              <tr>
+                <th>Gross Weight</th>
+                <td>{display(value(activeRows, "Gross Weight"))}</td>
+              </tr>
+              <tr>
+                <th>Net Weight</th>
+                <td>{display(value(activeRows, "Net Weight"))}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <table className="print-table way-bill-table mt-sm">
+            <tbody>
+              <tr>
+                <th>{display(value(activeRows, "Transport Charge Label"))}</th>
+                <td>{display(value(activeRows, "Transport Charge Per Quantal Label"))}</td>
+                <td>{display(value(activeRows, "Transport Charge Total Label"))}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <table className="print-table way-bill-table mt-sm">
+            <thead>
+              <tr>
+                <th>Container No</th>
+                <th>Seal No</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>{display(value(activeRows, "Container No 1"))}</td>
+                <td>{display(value(activeRows, "Seal No 1"))}</td>
+              </tr>
+              <tr>
+                <td>{display(value(activeRows, "Container No 2"))}</td>
+                <td>{display(value(activeRows, "Seal No 2"))}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p className="way-bill-amharic">{display(value(activeRows, "Amharic Declaration"))}</p>
+
+          <table className="print-table way-bill-table mt-sm">
+            <tbody>
+              <tr>
+                <th>{display(value(activeRows, "Driver Name Label"))}</th>
+                <td>{display(value(activeRows, "Driver Name"))}</td>
+              </tr>
+              <tr>
+                <th>{display(value(activeRows, "Driver Signature Label"))}</th>
+                <td>{display(value(activeRows, "Dispatch Signature Label"))}</td>
+              </tr>
+              <tr>
+                <th>{display(value(activeRows, "Driver Date Label"))}</th>
+                <td>{display(value(activeRows, "Stamp Date Label"))}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p className="permit-doc-id">Document ID: {documentId}</p>
+        </section>
+      )}
+    </article>
+  );
+}
+
 function DocumentPrintPageFrame(
   {
     children,
@@ -796,12 +1063,14 @@ export function DocumentPrintTemplate({
     if (output.docVariant === "permit") {
       content = <PermitPackingListPrintView output={output} documentId={documentId} input={input} />;
     } else {
-      content = <PackingListPrintView output={output} documentId={documentId} input={input} />;
+      content = <PackingListIccPrintView output={output} documentId={documentId} input={input} isFinal={isFinal} />;
     }
   } else if (output.docType === "quality_certificate") {
     content = <CertificateOfQualityPrintView output={output} documentId={documentId} input={input} />;
   } else if (output.docType === "weight_certificate") {
     content = <CertificateOfWeightPrintView output={output} documentId={documentId} input={input} />;
+  } else if (output.docType === "way_bill") {
+    content = <WayBillPrintView output={output} documentId={documentId} input={input} />;
   } else {
     content = <SiPrintView output={output} documentId={documentId} input={input} />;
   }

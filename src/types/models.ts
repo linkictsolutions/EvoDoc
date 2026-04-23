@@ -7,13 +7,15 @@ export type DocumentType =
   | "packing_list"
   | "shipping_instructions"
   | "quality_certificate"
-  | "weight_certificate";
+  | "weight_certificate"
+  | "way_bill";
 export type DocumentFamily =
   | "commercial_invoice"
   | "packing_list"
   | "shipping_instruction"
   | "certificate_of_quality"
-  | "certificate_of_weight";
+  | "certificate_of_weight"
+  | "way_bill";
 export type DocumentVariant = "permit" | "final" | "standard";
 
 export type DocumentStatus =
@@ -213,6 +215,7 @@ export interface BookingEntry {
   licenseNo?: string;
   containerNumber?: string;
   sealNumber?: string;
+  secondSealNumber?: string;
   tareWeightKg?: number;
 }
 
@@ -225,6 +228,7 @@ export interface BookingsSheet extends Timestamped {
   voyageNo?: string;
   freeDays?: string;
   billOfLadingNumber?: string;
+  hasSecondSeal?: boolean;
   entries: BookingEntry[];
 }
 
@@ -238,9 +242,7 @@ export interface StaffingInstructionRow {
   licenseNo?: string;
   containerNumber?: string;
   sealNumber?: string;
-  sealNumberV2?: string;
   certNumber?: string;
-  certNumberV2?: string;
   tareWeightKg?: number;
   firstWeightKg?: number;
   secondWeightKg?: number;

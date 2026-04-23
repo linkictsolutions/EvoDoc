@@ -220,6 +220,10 @@ export const companyConfigurationInputSchema = z.object({
           header: z.boolean(),
           footer: z.boolean(),
         }),
+        way_bill: z.object({
+          header: z.boolean(),
+          footer: z.boolean(),
+        }),
       }),
     }),
     bulkReferenceKg: z.number().positive(),
@@ -256,6 +260,7 @@ export const bookingEntrySchema = z.object({
   licenseNo: z.string().optional(),
   containerNumber: z.string().optional(),
   sealNumber: z.string().optional(),
+  secondSealNumber: z.string().optional(),
   tareWeightKg: z.number().nonnegative().optional(),
 });
 
@@ -269,6 +274,7 @@ export const bookingsSheetInputSchema = z.object({
     voyageNo: z.string().optional(),
     freeDays: z.string().optional(),
     billOfLadingNumber: z.string().optional(),
+    hasSecondSeal: z.boolean().optional(),
     entries: z.array(bookingEntrySchema).min(1),
   }),
 });
@@ -283,9 +289,7 @@ export const staffingInstructionRowSchema = z.object({
   licenseNo: z.string().optional(),
   containerNumber: z.string().optional(),
   sealNumber: z.string().optional(),
-  sealNumberV2: z.string().optional(),
   certNumber: z.string().optional(),
-  certNumberV2: z.string().optional(),
   tareWeightKg: z.number().nonnegative().optional(),
   firstWeightKg: z.number().nonnegative().optional(),
   secondWeightKg: z.number().nonnegative().optional(),
@@ -329,7 +333,14 @@ export const generateDocumentSchema = z.object({
   orgId: z.string().min(1),
   contractId: z.string().min(1),
   shipmentId: z.string().optional(),
-  docType: z.enum(["invoice", "packing_list", "shipping_instructions", "quality_certificate", "weight_certificate"]),
+  docType: z.enum([
+    "invoice",
+    "packing_list",
+    "shipping_instructions",
+    "quality_certificate",
+    "weight_certificate",
+    "way_bill",
+  ]),
   docVariant: z.enum(["permit", "final", "standard"]).optional(),
   templateVersion: z.string().default("v1"),
 });

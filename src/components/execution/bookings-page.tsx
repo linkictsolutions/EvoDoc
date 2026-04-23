@@ -86,6 +86,7 @@ export function BookingsPage({ contractId }: { contractId: string }) {
             voyageNo: form.voyageNo,
             freeDays: form.freeDays,
             billOfLadingNumber: form.billOfLadingNumber,
+            hasSecondSeal: form.hasSecondSeal ?? false,
             entries: form.entries,
           },
         }),
@@ -103,13 +104,13 @@ export function BookingsPage({ contractId }: { contractId: string }) {
   }
 
   return (
-    <section className="page-shell">
+    <section className="page-shell bookings-page">
       <header className="page-header">
         <h1>Bookings</h1>
         <p>Bookings are captured as vehicle pairs. The truck and its trailer share the same driver, phone numbers, and license, so those details are entered once on the truck row and carried to the trailer automatically.</p>
       </header>
 
-      <section className="card form-grid">
+      <section className="card form-grid bookings-header-grid">
         <label>
           Booking Number
           <input value={form.bookingNumber ?? ""} onChange={(event) => updateHeader("bookingNumber", event.target.value)} />
@@ -136,7 +137,7 @@ export function BookingsPage({ contractId }: { contractId: string }) {
         </label>
       </section>
 
-      <section className="card">
+      <section className="card bookings-vehicle-card">
         <div className="section-heading">
           <div>
             <h3>Vehicle Rows</h3>
@@ -149,8 +150,18 @@ export function BookingsPage({ contractId }: { contractId: string }) {
             <button type="button" onClick={() => void save()} disabled={saving}>{saving ? "Saving..." : "Save Bookings"}</button>
           </div>
         </div>
-        <div className="table-wrap">
-          <table>
+        <div className="bookings-table-toolbar">
+          <label className="bookings-checkbox-toggle">
+            <input
+              type="checkbox"
+              checked={Boolean(form.hasSecondSeal)}
+              onChange={(event) => updateHeader("hasSecondSeal", event.target.checked)}
+            />
+            <span>Second seal column</span>
+          </label>
+        </div>
+        <div className="table-wrap bookings-vehicle-wrap">
+          <table className="bookings-vehicle-table">
             <thead>
               <tr>
                 <th>Row</th>
@@ -164,6 +175,7 @@ export function BookingsPage({ contractId }: { contractId: string }) {
                 <th>License</th>
                 <th>Container</th>
                 <th>Seal</th>
+                {form.hasSecondSeal ? <th>Second Seal</th> : null}
                 <th>Tare Kg</th>
               </tr>
             </thead>
@@ -206,8 +218,11 @@ export function BookingsPage({ contractId }: { contractId: string }) {
                     />
                   </td>
                   <td><input value={entry.containerNumber ?? ""} onChange={(event) => updateEntry(index, "containerNumber", event.target.value)} /></td>
-                  <td><input value={entry.sealNumber ?? ""} onChange={(event) => updateEntry(index, "sealNumber", event.target.value)} /></td>
-                  <td><input type="number" step="0.001" value={entry.tareWeightKg ?? ""} onChange={(event) => updateEntry(index, "tareWeightKg", event.target.value)} /></td>
+                  <td><input className="bookings-seal-input" value={entry.sealNumber ?? ""} onChange={(event) => updateEntry(index, "sealNumber", event.target.value)} /></td>
+                  {form.hasSecondSeal ? (
+                    <td><input className="bookings-seal-input" value={entry.secondSealNumber ?? ""} onChange={(event) => updateEntry(index, "secondSealNumber", event.target.value)} /></td>
+                  ) : null}
+                  <td><input className="bookings-tare-input" type="number" step="0.001" value={entry.tareWeightKg ?? ""} onChange={(event) => updateEntry(index, "tareWeightKg", event.target.value)} /></td>
                 </tr>
               ))}
             </tbody>

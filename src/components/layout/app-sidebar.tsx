@@ -65,13 +65,6 @@ const sections: NavSection[] = [
         short: "CU",
         matchPrefix: "/app/masters/customers",
       },
-      {
-        href: "/app/masters/items",
-        label: "Items",
-        description: "Coffee item definitions and packaging data.",
-        short: "IT",
-        matchPrefix: "/app/masters/items",
-      },
     ],
   },
 ];
@@ -171,7 +164,7 @@ function buildContractSections(contractId: string): NavSection[] {
         {
           href: `/app/contracts/${contractId}/documents`,
           label: "Documents",
-          description: "Family generation and revisions.",
+          description: "Document generation and revisions.",
           short: "DC",
           matchPrefix: `/app/contracts/${contractId}/documents`,
         },
@@ -214,7 +207,7 @@ function toolbarCopy(pathname: string): { title: string; subtitle: string } {
   if (pathname.startsWith("/app/masters")) {
     return {
       title: "Master Data",
-      subtitle: "Maintain reusable company, buyer, and item records.",
+      subtitle: "Maintain reusable company and buyer records.",
     };
   }
 
@@ -252,10 +245,11 @@ function prettifySegment(segment: string): string {
     "contract-si-lc": "Contract-SI-LC",
     "commercial-invoice-icc": "Commercial Invoice ICC",
     "commercial_invoice": "Commercial Invoice (ICC)",
-    "packing_list": "Packing List",
+    "packing_list": "Packing List (ICC)",
     "shipping_instruction": "Shipping Instruction",
     "certificate_of_quality": "Certificate of Quality",
     "certificate_of_weight": "Certificate of Weight",
+    "way_bill": "Way Bill",
   };
 
   return labels[segment] ?? segment.replace(/-/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());

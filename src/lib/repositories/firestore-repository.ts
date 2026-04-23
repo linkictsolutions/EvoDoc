@@ -571,8 +571,8 @@ export async function markGeneratedDocumentFinal(
     }
 
     const current = snap.data() as GeneratedDocument;
-    if (current.docType !== "invoice") {
-      throw new Error("Only Commercial Invoice documents can be marked final.");
+    if (current.status !== "approved") {
+      throw new Error("Only approved documents can be marked final.");
     }
 
     if (current.isFinal) {

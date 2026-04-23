@@ -32,11 +32,12 @@ type CompanyConfigurationFormState = {
 };
 
 const documentTypeLabels: Record<DocumentType, string> = {
-  invoice: "Commercial Invoice",
-  packing_list: "Packing List",
+  invoice: "Commercial Invoice (ICC)",
+  packing_list: "Packing List (ICC)",
   shipping_instructions: "Shipping Instruction",
   quality_certificate: "Certificate of Quality",
   weight_certificate: "Certificate of Weight",
+  way_bill: "Way Bill",
 };
 
 function toFormState(configuration: CompanyConfiguration): CompanyConfigurationFormState {

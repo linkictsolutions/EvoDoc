@@ -3,7 +3,14 @@ export interface ExcelFieldMapEntry {
   sheet: string;
   excelCellOrRange: string;
   mappedField: string;
-  docTypes: Array<"invoice" | "packing_list" | "shipping_instructions" | "quality_certificate" | "weight_certificate">;
+  docTypes: Array<
+    "invoice"
+    | "packing_list"
+    | "shipping_instructions"
+    | "quality_certificate"
+    | "weight_certificate"
+    | "way_bill"
+  >;
   notes?: string;
 }
 
@@ -236,10 +243,13 @@ export const excelFieldMap: ExcelFieldMapEntry[] = [
   },
   {
     workbook: "Coffee Doc-Praxis-V2.xlsm",
-    sheet: "Packing List",
-    excelCellOrRange: "B9,B10,B11,E12,B13,I13,B14,I14,I15,B16,B17,G17,J17,B18,B19,D20,K20,H22:H31,B34,B35",
-    mappedField: "packingList.templateBindings",
+    sheet: "Packing List(ICC)",
+    excelCellOrRange:
+      "O8,O9,C11,I11,C14,I13,M14,Q14,O15,C17,C20,D21,C23:E32,G23:K32,L23:O32,P23:S32,E34:E38,C42,C44,D46,F46,E48:E49,E51",
+    mappedField: "packingListIcc.templateBindings",
     docTypes: ["packing_list"],
+    notes:
+      "Formula links verified from workbook sheet XML (sheet15): header from Contract/Form Configuration/Bookings/Bank & LC, container rows from Staffing with per-container splits from Contract totals, and footer from Contract-SI-LC + Processing.",
   },
   {
     workbook: "Coffee Doc-Praxis-V2.xlsm",
@@ -265,5 +275,14 @@ export const excelFieldMap: ExcelFieldMapEntry[] = [
     docTypes: ["weight_certificate"],
     notes:
       "Sheet18 formulas verified in workbook XML: party/summary fields from Contract-SI-LC, Contract, and Form Configuration; container rows from Staffing with per-container bag and weight calculations.",
+  },
+  {
+    workbook: "Coffee Doc-Praxis-V2.xlsm",
+    sheet: "WAY BILL",
+    excelCellOrRange: "C11:C12,C14:C19,B21,C28,D29:D33,E36:H38,C39",
+    mappedField: "wayBill.templateBindings",
+    docTypes: ["way_bill"],
+    notes:
+      "Sheet19 formulas verified in workbook XML: transitor details from Form Configuration, driver/vehicle fields from Staffing INDEX/MATCH, goods + cert + weight splits from Contract/Contract-SI-LC, and Amharic declaration in C39.",
   },
 ];

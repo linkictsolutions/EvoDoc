@@ -593,6 +593,126 @@ tbody tr:hover {
   min-width: 180px;
 }
 
+.bookings-page {
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+.bookings-header-grid {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.bookings-header-grid label,
+.bookings-vehicle-card,
+.bookings-vehicle-wrap {
+  min-width: 0;
+}
+
+.bookings-header-grid input {
+  width: 100%;
+  min-width: 0;
+}
+
+.bookings-vehicle-card {
+  overflow: hidden;
+}
+
+.bookings-vehicle-wrap {
+  max-width: 100%;
+}
+
+.bookings-table-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin: 0.75rem 0;
+}
+
+.bookings-checkbox-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #324a69;
+  font-weight: 600;
+}
+
+.bookings-checkbox-toggle span {
+  color: #324a69;
+}
+
+.bookings-vehicle-table {
+  width: max-content;
+  min-width: 1320px;
+}
+
+.bookings-vehicle-table td input {
+  width: 100%;
+  min-width: 8.5rem;
+}
+
+.bookings-vehicle-table td:nth-child(1),
+.bookings-vehicle-table td:nth-child(2),
+.bookings-vehicle-table td:nth-child(3),
+.bookings-vehicle-table td:nth-child(4) {
+  font-weight: 600;
+}
+
+.bookings-vehicle-table td:nth-child(5) input {
+  min-width: 9rem;
+}
+
+.bookings-vehicle-table td:nth-child(6) input {
+  min-width: 11rem;
+}
+
+.bookings-vehicle-table td:nth-child(7) input,
+.bookings-vehicle-table td:nth-child(8) input,
+.bookings-vehicle-table td:nth-child(9) input,
+.bookings-vehicle-table td:nth-child(10) input {
+  min-width: 8rem;
+}
+
+.bookings-vehicle-table td input.bookings-seal-input {
+  min-width: 9rem;
+}
+
+.bookings-vehicle-table td input.bookings-tare-input {
+  min-width: 7rem;
+}
+
+.staffing-page {
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+.staffing-entry-card {
+  overflow: hidden;
+}
+
+.staffing-main-wrap,
+.staffing-preview-wrap {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.staffing-main-table,
+.staffing-preview-table {
+  width: max-content;
+  min-width: 1360px;
+}
+
+.staffing-main-table td input,
+.staffing-main-table td select {
+  width: 100%;
+  min-width: 8rem;
+}
+
+.staffing-main-table td:nth-child(1),
+.staffing-main-table td:nth-child(2),
+.staffing-main-table td:nth-child(3) {
+  font-weight: 600;
+}
+
 .table-meta {
   color: var(--muted);
   font-size: 0.8rem;
@@ -1101,6 +1221,36 @@ tbody tr:hover {
   vertical-align: top;
 }
 
+.packing-icc-sheet {
+  width: min(1100px, 100%);
+  font-size: 0.8rem;
+  min-height: calc(297mm - var(--brand-header-height, 0mm) - var(--brand-footer-height, 0mm));
+  display: grid;
+  grid-template-rows: auto auto auto auto 1fr auto;
+  gap: 0.3rem;
+  font-family: "Times New Roman", Times, serif;
+}
+
+.packing-icc-table th,
+.packing-icc-table td {
+  font-size: 0.77rem;
+  padding: 0.22rem 0.28rem;
+  line-height: 1.14;
+  word-break: break-word;
+}
+
+.packing-icc-declaration-cell {
+  font-size: 0.72rem;
+  line-height: 1.25;
+  vertical-align: top;
+}
+
+.packing-icc-footer-table .packing-icc-marking-cell,
+.packing-icc-footer-table .packing-icc-signature-cell {
+  min-height: 34mm;
+  vertical-align: top;
+}
+
 .document-print-page {
   display: grid;
   gap: 1rem;
@@ -1322,6 +1472,72 @@ tbody tr:hover {
   background: #fff;
 }
 
+.way-bill-sheet {
+  width: min(980px, 100%);
+  color: #111;
+  font-family: "Times New Roman", Times, serif;
+}
+
+.way-bill-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.65rem;
+}
+
+.way-bill-page {
+  display: grid;
+  gap: 0.42rem;
+}
+
+.way-bill-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.way-bill-header h1 {
+  font-size: 1.05rem;
+  letter-spacing: 0.02em;
+}
+
+.way-bill-meta {
+  display: grid;
+  gap: 0.1rem;
+  font-size: 0.76rem;
+}
+
+.way-bill-table {
+  table-layout: fixed;
+}
+
+.way-bill-table th,
+.way-bill-table td {
+  font-size: 0.72rem;
+  padding: 0.16rem 0.24rem;
+  line-height: 1.14;
+  white-space: pre-wrap;
+}
+
+.way-bill-table tbody th {
+  width: 35%;
+  background: #fff;
+}
+
+.way-bill-declaration h3 {
+  font-size: 0.8rem;
+  margin-bottom: 0.12rem;
+}
+
+.way-bill-declaration p,
+.way-bill-conditions p,
+.way-bill-amharic {
+  margin: 0;
+  font-size: 0.72rem;
+  line-height: 1.15;
+}
+
 .doc-row {
   display: grid;
   grid-template-columns: 220px 1fr;
@@ -1529,41 +1745,98 @@ tbody tr:hover {
     min-height: 48mm;
   }
 
+  .packing-icc-sheet {
+    font-size: 0.72rem;
+    line-height: 1.15;
+    gap: 0.2rem;
+  }
+
+  .packing-icc-table th,
+  .packing-icc-table td {
+    font-size: 0.66rem;
+    padding: 0.14rem 0.16rem;
+    line-height: 1.12;
+    word-break: break-word;
+  }
+
+  .packing-icc-declaration-cell {
+    font-size: 0.63rem;
+    line-height: 1.18;
+  }
+
+  .packing-icc-footer-table .packing-icc-marking-cell,
+  .packing-icc-footer-table .packing-icc-signature-cell {
+    min-height: 40mm;
+  }
+
   .permit-doc-id {
-    margin-top: 0.22rem;
-    font-size: 0.56rem;
+    margin-top: 0.28rem;
+    font-size: 0.62rem;
+  }
+
+  .quality-certificate-sheet,
+  .weight-certificate-sheet,
+  .way-bill-sheet {
+    min-height: calc(297mm - var(--brand-header-height, 0mm) - var(--brand-footer-height, 0mm));
+    padding: 3.2mm 4.4mm 2.4mm;
   }
 
   .quality-certificate-header h1 {
-    font-size: 0.9rem;
+    font-size: 1.04rem;
   }
 
   .quality-certificate-meta,
   .quality-certificate-statement,
   .quality-certificate-signatory {
-    font-size: 0.68rem;
+    font-size: 0.78rem;
   }
 
   .quality-certificate-table th,
   .quality-certificate-table td {
-    font-size: 0.64rem;
-    padding: 0.14rem 0.18rem;
-    line-height: 1.12;
+    font-size: 0.74rem;
+    padding: 0.16rem 0.2rem;
+    line-height: 1.16;
   }
 
   .weight-certificate-header h1 {
-    font-size: 0.88rem;
+    font-size: 1rem;
   }
 
   .weight-certificate-meta {
-    font-size: 0.66rem;
+    font-size: 0.74rem;
   }
 
   .weight-certificate-table th,
   .weight-certificate-table td {
-    font-size: 0.58rem;
-    padding: 0.12rem 0.14rem;
-    line-height: 1.1;
+    font-size: 0.66rem;
+    padding: 0.14rem 0.16rem;
+    line-height: 1.14;
+  }
+
+  .way-bill-tabs {
+    display: none !important;
+  }
+
+  .way-bill-header h1 {
+    font-size: 1rem;
+  }
+
+  .way-bill-meta,
+  .way-bill-declaration p,
+  .way-bill-conditions p,
+  .way-bill-amharic {
+    font-size: 0.74rem;
+  }
+
+  .way-bill-declaration h3 {
+    font-size: 0.82rem;
+  }
+
+  .way-bill-table th,
+  .way-bill-table td {
+    font-size: 0.68rem;
+    padding: 0.14rem 0.16rem;
+    line-height: 1.14;
   }
 
   .permit-invoice-sheet {

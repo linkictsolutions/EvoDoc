@@ -63,8 +63,8 @@ export const formulaParitySpec: FormulaParitySpec[] = [
     id: "F-006",
     workbook: "Coffee Doc-Praxis-V2.xlsm",
     description: "Packing list per-container bag distribution",
-    sourceSheet: "Packing List",
-    sourceFormulaOrCell: "H22:H31 = IF(Bx='', '', 'Contract-SI-LC'!K25 / Contract!D34)",
+    sourceSheet: "Packing List(ICC)",
+    sourceFormulaOrCell: "G23:K32 = IF(Cx='', '', 'Contract-SI-LC'!K25 / Contract!D34)",
     targetFunction: "mapDocumentOutput(packing_list)",
     parityStatus: "implemented",
   },
@@ -124,5 +124,25 @@ export const formulaParitySpec: FormulaParitySpec[] = [
     parityStatus: "implemented",
     notes:
       "VBA audit completed. Only NumberToWords macro contains logic; parity implemented in src/domain/amount-words.ts.",
+  },
+  {
+    id: "F-013",
+    workbook: "Coffee Doc-Praxis-V2.xlsm",
+    description: "Way Bill driver-selected truck/trailer row mapping",
+    sourceSheet: "WAY BILL",
+    sourceFormulaOrCell:
+      "C14,C15,C17,C18,E36,H36,E38,H38 = INDEX(Staffing!B22:N31, MATCH(C16, Staffing!D22:D31, 0) [+1], col)",
+    targetFunction: "buildWayBillSample",
+    parityStatus: "implemented",
+  },
+  {
+    id: "F-014",
+    workbook: "Coffee Doc-Praxis-V2.xlsm",
+    description: "Way Bill cert and per-driver quantity/weight splits",
+    sourceSheet: "WAY BILL",
+    sourceFormulaOrCell:
+      "D29:D33 conditional formulas combining cert numbers and applying single vs truck+trailer multipliers",
+    targetFunction: "buildWayBillSample",
+    parityStatus: "implemented",
   },
 ];
