@@ -61,10 +61,9 @@ export function validateContractBusinessRules(contract: Contract): BusinessRuleR
     );
   }
 
-  const paymentTerm = (contract.terms.paymentTerm ?? "").trim().toUpperCase();
-  const knownTerms = ["CAD", "LC", "ADVANCE", "ADVANCE & CAD"];
-  if (paymentTerm && !knownTerms.includes(paymentTerm)) {
-    result.warnings.push("Payment term is not in known workbook defaults (CAD, LC, Advance, Advance & CAD).");
+  const paymentTerm = (contract.terms.paymentTerm ?? "").trim();
+  if (!paymentTerm) {
+    result.warnings.push("Payment term is empty.");
   }
 
   return result;

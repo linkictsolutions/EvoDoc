@@ -1,8 +1,9 @@
 import { NextRequest } from "next/server";
+import { hydrateExecutionData } from "@/domain/execution";
 import { requireActor } from "@/lib/auth/server";
 import { fail, getRequestId, ok } from "@/lib/api/response";
 import { adminDb } from "@/lib/firebase/admin";
-import { getContract, getCustomer } from "@/lib/repositories/firestore-repository";
+import { getContract, getCustomer, getExecutionData } from "@/lib/repositories/firestore-repository";
 
 export async function GET(
   request: NextRequest,
@@ -31,11 +32,14 @@ export async function GET(
       .orderBy("updatedAt", "desc")
       .get();
 
+    const executionData = hydrateExecutionData(await getExecutionData(orgId, id).catch(() => ({})));
+
     return ok(requestId, {
       contract,
       customer,
       shipments: shipmentSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() })),
       documents: documentSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() })),
+      executionData,
     });
   } catch (error) {
     return fail(requestId, (error as Error).message, 400);

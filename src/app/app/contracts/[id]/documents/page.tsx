@@ -38,8 +38,8 @@ const families: FamilyCard[] = [
   {
     family: "packing_list",
     label: "Packing List",
-    description: "Packing certificate generated from resolved values and shipment execution data.",
-    variants: ["standard"],
+    description: "Packing certificate generated from resolved values plus bookings, staffing, and processing execution sheets.",
+    variants: ["permit", "final"],
   },
   {
     family: "shipping_instruction",
@@ -126,9 +126,14 @@ export default function ContractDocumentsPage({ params }: { params: Promise<{ id
 
               <p><strong>Variants:</strong> {family.variants.join(" / ")}</p>
               <p><strong>Latest Revision:</strong> {latest ? `v${latest.revisionNumber ?? 1}` : "None yet"}</p>
-              <p><strong>Latest Status:</strong> {latest?.status ?? "Not generated"}</p>
+              <p>
+                <strong>Latest Status:</strong>{" "}
+                <span className={`status-pill status-${(latest?.status ?? "draft").toLowerCase().replace(/\s+/g, "-")}`}>
+                  {latest?.status ?? "Not generated"}
+                </span>
+              </p>
 
-              <div className="row-actions" style={{ marginTop: "1rem" }}>
+              <div className="row-actions mt-lg">
                 <Link href={`/app/contracts/${contractId}/documents/${family.family}`}>
                   <button type="button">Open Family</button>
                 </Link>

@@ -39,6 +39,24 @@ function cleanOptional(value?: string): string | undefined {
   return normalized ? normalized : undefined;
 }
 
+function stripUndefinedDeep<T>(value: T): T {
+  if (Array.isArray(value)) {
+    return value
+      .map((entry) => stripUndefinedDeep(entry))
+      .filter((entry) => entry !== undefined) as T;
+  }
+
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value)
+        .filter(([, entry]) => entry !== undefined)
+        .map(([key, entry]) => [key, stripUndefinedDeep(entry)]),
+    ) as T;
+  }
+
+  return value;
+}
+
 export function validateAndNormalizeContractPayload(input: unknown): NormalizedContractPayload {
   const parsed = contractInputSchema.parse(input);
   const derived = computeContractExcelParity(parsed.contract.terms);
@@ -47,12 +65,11 @@ export function validateAndNormalizeContractPayload(input: unknown): NormalizedC
     customer: {
       orgId: parsed.orgId,
       name: parsed.customer.name.trim(),
-      shortName: parsed.customer.shortName?.trim(),
       address: parsed.customer.address.trim(),
       country: parsed.customer.country.trim(),
-      contactName: parsed.customer.contactName?.trim(),
-      contactEmail: parsed.customer.contactEmail?.trim() || undefined,
-      taxId: parsed.customer.taxId?.trim(),
+      contactName: cleanOptional(parsed.customer.contactName),
+      contactEmail: cleanOptional(parsed.customer.contactEmail),
+      taxId: cleanOptional(parsed.customer.taxId),
     },
     contract: {
       orgId: parsed.orgId,
@@ -87,12 +104,11 @@ export function validateAndNormalizeContractCorePayload(
     customer: {
       orgId: parsed.orgId,
       name: parsed.customer.name.trim(),
-      shortName: parsed.customer.shortName?.trim(),
       address: parsed.customer.address.trim(),
       country: parsed.customer.country.trim(),
-      contactName: parsed.customer.contactName?.trim(),
-      contactEmail: parsed.customer.contactEmail?.trim() || undefined,
-      taxId: parsed.customer.taxId?.trim(),
+      contactName: cleanOptional(parsed.customer.contactName),
+      contactEmail: cleanOptional(parsed.customer.contactEmail),
+      taxId: cleanOptional(parsed.customer.taxId),
     },
     contract: {
       orgId: parsed.orgId,
@@ -223,9 +239,9 @@ export function withTimestamps<T extends object>(data: T, existing?: { createdAt
 } {
   const timestamp = nowIso();
 
-  return {
+  return stripUndefinedDeep({
     ...data,
     createdAt: existing?.createdAt ?? timestamp,
     updatedAt: timestamp,
-  };
+  });
 }

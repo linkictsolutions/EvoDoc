@@ -34,51 +34,51 @@ export default function ContractsPage() {
       <header className="page-header">
         <h1>Contracts</h1>
         <p>Manage contracts and launch document workflows.</p>
-        <div className="row-actions" style={{ marginTop: "0.75rem" }}>
+        <div className="row-actions page-header-actions">
           <Link href="/app/contracts/new">
             <button type="button">New Contract</button>
-          </Link>
-          <Link href="/app/masters/customers">
-            <button type="button">Customers</button>
-          </Link>
-          <Link href="/app/masters/items">
-            <button type="button">Items</button>
           </Link>
         </div>
       </header>
 
       <section className="card">
         {error ? <p className="error-text">{error}</p> : null}
-        <table>
-          <thead>
-            <tr>
-              <th>Contract #</th>
-              <th>Status</th>
-              <th>Customer ID</th>
-              <th>Updated</th>
-              <th>Open</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.length === 0 ? (
+        <div className="table-wrap">
+          <table>
+            <thead>
               <tr>
-                <td colSpan={5}>No contracts yet.</td>
+                <th>Contract #</th>
+                <th>Status</th>
+                <th>Buyer ID</th>
+                <th>Updated</th>
+                <th>Open</th>
               </tr>
-            ) : (
-              items.map((contract) => (
-                <tr key={contract.id}>
-                  <td>{contract.contractNumber}</td>
-                  <td>{contract.status}</td>
-                  <td>{contract.customerId}</td>
-                  <td>{new Date(contract.updatedAt).toLocaleString()}</td>
-                  <td>
-                    <Link href={`/app/contracts/${contract.id}`}>Open</Link>
-                  </td>
+            </thead>
+            <tbody>
+              {items.length === 0 ? (
+                <tr>
+                  <td colSpan={5}>No contracts yet.</td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                items.map((contract) => (
+                  <tr key={contract.id}>
+                    <td>{contract.contractNumber}</td>
+                    <td>
+                      <span className={`status-pill status-${contract.status.toLowerCase().replace(/\\s+/g, "-")}`}>
+                        {contract.status}
+                      </span>
+                    </td>
+                    <td>{contract.customerId}</td>
+                    <td>{new Date(contract.updatedAt).toLocaleString()}</td>
+                    <td>
+                      <Link href={`/app/contracts/${contract.id}`}>Open</Link>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </section>
     </section>
   );

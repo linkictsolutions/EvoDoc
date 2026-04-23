@@ -42,30 +42,32 @@ export default function ContractActivityPage({ params }: { params: Promise<{ id:
       </header>
 
       <section className="card">
-        <table>
-          <thead>
-            <tr>
-              <th>When</th>
-              <th>Action</th>
-              <th>Actor</th>
-              <th>Target</th>
-            </tr>
-          </thead>
-          <tbody>
-            {logs.length === 0 ? (
-              <tr><td colSpan={4}>No activity yet.</td></tr>
-            ) : (
-              logs.map((log) => (
-                <tr key={log.id}>
-                  <td>{new Date(log.timestamp).toLocaleString()}</td>
-                  <td>{log.action}</td>
-                  <td>{log.actorUid}</td>
-                  <td><code>{log.targetPath}</code></td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>When</th>
+                <th>Action</th>
+                <th>Actor</th>
+                <th>Target</th>
+              </tr>
+            </thead>
+            <tbody>
+              {logs.length === 0 ? (
+                <tr><td colSpan={4}>No activity yet.</td></tr>
+              ) : (
+                logs.map((log) => (
+                  <tr key={log.id}>
+                    <td>{new Date(log.timestamp).toLocaleString()}</td>
+                    <td>{log.action}</td>
+                    <td>{log.actorUid}</td>
+                    <td><code>{log.targetPath}</code></td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </section>
     </section>
   );

@@ -8,7 +8,7 @@ import { z } from "zod";
 import { computeContractExcelParity } from "@/domain/excel-parity";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
-import type { Customer } from "@/types/models";
+import type { CompanyConfiguration, Customer } from "@/types/models";
 
 const schema = z.object({
   customerName: z.string().min(1),
@@ -35,6 +35,8 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 const packagingOptions = ["Bag of 60Kg", "Bag of 50Kg", "Bag of 30Kg", "Kg", "Lbs", "Metric Ton", "Bulk"];
+const fallbackPaymentTerms = ["CAD", "LC", "Advance & CAD", "Advance"];
+const fallbackDeliveryTerms = ["F.O.B"];
 
 interface ContractCoreFormProps {
   initialContractId?: string;
@@ -68,11 +70,32 @@ interface ContractDetailResponse {
   customer: Customer | null;
 }
 
+function toDateInputValue(value?: string): string {
+  const normalized = value?.trim();
+  if (!normalized) {
+    return "";
+  }
+
+  const isoDateMatch = normalized.match(/^(\d{4}-\d{2}-\d{2})/);
+  if (isoDateMatch) {
+    return isoDateMatch[1];
+  }
+
+  const parsed = new Date(normalized);
+  if (Number.isNaN(parsed.getTime())) {
+    return "";
+  }
+
+  return parsed.toISOString().slice(0, 10);
+}
+
 export function ContractCoreForm({
   initialContractId,
   autoLoadExisting = false,
   continueHref,
 }: ContractCoreFormProps) {
+  const [buyers, setBuyers] = useState<Customer[]>([]);
+  const [selectedBuyerId, setSelectedBuyerId] = useState<string>("");
   const [apiError, setApiError] = useState<string | null>(null);
   const [warnings, setWarnings] = useState<string[]>([]);
   const [savedContractId, setSavedContractId] = useState<string | null>(null);
@@ -80,8 +103,10 @@ export function ContractCoreForm({
   const [savedNotice, setSavedNotice] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [loadingExisting, setLoadingExisting] = useState(false);
+  const [paymentTermOptions, setPaymentTermOptions] = useState<string[]>(fallbackPaymentTerms);
+  const [deliveryTermOptions, setDeliveryTermOptions] = useState<string[]>(fallbackDeliveryTerms);
 
-  const { register, watch, handleSubmit, setValue, formState: { errors } } = useForm<FormData>({
+  const { register, watch, getValues, handleSubmit, setValue, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
       customerCountry: "Germany",
@@ -96,7 +121,7 @@ export function ContractCoreForm({
       packagingUnit: "Bag of 60Kg",
       currency: "USD",
       paymentTerm: "CAD",
-      deliveryTerm: "F.O.B",
+      deliveryTerm: fallbackDeliveryTerms[0],
       cropYear: "2025/26",
       lastCertNo: 22,
     },
@@ -130,6 +155,11 @@ export function ContractCoreForm({
   }, [values]);
 
   async function onSubmit(form: FormData) {
+    if (!selectedBuyerId) {
+      setApiError("Select a buyer from Buyer Master before saving the contract.");
+      return;
+    }
+
     setSaving(true);
     setApiError(null);
     setWarnings([]);
@@ -142,6 +172,7 @@ export function ContractCoreForm({
           orgId: DEFAULT_ORG_ID,
           contractId: activeContractId ?? undefined,
           customer: {
+            id: selectedBuyerId,
             name: form.customerName,
             address: form.customerAddress,
             country: form.customerCountry,
@@ -191,6 +222,71 @@ export function ContractCoreForm({
   }
 
   useEffect(() => {
+    let mounted = true;
+
+    apiClient<Customer[]>(`/api/customers?orgId=${DEFAULT_ORG_ID}`)
+      .then((data) => {
+        if (mounted) {
+          setBuyers(data);
+        }
+      })
+      .catch(() => {
+        if (mounted) {
+          setBuyers([]);
+        }
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+
+    apiClient<CompanyConfiguration>(`/api/company-configuration?orgId=${DEFAULT_ORG_ID}`)
+      .then((configuration) => {
+        if (!mounted) {
+          return;
+        }
+
+        const terms = configuration.paymentTerms?.filter((term) => term.trim().length > 0) ?? [];
+        const deliveryTerms = configuration.deliveryTerms?.filter((term) => term.trim().length > 0) ?? [];
+        if (terms.length === 0) {
+          setPaymentTermOptions(fallbackPaymentTerms);
+        } else {
+          setPaymentTermOptions(terms);
+        }
+        const currentTerm = (getValues("paymentTerm") ?? "").trim();
+        const normalizedPaymentTerms = terms.length > 0 ? terms : fallbackPaymentTerms;
+        if (!currentTerm || !normalizedPaymentTerms.includes(currentTerm)) {
+          setValue("paymentTerm", normalizedPaymentTerms[0]);
+        }
+
+        if (deliveryTerms.length === 0) {
+          setDeliveryTermOptions(fallbackDeliveryTerms);
+        } else {
+          setDeliveryTermOptions(deliveryTerms);
+        }
+        const currentDeliveryTerm = (getValues("deliveryTerm") ?? "").trim();
+        const normalizedDeliveryTerms = deliveryTerms.length > 0 ? deliveryTerms : fallbackDeliveryTerms;
+        if (!currentDeliveryTerm || !normalizedDeliveryTerms.includes(currentDeliveryTerm)) {
+          setValue("deliveryTerm", normalizedDeliveryTerms[0]);
+        }
+      })
+      .catch(() => {
+        if (mounted) {
+          setPaymentTermOptions(fallbackPaymentTerms);
+          setDeliveryTermOptions(fallbackDeliveryTerms);
+        }
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [getValues, setValue]);
+
+  useEffect(() => {
     if (!autoLoadExisting || !initialContractId) {
       return;
     }
@@ -210,6 +306,7 @@ export function ContractCoreForm({
 
         setActiveContractId(data.contract.id);
         setSavedContractId(data.contract.id);
+        setSelectedBuyerId(customer?.id ?? "");
         setValue("contractNumber", data.contract.contractNumber);
         setValue("customerName", customer?.name ?? "");
         setValue("customerAddress", customer?.address ?? "");
@@ -224,9 +321,9 @@ export function ContractCoreForm({
         setValue("priceUom", terms.priceUom ?? "Lbs");
         setValue("packagingUnit", terms.packagingUnit);
         setValue("currency", terms.currency);
-        setValue("shipmentPeriod", terms.shipmentPeriod ?? "");
-        setValue("paymentTerm", terms.paymentTerm ?? "CAD");
-        setValue("deliveryTerm", terms.deliveryTerm ?? "F.O.B");
+        setValue("shipmentPeriod", toDateInputValue(terms.shipmentPeriod));
+        setValue("paymentTerm", terms.paymentTerm ?? paymentTermOptions[0] ?? "CAD");
+        setValue("deliveryTerm", terms.deliveryTerm ?? deliveryTermOptions[0] ?? fallbackDeliveryTerms[0]);
         setValue("cropYear", terms.cropYear ?? "");
         setValue("lastCertNo", terms.lastCertNo ?? 0);
       })
@@ -244,7 +341,22 @@ export function ContractCoreForm({
     return () => {
       mounted = false;
     };
-  }, [autoLoadExisting, initialContractId, setValue]);
+  }, [autoLoadExisting, deliveryTermOptions, initialContractId, paymentTermOptions, setValue]);
+
+  useEffect(() => {
+    if (!selectedBuyerId) {
+      return;
+    }
+
+    const selectedBuyer = buyers.find((buyer) => buyer.id === selectedBuyerId);
+    if (!selectedBuyer) {
+      return;
+    }
+
+    setValue("customerName", selectedBuyer.name);
+    setValue("customerAddress", selectedBuyer.address);
+    setValue("customerCountry", selectedBuyer.country);
+  }, [buyers, selectedBuyerId, setValue]);
 
   const shippingHref = continueHref ?? (savedContractId
     ? `/app/contracts/${savedContractId}/inputs/shipping-instruction`
@@ -254,13 +366,19 @@ export function ContractCoreForm({
     <section className="page-shell">
       <header className="page-header">
         <h1>Contract Input</h1>
-        <p>Fill Contract sheet fields first. Contract Number is stored as business reference.</p>
-        <div className="row-actions" style={{ marginTop: "0.75rem" }}>
+        <p>Fill Contract sheet fields first. Select a buyer from Buyer Master, then complete contract details.</p>
+        <div className="row-actions page-header-actions">
           <Link href="/app/masters/customers">
-            <button type="button">Manage Customers</button>
+            <button type="button" className="button-secondary">Manage Buyers</button>
+          </Link>
+          <Link href="/app/masters/customers/new">
+            <button type="button" className="button-secondary">Add Buyer</button>
           </Link>
           <Link href="/app/masters/items">
-            <button type="button">Manage Items</button>
+            <button type="button" className="button-secondary">Manage Items</button>
+          </Link>
+          <Link href="/app/masters/items/new">
+            <button type="button" className="button-secondary">Add Item</button>
           </Link>
         </div>
         {loadingExisting ? <p>Loading existing contract data...</p> : null}
@@ -273,18 +391,30 @@ export function ContractCoreForm({
           <small>{errors.contractNumber?.message}</small>
         </label>
         <label>
+          Buyer
+          <select value={selectedBuyerId} onChange={(event) => setSelectedBuyerId(event.target.value)} required>
+            <option value="">Select saved buyer</option>
+            {buyers.map((buyer) => (
+              <option key={buyer.id} value={buyer.id}>
+                {buyer.name}
+              </option>
+            ))}
+          </select>
+          <small>{buyers.length === 0 ? "No buyers found. Create one in Master Data > Buyers." : ""}</small>
+        </label>
+        <label>
           Buyer Name
-          <input {...register("customerName")} />
+          <input {...register("customerName")} readOnly />
           <small>{errors.customerName?.message}</small>
         </label>
         <label>
           Buyer Address
-          <input {...register("customerAddress")} />
+          <input {...register("customerAddress")} readOnly />
           <small>{errors.customerAddress?.message}</small>
         </label>
         <label>
           Buyer Country
-          <input {...register("customerCountry")} />
+          <input {...register("customerCountry")} readOnly />
           <small>{errors.customerCountry?.message}</small>
         </label>
 
@@ -342,15 +472,23 @@ export function ContractCoreForm({
 
         <label>
           Shipment Period
-          <input {...register("shipmentPeriod")} />
+          <input type="date" {...register("shipmentPeriod")} />
         </label>
         <label>
           Payment Term
-          <input {...register("paymentTerm")} />
+          <select {...register("paymentTerm")}>
+            {paymentTermOptions.map((term) => (
+              <option key={term} value={term}>{term}</option>
+            ))}
+          </select>
         </label>
         <label>
           Delivery Term
-          <input {...register("deliveryTerm")} />
+          <select {...register("deliveryTerm")}>
+            {deliveryTermOptions.map((term) => (
+              <option key={term} value={term}>{term}</option>
+            ))}
+          </select>
         </label>
         <label>
           Crop Year
@@ -365,16 +503,16 @@ export function ContractCoreForm({
           <button type="submit" disabled={saving}>{saving ? "Saving..." : "Save Contract Draft"}</button>
           {savedContractId && shippingHref ? (
             <Link href={shippingHref}>
-              <button type="button">Continue to Shipping Instruction</button>
+              <button type="button" className="button-secondary">Continue to Shipping Instruction</button>
             </Link>
           ) : null}
         </div>
         {savedNotice ? <p>{savedNotice}</p> : null}
         {apiError ? <p className="error-text">{apiError}</p> : null}
         {warnings.length > 0 ? (
-          <div>
+          <div className="span-all">
             <strong>Warnings</strong>
-            <ul style={{ paddingLeft: "1rem" }}>
+            <ul className="list-indent">
               {warnings.map((warning) => <li key={warning}>{warning}</li>)}
             </ul>
           </div>
@@ -386,24 +524,26 @@ export function ContractCoreForm({
         {!computed ? (
           <p>Enter valid numeric values to compute parity outputs.</p>
         ) : (
-          <table>
-            <tbody>
-              <tr><th>Total Price</th><td>{computed.totalPrice.toFixed(2)}</td></tr>
-              <tr><th>Quantity Kg</th><td>{computed.quantityKg.toFixed(3)}</td></tr>
-              <tr><th>Quantity Lb</th><td>{computed.quantityLb.toFixed(3)}</td></tr>
-              <tr><th>Quantity MT</th><td>{computed.quantityMt.toFixed(3)}</td></tr>
-              <tr><th>Gross Weight Kg</th><td>{computed.grossWeightKg.toFixed(3)}</td></tr>
-              <tr><th>Gross Weight MT</th><td>{computed.grossWeightMt.toFixed(3)}</td></tr>
-              <tr><th>Qty Bag 60</th><td>{computed.quantityBag60.toFixed(3)}</td></tr>
-              <tr><th>Qty Bag 50</th><td>{computed.quantityBag50.toFixed(3)}</td></tr>
-              <tr><th>Qty Bag 30</th><td>{computed.quantityBag30.toFixed(3)}</td></tr>
-              <tr><th>Unit Price Bag 60</th><td>{computed.unitPriceBag60.toFixed(2)}</td></tr>
-              <tr><th>Unit Price Bag 50</th><td>{computed.unitPriceBag50.toFixed(2)}</td></tr>
-              <tr><th>Unit Price Bag 30</th><td>{computed.unitPriceBag30.toFixed(2)}</td></tr>
-              <tr><th>No. of Bags</th><td>{computed.noOfBags.toFixed(3)}</td></tr>
-              <tr><th>Container Count</th><td>{computed.containerCount}</td></tr>
-            </tbody>
-          </table>
+          <div className="table-wrap">
+            <table>
+              <tbody>
+                <tr><th>Total Price</th><td>{computed.totalPrice.toFixed(2)}</td></tr>
+                <tr><th>Quantity Kg</th><td>{computed.quantityKg.toFixed(3)}</td></tr>
+                <tr><th>Quantity Lb</th><td>{computed.quantityLb.toFixed(3)}</td></tr>
+                <tr><th>Quantity MT</th><td>{computed.quantityMt.toFixed(3)}</td></tr>
+                <tr><th>Gross Weight Kg</th><td>{computed.grossWeightKg.toFixed(3)}</td></tr>
+                <tr><th>Gross Weight MT</th><td>{computed.grossWeightMt.toFixed(3)}</td></tr>
+                <tr><th>Qty Bag 60</th><td>{computed.quantityBag60.toFixed(3)}</td></tr>
+                <tr><th>Qty Bag 50</th><td>{computed.quantityBag50.toFixed(3)}</td></tr>
+                <tr><th>Qty Bag 30</th><td>{computed.quantityBag30.toFixed(3)}</td></tr>
+                <tr><th>Unit Price Bag 60</th><td>{computed.unitPriceBag60.toFixed(2)}</td></tr>
+                <tr><th>Unit Price Bag 50</th><td>{computed.unitPriceBag50.toFixed(2)}</td></tr>
+                <tr><th>Unit Price Bag 30</th><td>{computed.unitPriceBag30.toFixed(2)}</td></tr>
+                <tr><th>No. of Bags</th><td>{computed.noOfBags.toFixed(3)}</td></tr>
+                <tr><th>Container Count</th><td>{computed.containerCount}</td></tr>
+              </tbody>
+            </table>
+          </div>
         )}
       </section>
     </section>

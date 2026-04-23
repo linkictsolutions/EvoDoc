@@ -11,6 +11,7 @@ import { fail, getRequestId, ok } from "@/lib/api/response";
 import {
   appendAuditLog,
   findContractIdByNumber,
+  getContract,
   upsertContractSourceInput,
   upsertContract,
   upsertCustomer,
@@ -26,22 +27,33 @@ export async function POST(request: NextRequest) {
     const normalized = validateAndNormalizeContractCorePayload(body);
     const matchedContractId = parsed.contractId
       ?? await findContractIdByNumber(parsed.orgId, normalized.contract.contractNumber);
+    const existingContract = matchedContractId
+      ? await getContract(parsed.orgId, matchedContractId).catch(() => undefined)
+      : undefined;
+    const mergedContract = {
+      ...normalized.contract,
+      shipping: existingContract?.shipping ?? normalized.contract.shipping,
+      banking: existingContract?.banking ?? normalized.contract.banking,
+      processing: existingContract?.processing ?? normalized.contract.processing,
+      createdBy: existingContract?.createdBy ?? actor.uid,
+    };
+    const customerDocId = parsed.customer.id ?? existingContract?.customerId;
 
     const contractRules = validateContractBusinessRules({
-      ...normalized.contract,
+      ...mergedContract,
       id: matchedContractId ?? "draft",
-      customerId: parsed.customer.id ?? "draft-customer",
+      customerId: customerDocId ?? "draft-customer",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      createdBy: actor.uid,
+      createdBy: mergedContract.createdBy,
     });
     assertNoBusinessRuleErrors(contractRules);
 
-    const customerId = await upsertCustomer(parsed.orgId, parsed.customer.id, normalized.customer);
+    const customerId = await upsertCustomer(parsed.orgId, customerDocId, normalized.customer);
     const contractId = await upsertContract(
       parsed.orgId,
       matchedContractId,
-      normalized.contract,
+      mergedContract,
       customerId,
       actor.uid,
     );

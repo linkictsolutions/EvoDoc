@@ -1,5 +1,5 @@
-import { CustomersPage } from "@/components/masters/customers-page";
+import { BuyersListPage } from "@/components/masters/buyers-list-page";
 
-export default function CustomersMasterPage() {
-  return <CustomersPage />;
+export default function BuyersMasterPage() {
+  return <BuyersListPage />;
 }

@@ -71,16 +71,19 @@ export default function DocumentReviewPage({
           <p><strong>Type:</strong> {data.docType}</p>
           {data.docVariant ? <p><strong>Variant:</strong> {data.docVariant}</p> : null}
           {data.revisionNumber ? <p><strong>Revision:</strong> v{data.revisionNumber}</p> : null}
-          <p><strong>Status:</strong> {data.status}</p>
+          <p>
+            <strong>Status:</strong>{" "}
+            <span className={`status-pill status-${data.status.toLowerCase().replace(/\s+/g, "-")}`}>{data.status}</span>
+          </p>
           <p><strong>Title:</strong> {data.outputSnapshot.title}</p>
           <p><strong>Snapshot Hash:</strong> <code>{data.snapshotHash}</code></p>
           {data.approvedSnapshotHash ? (
             <p><strong>Approved Hash:</strong> <code>{data.approvedSnapshotHash}</code></p>
           ) : null}
           {data.validationWarnings && data.validationWarnings.length > 0 ? (
-            <div style={{ marginTop: "0.8rem" }}>
+            <div className="mt-md">
               <strong>Validation Warnings</strong>
-              <ul style={{ paddingLeft: "1.1rem", marginTop: "0.35rem" }}>
+              <ul className="list-indent mt-sm">
                 {data.validationWarnings.map((warning) => (
                   <li key={warning}>{warning}</li>
                 ))}
@@ -88,7 +91,7 @@ export default function DocumentReviewPage({
             </div>
           ) : null}
           <Link href={`/app/contracts/${contractId}/documents/generated/${docId}/print`} target="_blank">
-            <button type="button" style={{ marginTop: "0.8rem" }}>Open Print View</button>
+            <button type="button" className="mt-md button-secondary">Open Print View</button>
           </Link>
         </section>
       ) : (

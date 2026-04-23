@@ -235,14 +235,14 @@ export function BankLcForm({
       </header>
 
       <form className="card form-grid" onSubmit={handleSubmit(onSubmit)}>
-        <h3 style={{ gridColumn: "1 / -1" }}>Contract Link</h3>
+        <h3 className="span-all">Contract Link</h3>
         <label>
           Contract ID (link only)
           <input {...register("contractId")} readOnly={Boolean(initialContractId)} />
           <small>{errors.contractId?.message}</small>
         </label>
 
-        <h3 style={{ gridColumn: "1 / -1" }}>LC Information (C column)</h3>
+        <h3 className="span-all">LC Information (C column)</h3>
         <label>
           LC No - C4
           <input {...register("lcNumber")} />
@@ -263,7 +263,7 @@ export function BankLcForm({
           Latest Date of Shipment - C16
           <input {...register("latestShipmentDate")} />
         </label>
-        <label style={{ gridColumn: "1 / -1" }}>
+        <label className="span-all">
           Description of Goods - C18
           <textarea rows={3} {...register("goodsDescription")} />
         </label>
@@ -296,7 +296,7 @@ export function BankLcForm({
           <input {...register("receiver")} />
         </label>
 
-        <h3 style={{ gridColumn: "1 / -1" }}>Revised Entry Section (H column)</h3>
+        <h3 className="span-all">Revised Entry Section (H column)</h3>
         <label>
           Revised Consignee - H22
           <textarea rows={2} {...register("revisedConsignee")} />
@@ -310,7 +310,7 @@ export function BankLcForm({
           <textarea rows={2} {...register("revisedSecondNotify")} />
         </label>
 
-        <h3 style={{ gridColumn: "1 / -1" }}>Bank Information (G column)</h3>
+        <h3 className="span-all">Bank Information (G column)</h3>
         <label>
           Bank Permit - G5
           <input {...register("permitNumber")} />
@@ -343,7 +343,7 @@ export function BankLcForm({
         <div className="row-actions">
           <button type="submit" disabled={saving}>{saving ? "Saving..." : "Save Bank & LC"}</button>
           <Link href={reportHref}>
-            <button type="button">View Contract-SI-LC Final Report</button>
+            <button type="button" className="button-secondary">View Contract-SI-LC Final Report</button>
           </Link>
         </div>
         {savedContractId ? <p>Saved to Contract ID: {savedContractId}</p> : null}

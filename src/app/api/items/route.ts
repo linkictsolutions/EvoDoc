@@ -5,6 +5,8 @@ import { requireActor } from "@/lib/auth/server";
 import { fail, getRequestId, ok } from "@/lib/api/response";
 import {
   appendAuditLog,
+  deleteItem,
+  getItem,
   listItems,
   upsertItem,
 } from "@/lib/repositories/firestore-repository";
@@ -14,11 +16,18 @@ export async function GET(request: NextRequest) {
 
   try {
     const orgId = request.nextUrl.searchParams.get("orgId");
+    const itemId = request.nextUrl.searchParams.get("itemId");
     if (!orgId) {
       return fail(requestId, "Missing orgId", 400);
     }
 
     await requireActor(orgId, ["admin", "editor", "viewer"]);
+
+    if (itemId) {
+      const item = await getItem(orgId, itemId);
+      return ok(requestId, item);
+    }
+
     const items = await listItems(orgId);
     return ok(requestId, items);
   } catch (error) {
@@ -50,6 +59,35 @@ export async function POST(request: NextRequest) {
     );
 
     return ok(requestId, { itemId }, 201);
+  } catch (error) {
+    return fail(requestId, (error as Error).message, 400);
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  const requestId = getRequestId();
+
+  try {
+    const orgId = request.nextUrl.searchParams.get("orgId");
+    const itemId = request.nextUrl.searchParams.get("itemId");
+    if (!orgId || !itemId) {
+      return fail(requestId, "Missing orgId or itemId", 400);
+    }
+
+    const actor = await requireActor(orgId, ["admin", "editor"]);
+    await deleteItem(orgId, itemId);
+
+    await appendAuditLog(
+      orgId,
+      actor.uid,
+      "item.deleted",
+      `organizations/${orgId}/items/${itemId}`,
+      null,
+      { itemId },
+      requestId,
+    );
+
+    return ok(requestId, { itemId, deleted: true });
   } catch (error) {
     return fail(requestId, (error as Error).message, 400);
   }

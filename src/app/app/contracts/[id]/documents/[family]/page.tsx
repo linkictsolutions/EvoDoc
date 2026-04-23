@@ -110,7 +110,7 @@ export default function ContractDocumentFamilyPage({
       <header className="page-header">
         <h1>{payload.familyLabel}</h1>
         <p>Current preview is rebuilt from the latest resolved contract state. Generated revisions remain immutable history.</p>
-        <div className="row-actions" style={{ marginTop: "0.75rem" }}>
+        <div className="row-actions page-header-actions">
           {payload.availableVariants.map((option) => (
             <button
               key={option.value}
@@ -139,9 +139,9 @@ export default function ContractDocumentFamilyPage({
           ) : payload.currentPreview ? (
             <>
               {payload.previewWarnings.length > 0 ? (
-                <div style={{ marginBottom: "0.9rem" }}>
+                <div className="mt-md">
                   <strong>Warnings</strong>
-                  <ul style={{ paddingLeft: "1rem", marginTop: "0.35rem" }}>
+                  <ul className="list-indent mt-sm">
                     {payload.previewWarnings.map((warning) => (
                       <li key={warning}>{warning}</li>
                     ))}
@@ -152,16 +152,18 @@ export default function ContractDocumentFamilyPage({
               {payload.currentPreview.sections.map((section) => (
                 <div key={section.heading} className="preview-section">
                   <h4>{section.heading}</h4>
-                  <table>
-                    <tbody>
-                      {section.rows.map((row) => (
-                        <tr key={`${section.heading}-${row.label}`}>
-                          <th>{row.label}</th>
-                          <td>{renderValue(row.value)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                  <div className="table-wrap">
+                    <table>
+                      <tbody>
+                        {section.rows.map((row) => (
+                          <tr key={`${section.heading}-${row.label}`}>
+                            <th className="wrap">{row.label}</th>
+                            <td className="wrap">{renderValue(row.value)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               ))}
             </>
@@ -184,32 +186,38 @@ export default function ContractDocumentFamilyPage({
                 <p className="sidebar-subtitle">Previous generated versions for this variant.</p>
               </div>
             </div>
-            <table>
-              <thead>
-                <tr>
-                  <th>Revision</th>
-                  <th>Status</th>
-                  <th>Generated</th>
-                  <th>Open</th>
-                </tr>
-              </thead>
-              <tbody>
-                {payload.revisions.length === 0 ? (
-                  <tr><td colSpan={4}>No revisions yet.</td></tr>
-                ) : (
-                  payload.revisions.map((revision) => (
-                    <tr key={revision.id}>
-                      <td>v{revision.revisionNumber}</td>
-                      <td>{revision.status}</td>
-                      <td>{new Date(revision.generatedAt).toLocaleString()}</td>
-                      <td>
-                        <Link href={`/app/contracts/${contractId}/documents/generated/${revision.id}/review`}>Open</Link>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+            <div className="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Revision</th>
+                    <th>Status</th>
+                    <th>Generated</th>
+                    <th>Open</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {payload.revisions.length === 0 ? (
+                    <tr><td colSpan={4}>No revisions yet.</td></tr>
+                  ) : (
+                    payload.revisions.map((revision) => (
+                      <tr key={revision.id}>
+                        <td>v{revision.revisionNumber}</td>
+                        <td>
+                          <span className={`status-pill status-${revision.status.toLowerCase().replace(/\s+/g, "-")}`}>
+                            {revision.status}
+                          </span>
+                        </td>
+                        <td>{new Date(revision.generatedAt).toLocaleString()}</td>
+                        <td>
+                          <Link href={`/app/contracts/${contractId}/documents/generated/${revision.id}/review`}>Open</Link>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </section>
         </section>
       </section>

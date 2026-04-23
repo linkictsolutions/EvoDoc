@@ -23,7 +23,6 @@ export function validateAndNormalizeCustomerMasterPayload(
     customer: {
       orgId: parsed.orgId,
       name: parsed.customer.name.trim(),
-      shortName: cleanOptional(parsed.customer.shortName),
       address: parsed.customer.address.trim(),
       country: parsed.customer.country.trim(),
       contactName: cleanOptional(parsed.customer.contactName),

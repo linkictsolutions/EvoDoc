@@ -9,11 +9,11 @@ import { requireActor } from "@/lib/auth/server";
 import { fail, getRequestId, ok } from "@/lib/api/response";
 import {
   appendAuditLog,
-  getCompanyConfiguration,
   createGeneratedDocument,
+  getCompanyConfiguration,
   getContract,
   getCustomer,
-  getShipment,
+  getExecutionData,
   listGeneratedDocuments,
 } from "@/lib/repositories/firestore-repository";
 import {
@@ -22,6 +22,7 @@ import {
   resolveDocumentFamily,
   resolveVariantForFamily,
 } from "@/domain/documents/catalog";
+import { buildExecutionShipment, hydrateExecutionData } from "@/domain/execution";
 import { buildDocumentOutput, makeGeneratedDocumentPayload } from "@/lib/workflow/document-generation";
 
 export async function POST(request: NextRequest) {
@@ -37,11 +38,9 @@ export async function POST(request: NextRequest) {
       (parsed.docVariant ?? defaultVariantForFamily(documentFamily)),
     );
 
-    const [contract, shipment, existingDocuments] = await Promise.all([
+    const [contract, execution, existingDocuments] = await Promise.all([
       getContract(parsed.orgId, parsed.contractId),
-      parsed.shipmentId
-        ? getShipment(parsed.orgId, parsed.contractId, parsed.shipmentId)
-        : Promise.resolve(makePreviewShipment(parsed.contractId, parsed.orgId)),
+      getExecutionData(parsed.orgId, parsed.contractId),
       listGeneratedDocuments(parsed.orgId, parsed.contractId),
     ]);
 
@@ -49,6 +48,26 @@ export async function POST(request: NextRequest) {
       getCustomer(parsed.orgId, contract.customerId),
       getCompanyConfiguration(parsed.orgId).catch(() => undefined),
     ]);
+    const executionData = hydrateExecutionData(execution);
+    const hasBookingHeader = Boolean(
+      executionData.bookings?.bookingNumber
+      || executionData.bookings?.billOfLadingNumber
+      || executionData.bookings?.vesselName
+      || executionData.bookings?.voyageNo,
+    );
+    const executionShipment = buildExecutionShipment(contract, companyConfiguration, executionData);
+    const hasExecutionData = Boolean(
+      hasBookingHeader
+      || 
+      executionData.bookings?.entries.some(
+        (entry) => entry.containerNumber || entry.sealNumber || entry.tareWeightKg,
+      ) || executionData.staffing?.finalRows.some(
+        (row) => row.containerNumber || row.sealNumber || row.netWeightKg,
+      ),
+    );
+    const shipment = hasExecutionData
+      ? executionShipment
+      : makePreviewShipment(parsed.contractId, parsed.orgId);
     const revisionNumber =
       existingDocuments.filter((document) => {
         const existingFamily = document.documentFamily ?? resolveDocumentFamily(document.docType);
@@ -64,6 +83,7 @@ export async function POST(request: NextRequest) {
       customer,
       shipment,
       companyConfiguration,
+      executionData,
     };
     const generationRules = validateDocumentGenerationRules(inputSnapshot);
     assertNoBusinessRuleErrors(generationRules);
@@ -75,7 +95,7 @@ export async function POST(request: NextRequest) {
       templateVersion: parsed.templateVersion,
       inputSnapshot,
       outputSnapshot,
-      shipmentId: parsed.shipmentId,
+      shipmentId: parsed.shipmentId === "execution-derived" ? undefined : parsed.shipmentId,
       generatedBy: actor.uid,
       revisionNumber,
       validationWarnings: generationRules.warnings,

@@ -30,6 +30,76 @@ function cleanOptional(value?: string): string | undefined {
   return normalized ? normalized : undefined;
 }
 
+const DEFAULT_PAYMENT_TERMS = ["CAD", "LC", "Advance & CAD", "Advance"];
+const DEFAULT_DELIVERY_TERMS = ["F.O.B"];
+
+type LegacyPaymentTermFields = {
+  paymentTermCad?: string;
+  paymentTermLc?: string;
+  paymentTermAdvanceCad?: string;
+  paymentTermAdvance?: string;
+};
+
+type LegacyDeliveryTermFields = {
+  deliveryTerm?: string;
+};
+
+function normalizePaymentTerms(terms?: string[]): string[] {
+  const uniqueTerms = new Set<string>();
+
+  for (const term of terms ?? []) {
+    const normalized = term.trim();
+    if (normalized) {
+      uniqueTerms.add(normalized);
+    }
+  }
+
+  return Array.from(uniqueTerms);
+}
+
+function resolvePaymentTerms(
+  configuration?: Partial<CompanyConfiguration> | (Partial<CompanyConfiguration> & LegacyPaymentTermFields) | null,
+): string[] {
+  const fromList = normalizePaymentTerms(configuration?.paymentTerms);
+  if (fromList.length > 0) {
+    return fromList;
+  }
+
+  const legacy = configuration as LegacyPaymentTermFields | undefined;
+  const fromLegacyFields = normalizePaymentTerms([
+    legacy?.paymentTermCad ?? "",
+    legacy?.paymentTermLc ?? "",
+    legacy?.paymentTermAdvanceCad ?? "",
+    legacy?.paymentTermAdvance ?? "",
+  ]);
+
+  if (fromLegacyFields.length > 0) {
+    return fromLegacyFields;
+  }
+
+  return DEFAULT_PAYMENT_TERMS;
+}
+
+function resolveDeliveryTerms(
+  configuration?:
+    | Partial<CompanyConfiguration>
+    | (Partial<CompanyConfiguration> & LegacyDeliveryTermFields)
+    | null,
+): string[] {
+  const fromList = normalizePaymentTerms(configuration?.deliveryTerms);
+  if (fromList.length > 0) {
+    return fromList;
+  }
+
+  const legacy = configuration as LegacyDeliveryTermFields | undefined;
+  const fromLegacyField = normalizePaymentTerms([legacy?.deliveryTerm ?? ""]);
+  if (fromLegacyField.length > 0) {
+    return fromLegacyField;
+  }
+
+  return DEFAULT_DELIVERY_TERMS;
+}
+
 function normalizePackagingDefinition(
   definition: PackagingDefinition,
 ): PackagingDefinition {
@@ -57,10 +127,8 @@ export function defaultCompanyConfiguration(orgId: string): CompanyConfiguration
     transitorCompanyName: "ETHIOPIAN SHIPPING AND LOGISTICS SERVICES ENTERPRISE (ESLSE)",
     transitorPhoneNumber: "+25377384845/+253 77031882/+253 21380802",
     transitorLocation: "DJIBOUTI",
-    paymentTermCad: "CAD",
-    paymentTermLc: "LC",
-    paymentTermAdvanceCad: "Advance & CAD",
-    paymentTermAdvance: "Advance",
+    paymentTerms: DEFAULT_PAYMENT_TERMS,
+    deliveryTerms: DEFAULT_DELIVERY_TERMS,
     bulkReferenceKg: 19200,
     packagingDefinitions: DEFAULT_PACKAGING_DEFINITIONS,
     createdAt: new Date(0).toISOString(),
@@ -70,7 +138,10 @@ export function defaultCompanyConfiguration(orgId: string): CompanyConfiguration
 
 export function resolveCompanyConfiguration(
   orgId: string,
-  configuration?: Partial<CompanyConfiguration> | null,
+  configuration?:
+    | Partial<CompanyConfiguration>
+    | (Partial<CompanyConfiguration> & LegacyPaymentTermFields & LegacyDeliveryTermFields)
+    | null,
 ): CompanyConfiguration {
   const defaults = defaultCompanyConfiguration(orgId);
 
@@ -89,11 +160,8 @@ export function resolveCompanyConfiguration(
     transitorCompanyName: cleanOptional(configuration?.transitorCompanyName) ?? defaults.transitorCompanyName,
     transitorPhoneNumber: cleanOptional(configuration?.transitorPhoneNumber) ?? defaults.transitorPhoneNumber,
     transitorLocation: cleanOptional(configuration?.transitorLocation) ?? defaults.transitorLocation,
-    paymentTermCad: configuration?.paymentTermCad?.trim() || defaults.paymentTermCad,
-    paymentTermLc: configuration?.paymentTermLc?.trim() || defaults.paymentTermLc,
-    paymentTermAdvanceCad:
-      configuration?.paymentTermAdvanceCad?.trim() || defaults.paymentTermAdvanceCad,
-    paymentTermAdvance: configuration?.paymentTermAdvance?.trim() || defaults.paymentTermAdvance,
+    paymentTerms: resolvePaymentTerms(configuration),
+    deliveryTerms: resolveDeliveryTerms(configuration),
     bulkReferenceKg: configuration?.bulkReferenceKg ?? defaults.bulkReferenceKg,
     packagingDefinitions:
       configuration?.packagingDefinitions?.map(normalizePackagingDefinition) ??
@@ -128,10 +196,8 @@ export function validateAndNormalizeCompanyConfigurationPayload(
       transitorCompanyName: cleanOptional(normalized.transitorCompanyName),
       transitorPhoneNumber: cleanOptional(normalized.transitorPhoneNumber),
       transitorLocation: cleanOptional(normalized.transitorLocation),
-      paymentTermCad: normalized.paymentTermCad,
-      paymentTermLc: normalized.paymentTermLc,
-      paymentTermAdvanceCad: normalized.paymentTermAdvanceCad,
-      paymentTermAdvance: normalized.paymentTermAdvance,
+      paymentTerms: normalizePaymentTerms(normalized.paymentTerms),
+      deliveryTerms: normalizePaymentTerms(normalized.deliveryTerms),
       bulkReferenceKg: normalized.bulkReferenceKg,
       packagingDefinitions: normalized.packagingDefinitions.map(normalizePackagingDefinition),
     },

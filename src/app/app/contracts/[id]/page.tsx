@@ -15,6 +15,11 @@ type ContractDetail = {
   };
   shipments: Array<{ id: string; status: string; updatedAt: string }>;
   documents: Array<{ id: string; docType: string; status: string; updatedAt: string }>;
+  executionData?: {
+    bookings?: { entries?: Array<unknown> };
+    staffing?: { finalRows?: Array<unknown> };
+    processing?: { stationName?: string };
+  };
 };
 
 export default function ContractDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -57,7 +62,9 @@ export default function ContractDetailPage({ params }: { params: Promise<{ id: s
     return <section className="card"><p>Loading contract...</p></section>;
   }
 
-  const latestShipment = state.shipments[0]?.id;
+  const hasBookings = Boolean(state.executionData?.bookings?.entries?.length);
+  const hasStaffing = Boolean(state.executionData?.staffing?.finalRows?.length);
+  const hasProcessing = Boolean(state.executionData?.processing?.stationName);
 
   return (
     <section className="page-shell">
@@ -73,9 +80,9 @@ export default function ContractDetailPage({ params }: { params: Promise<{ id: s
           <span className="metric-subvalue">{state.contract.status}</span>
         </article>
         <article className="metric-card">
-          <p className="metric-label">Shipments</p>
-          <strong className="metric-value">{state.shipments.length}</strong>
-          <span className="metric-subvalue">execution records</span>
+          <p className="metric-label">Execution</p>
+          <strong className="metric-value">{[hasBookings, hasStaffing, hasProcessing].filter(Boolean).length}/3</strong>
+          <span className="metric-subvalue">bookings, staffing, processing</span>
         </article>
         <article className="metric-card">
           <p className="metric-label">Documents</p>
@@ -91,45 +98,31 @@ export default function ContractDetailPage({ params }: { params: Promise<{ id: s
 
       <section className="card">
         <h2>Next Actions</h2>
-        <div className="row-actions" style={{ marginTop: "0.75rem" }}>
+        <div className="row-actions page-header-actions">
           <Link href={`/app/contracts/${contractId}/inputs/contract`}>
             <button type="button">Open Inputs</button>
           </Link>
           <Link href={`/app/contracts/${contractId}/resolved-values`}>
-            <button type="button">Review Resolved Values</button>
+            <button type="button" className="button-secondary">Review Resolved Values</button>
           </Link>
           <Link href={`/app/contracts/${contractId}/documents`}>
-            <button type="button">Open Documents</button>
+            <button type="button" className="button-secondary">Open Documents</button>
           </Link>
-          {latestShipment ? (
-            <>
-              <Link href={`/app/contracts/${contractId}/documents/template/invoice/draft?shipmentId=${latestShipment}`}>
-                <button type="button">Invoice Draft</button>
-              </Link>
-              <Link href={`/app/contracts/${contractId}/documents/template/packing_list/draft?shipmentId=${latestShipment}`}>
-                <button type="button">Packing Draft</button>
-              </Link>
-              <Link href={`/app/contracts/${contractId}/documents/template/shipping_instructions/draft?shipmentId=${latestShipment}`}>
-                <button type="button">SI Draft</button>
-              </Link>
-            </>
-          ) : (
-            <Link href={`/app/contracts/${contractId}/shipments/new`}>
-              <button type="button">Add First Shipment</button>
-            </Link>
-          )}
+          <Link href={`/app/contracts/${contractId}/execution/bookings`}>
+            <button type="button" className="button-secondary">Open Execution</button>
+          </Link>
         </div>
       </section>
 
       <section className="card">
         <h2>Workspace Structure</h2>
-        <div className="journey-list">
-          <p><strong>Inputs</strong>: Contract, Shipping Instruction, and Bank &amp; LC source sheets.</p>
-          <p><strong>Resolved Values</strong>: final field precedence after LC/SI overrides.</p>
-          <p><strong>Shipments</strong>: booking and execution records attached to this contract.</p>
-          <p><strong>Documents</strong>: generated invoice, packing list, SI, and sample outputs.</p>
-          <p><strong>Activity</strong>: audit trail of writes and workflow events.</p>
-        </div>
+        <ul className="journey-list">
+          <li><strong>Inputs</strong>: Contract, Shipping Instruction, and Bank &amp; LC source sheets.</li>
+          <li><strong>Resolved Values</strong>: final field precedence after LC/SI overrides.</li>
+          <li><strong>Execution</strong>: Bookings, Staffing, and Processing workbook sheets attached to this contract.</li>
+          <li><strong>Documents</strong>: generated invoice, packing list, SI, and sample outputs.</li>
+          <li><strong>Activity</strong>: audit trail of writes and workflow events.</li>
+        </ul>
       </section>
     </section>
   );

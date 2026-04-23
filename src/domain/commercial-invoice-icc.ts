@@ -2,7 +2,7 @@ import { amountToWords } from "@/domain/amount-words";
 import { resolveCompanyConfiguration } from "@/domain/company-configuration";
 import { buildContractSiLcReport } from "@/domain/contract-si-lc";
 import { computeContractExcelParity } from "@/domain/excel-parity";
-import type { CompanyConfiguration, Contract, Customer, Shipment } from "@/types/models";
+import type { BookingsSheet, CompanyConfiguration, Contract, Customer, Shipment } from "@/types/models";
 
 interface InvoiceRow {
   rowNumber: number;
@@ -143,6 +143,7 @@ export function buildCommercialInvoiceIccSample(
   customer: Customer,
   latestShipment?: Shipment,
   companyConfigurationInput?: Partial<CompanyConfiguration> | null,
+  bookings?: BookingsSheet,
 ): CommercialInvoiceIccSample {
   const companyConfiguration = resolveCompanyConfiguration(contract.orgId, companyConfigurationInput);
   const parity = computeContractExcelParity(contract.terms, companyConfiguration);
@@ -178,9 +179,9 @@ export function buildCommercialInvoiceIccSample(
       salesContractDate: contractDate,
       exporterBeneficiarySeller: sellerLine,
       bankPermitNumber: clean(contract.banking.permitNumber),
-      billOfLadingNumber: clean(latestShipment?.bookingReference) || clean(contract.shipping.bookingNumber),
+      billOfLadingNumber: clean(bookings?.billOfLadingNumber) || clean(latestShipment?.bookingReference) || clean(contract.shipping.bookingNumber),
       methodOfDispatch: "VESSEL",
-      vesselAndVoyageNumber: vesselVoyage(latestShipment),
+      vesselAndVoyageNumber: [clean(bookings?.vesselName), clean(bookings?.voyageNo)].filter(Boolean).join(" , ") || vesselVoyage(latestShipment),
       shippedOnBoardDate: clean(contract.banking.latestShipmentDate),
       applicantNotify,
       consignee,

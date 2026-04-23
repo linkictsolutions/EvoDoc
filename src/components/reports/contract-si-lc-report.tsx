@@ -93,7 +93,7 @@ export function ContractSiLcReportView({ initialContractId }: ContractSiLcReport
       {!initialContractId ? (
         <section className="card">
           <div className="row-actions">
-            <label style={{ minWidth: "320px" }}>
+            <label className="minw-320">
               Contract ID
               <input value={contractId} onChange={(event) => setContractId(event.target.value)} />
             </label>
@@ -101,7 +101,7 @@ export function ContractSiLcReportView({ initialContractId }: ContractSiLcReport
               {loading ? "Loading..." : "Load Final Report"}
             </button>
           </div>
-          {error ? <p className="error-text" style={{ marginTop: "0.75rem" }}>{error}</p> : null}
+          {error ? <p className="error-text mt-md">{error}</p> : null}
         </section>
       ) : null}
 
@@ -114,38 +114,40 @@ export function ContractSiLcReportView({ initialContractId }: ContractSiLcReport
       {report ? (
         <section className="card">
           <h3>Contract #{report.contractNumber}</h3>
-          <p>Customer: {report.customerName}</p>
-          <p style={{ marginTop: "0.4rem", color: "var(--muted)" }}>{report.precedence}</p>
-          <table style={{ marginTop: "0.8rem" }}>
-            <thead>
-              <tr>
-                <th>Row</th>
-                <th>Field</th>
-                <th>Contract (F)</th>
-                <th>SI (G)</th>
-                <th>Rev SI (H)</th>
-                <th>LC (I)</th>
-                <th>Rev LC (J)</th>
-                <th>Final (K)</th>
-                <th>Source</th>
-              </tr>
-            </thead>
-            <tbody>
-              {report.rows.map((row) => (
-                <tr key={row.rowNumber}>
-                  <td>{row.rowNumber}</td>
-                  <td>{row.label}</td>
-                  <td>{row.contractValue || "-"}</td>
-                  <td>{row.shippingValue || "-"}</td>
-                  <td>{row.revisedShippingValue || "-"}</td>
-                  <td>{row.lcValue || "-"}</td>
-                  <td>{row.revisedLcValue || "-"}</td>
-                  <td><strong>{row.finalValue}</strong></td>
-                  <td><span className={`source-badge source-${row.finalSource}`}>{row.finalSource}</span></td>
+          <p>Buyer: {report.customerName}</p>
+          <p className="muted-text mt-sm">{report.precedence}</p>
+          <div className="table-wrap mt-md">
+            <table>
+              <thead>
+                <tr>
+                  <th>Row</th>
+                  <th>Field</th>
+                  <th>Contract (F)</th>
+                  <th>SI (G)</th>
+                  <th>Rev SI (H)</th>
+                  <th>LC (I)</th>
+                  <th>Rev LC (J)</th>
+                  <th>Final (K)</th>
+                  <th>Source</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {report.rows.map((row) => (
+                  <tr key={row.rowNumber}>
+                    <td>{row.rowNumber}</td>
+                    <td className="wrap">{row.label}</td>
+                    <td>{row.contractValue || "-"}</td>
+                    <td>{row.shippingValue || "-"}</td>
+                    <td>{row.revisedShippingValue || "-"}</td>
+                    <td>{row.lcValue || "-"}</td>
+                    <td>{row.revisedLcValue || "-"}</td>
+                    <td><strong>{row.finalValue}</strong></td>
+                    <td><span className={`source-badge source-${row.finalSource}`}>{row.finalSource}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </section>
       ) : null}
     </section>

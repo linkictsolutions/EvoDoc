@@ -84,7 +84,6 @@ export const contractInputSchema = z.object({
   customer: z.object({
     id: z.string().optional(),
     name: z.string().min(1),
-    shortName: z.string().optional(),
     address: z.string().min(1),
     country: z.string().min(1),
     contactName: z.string().optional(),
@@ -108,7 +107,6 @@ export const contractCoreInputSchema = z.object({
   customer: z.object({
     id: z.string().optional(),
     name: z.string().min(1),
-    shortName: z.string().optional(),
     address: z.string().min(1),
     country: z.string().min(1),
     contactName: z.string().optional(),
@@ -139,7 +137,6 @@ export const customerMasterInputSchema = z.object({
   customerId: z.string().optional(),
   customer: z.object({
     name: z.string().min(1),
-    shortName: z.string().optional(),
     address: z.string().min(1),
     country: z.string().min(1),
     contactName: z.string().optional(),
@@ -179,10 +176,8 @@ export const companyConfigurationInputSchema = z.object({
     transitorCompanyName: z.string().optional(),
     transitorPhoneNumber: z.string().optional(),
     transitorLocation: z.string().optional(),
-    paymentTermCad: z.string().min(1),
-    paymentTermLc: z.string().min(1),
-    paymentTermAdvanceCad: z.string().min(1),
-    paymentTermAdvance: z.string().min(1),
+    paymentTerms: z.array(z.string().min(1)).min(1),
+    deliveryTerms: z.array(z.string().min(1)).min(1),
     bulkReferenceKg: z.number().positive(),
     packagingDefinitions: z.array(z.object({
       label: z.string().min(1),
@@ -202,6 +197,75 @@ export const bookingLineSchema = z.object({
   bags: z.number().int().nonnegative(),
   grossWeightKg: z.number().nonnegative(),
   tareWeightKg: z.number().nonnegative(),
+});
+
+const vehicleKindSchema = z.enum(["TRUCK", "TRAILER"]);
+
+export const bookingEntrySchema = z.object({
+  rowNo: z.number().int().positive(),
+  vehicleNo: z.number().int().positive().optional(),
+  vehicleType: vehicleKindSchema,
+  plateNo: z.string().optional(),
+  driverName: z.string().optional(),
+  driverPhoneNo: z.string().optional(),
+  djiboutiPhoneNo: z.string().optional(),
+  licenseNo: z.string().optional(),
+  containerNumber: z.string().optional(),
+  sealNumber: z.string().optional(),
+  tareWeightKg: z.number().nonnegative().optional(),
+});
+
+export const bookingsSheetInputSchema = z.object({
+  orgId: z.string().min(1),
+  contractId: z.string().min(1),
+  bookings: z.object({
+    bookingNumber: z.string().optional(),
+    shippingLine: z.string().optional(),
+    vesselName: z.string().optional(),
+    voyageNo: z.string().optional(),
+    freeDays: z.string().optional(),
+    billOfLadingNumber: z.string().optional(),
+    entries: z.array(bookingEntrySchema).min(1),
+  }),
+});
+
+export const staffingInstructionRowSchema = z.object({
+  rowNo: z.number().int().positive(),
+  vehicleNo: z.number().int().positive().optional(),
+  vehicleType: vehicleKindSchema,
+  plateNo: z.string().optional(),
+  driverName: z.string().optional(),
+  driverPhoneNo: z.string().optional(),
+  licenseNo: z.string().optional(),
+  containerNumber: z.string().optional(),
+  sealNumber: z.string().optional(),
+  sealNumberV2: z.string().optional(),
+  certNumber: z.string().optional(),
+  certNumberV2: z.string().optional(),
+  tareWeightKg: z.number().nonnegative().optional(),
+  firstWeightKg: z.number().nonnegative().optional(),
+  secondWeightKg: z.number().nonnegative().optional(),
+  netWeightKg: z.number().nonnegative().optional(),
+  doNumber: z.string().optional(),
+});
+
+export const staffingSheetInputSchema = z.object({
+  orgId: z.string().min(1),
+  contractId: z.string().min(1),
+  staffing: z.object({
+    instructionRows: z.array(staffingInstructionRowSchema).min(1),
+  }),
+});
+
+export const processingSheetInputSchema = z.object({
+  orgId: z.string().min(1),
+  contractId: z.string().min(1),
+  processing: z.object({
+    moisturePercent: z.number().nonnegative(),
+    stationName: z.string().min(1),
+    stationNameLocal: z.string().optional(),
+    stationAddress: z.string().min(1),
+  }),
 });
 
 export const shipmentInputSchema = z.object({

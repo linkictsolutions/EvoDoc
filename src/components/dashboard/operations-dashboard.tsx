@@ -55,7 +55,7 @@ export function OperationsDashboard() {
       <header className="page-header">
         <h1>Operations Overview</h1>
         <p>Run export work from contracts outward: master data, source inputs, resolved values, shipments, and documents.</p>
-        <div className="row-actions" style={{ marginTop: "0.75rem" }}>
+        <div className="row-actions page-header-actions">
           <Link href="/app/contracts">
             <button type="button">Open Contracts</button>
           </Link>
@@ -74,7 +74,7 @@ export function OperationsDashboard() {
           <span className="metric-subvalue">{countDraftContracts(contracts)} draft</span>
         </article>
         <article className="metric-card">
-          <p className="metric-label">Customers</p>
+          <p className="metric-label">Buyers</p>
           <strong className="metric-value">{customers.length}</strong>
           <span className="metric-subvalue">master records</span>
         </article>
@@ -99,7 +99,7 @@ export function OperationsDashboard() {
             </div>
           </div>
           <ol className="journey-list">
-            <li>Create or reuse the customer and item master records.</li>
+            <li>Create or reuse the buyer and item master records.</li>
             <li>Create one export contract as the parent workspace.</li>
             <li>Complete the three source inputs: Contract, Shipping Instruction, Bank &amp; LC.</li>
             <li>Review resolved values where LC or SI overrides contract terms.</li>
@@ -116,34 +116,40 @@ export function OperationsDashboard() {
             </div>
             <Link href="/app/contracts">View all</Link>
           </div>
-          <table>
-            <thead>
-              <tr>
-                <th>Contract</th>
-                <th>Status</th>
-                <th>Customer</th>
-                <th>Open</th>
-              </tr>
-            </thead>
-            <tbody>
-              {recentContracts.length === 0 ? (
+          <div className="table-wrap">
+            <table>
+              <thead>
                 <tr>
-                  <td colSpan={4}>No contracts yet.</td>
+                  <th>Contract</th>
+                  <th>Status</th>
+                  <th>Buyer</th>
+                  <th>Open</th>
                 </tr>
-              ) : (
-                recentContracts.map((contract) => (
-                  <tr key={contract.id}>
-                    <td>{contract.contractNumber}</td>
-                    <td>{contract.status}</td>
-                    <td>{contract.customerId}</td>
-                    <td>
-                      <Link href={`/app/contracts/${contract.id}`}>Open</Link>
-                    </td>
+              </thead>
+              <tbody>
+                {recentContracts.length === 0 ? (
+                  <tr>
+                    <td colSpan={4}>No contracts yet.</td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : (
+                  recentContracts.map((contract) => (
+                    <tr key={contract.id}>
+                      <td>{contract.contractNumber}</td>
+                      <td>
+                        <span className={`status-pill status-${contract.status.toLowerCase().replace(/\\s+/g, "-")}`}>
+                          {contract.status}
+                        </span>
+                      </td>
+                      <td>{contract.customerId}</td>
+                      <td>
+                        <Link href={`/app/contracts/${contract.id}`}>Open</Link>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </section>
       </div>
     </section>

@@ -133,7 +133,7 @@ export function CommercialInvoiceIccSampleView({
 
       <section className="card">
         <div className="row-actions">
-          <label style={{ minWidth: "320px" }}>
+          <label className="minw-320">
             Contract ID
             <input value={contractId} onChange={(event) => setContractId(event.target.value)} />
           </label>
@@ -141,10 +141,10 @@ export function CommercialInvoiceIccSampleView({
             {loading ? "Loading..." : "Load ICC Sample"}
           </button>
           {sample ? (
-            <button type="button" onClick={() => window.print()}>Print Sample</button>
+            <button type="button" className="button-secondary" onClick={() => window.print()}>Print Sample</button>
           ) : null}
         </div>
-        {error ? <p className="error-text" style={{ marginTop: "0.75rem" }}>{error}</p> : null}
+        {error ? <p className="error-text mt-md">{error}</p> : null}
       </section>
 
       {sample ? (
@@ -153,7 +153,7 @@ export function CommercialInvoiceIccSampleView({
             <tbody>
               <tr>
                 <td colSpan={5}><strong>COMMERCIAL INVOICE</strong></td>
-                <td colSpan={5} style={{ textAlign: "right" }}><strong>PAGE 1 OF 1 | ORIGINAL</strong></td>
+                <td colSpan={5} className="table-align-right"><strong>PAGE 1 OF 1 | ORIGINAL</strong></td>
               </tr>
               <tr>
                 <td colSpan={5}><strong>Date:</strong> {display(sample.header.date)}</td>
@@ -187,7 +187,7 @@ export function CommercialInvoiceIccSampleView({
             </tbody>
           </table>
 
-          <table className="print-table icc-table" style={{ marginTop: "0.4rem" }}>
+          <table className="print-table icc-table mt-sm">
             <thead>
               <tr>
                 <th>S / N</th>
@@ -214,7 +214,7 @@ export function CommercialInvoiceIccSampleView({
                 <td>{display(sample.goodsLine.totalPriceUsd)}</td>
               </tr>
               <tr>
-                <td colSpan={8} style={{ textAlign: "right" }}><strong>TOTAL AMOUNT IN USD</strong></td>
+                <td colSpan={8} className="table-align-right"><strong>TOTAL AMOUNT IN USD</strong></td>
                 <td><strong>{display(sample.goodsLine.totalAmountUsd)}</strong></td>
               </tr>
               <tr>
@@ -223,7 +223,7 @@ export function CommercialInvoiceIccSampleView({
             </tbody>
           </table>
 
-          <table className="print-table icc-table" style={{ marginTop: "0.4rem" }}>
+          <table className="print-table icc-table mt-sm">
             <tbody>
               <tr>
                 <td colSpan={5}><strong>Bank Details (Beneficiary)</strong></td>
@@ -248,7 +248,7 @@ export function CommercialInvoiceIccSampleView({
             </tbody>
           </table>
 
-          <table className="print-table icc-table" style={{ marginTop: "0.4rem" }}>
+          <table className="print-table icc-table mt-sm">
             <tbody>
               <tr>
                 <td><strong>Country of Origin:</strong> {display(sample.footer.countryOfOrigin)}</td>
@@ -301,7 +301,7 @@ export function CommercialInvoiceIccSampleView({
       {sample ? (
         <section className="card">
           <h3>Mapping Notes</h3>
-          <ul style={{ paddingLeft: "1rem" }}>
+          <ul className="list-indent">
             {sample.mappingNotes.map((note) => (
               <li key={note}>{note}</li>
             ))}

@@ -3,16 +3,20 @@ import { withTimestamps } from "@/domain/contracts";
 import { assertTransition } from "@/domain/workflow";
 import type {
   Actor,
+  BookingsSheet,
   CompanyConfiguration,
   Contract,
   ContractSourceInput,
   Customer,
+  ExecutionData,
   GeneratedDocument,
   Item,
   Notification,
   AuditLog,
+  ProcessingSheet,
   SourceInputRevision,
   SourceInputType,
+  StaffingSheet,
   Shipment,
 } from "@/types/models";
 
@@ -26,6 +30,10 @@ function orgPath(orgId: string): string {
 
 function companyConfigurationPath(orgId: string): string {
   return `${orgPath(orgId)}/settings/companyConfiguration`;
+}
+
+function executionPath(orgId: string, contractId: string, key: "bookings" | "staffing" | "processing"): string {
+  return `${orgPath(orgId)}/contracts/${contractId}/execution/${key}`;
 }
 
 export async function listContracts(orgId: string) {
@@ -94,6 +102,21 @@ export async function upsertCustomer(
   return ref.id;
 }
 
+export async function countContractsByCustomerId(orgId: string, customerId: string): Promise<number> {
+  const snapshot = await adminDb
+    .collection(`${orgPath(orgId)}/contracts`)
+    .where("customerId", "==", customerId)
+    .limit(1)
+    .get();
+
+  return snapshot.size;
+}
+
+export async function deleteCustomer(orgId: string, customerId: string): Promise<void> {
+  const ref = adminDb.doc(`${orgPath(orgId)}/customers/${customerId}`);
+  await ref.delete();
+}
+
 export async function listItems(orgId: string) {
   const snapshot = await adminDb
     .collection(`${orgPath(orgId)}/items`)
@@ -113,6 +136,86 @@ export async function getCompanyConfiguration(orgId: string) {
   }
 
   return snap.data() as CompanyConfiguration;
+}
+
+export async function getBookingsSheet(orgId: string, contractId: string) {
+  const ref = adminDb.doc(executionPath(orgId, contractId, "bookings"));
+  const snap = await ref.get();
+  if (!snap.exists) {
+    throw new Error("Bookings sheet not found");
+  }
+
+  return snap.data() as BookingsSheet;
+}
+
+export async function upsertBookingsSheet(
+  orgId: string,
+  contractId: string,
+  bookings: Omit<BookingsSheet, "createdAt" | "updatedAt">,
+) {
+  const ref = adminDb.doc(executionPath(orgId, contractId, "bookings"));
+  const existing = await ref.get();
+
+  await ref.set(withTimestamps(bookings, existing.data() as { createdAt?: string }), { merge: true });
+  return ref.path;
+}
+
+export async function getStaffingSheet(orgId: string, contractId: string) {
+  const ref = adminDb.doc(executionPath(orgId, contractId, "staffing"));
+  const snap = await ref.get();
+  if (!snap.exists) {
+    throw new Error("Staffing sheet not found");
+  }
+
+  return snap.data() as StaffingSheet;
+}
+
+export async function upsertStaffingSheet(
+  orgId: string,
+  contractId: string,
+  staffing: Omit<StaffingSheet, "createdAt" | "updatedAt">,
+) {
+  const ref = adminDb.doc(executionPath(orgId, contractId, "staffing"));
+  const existing = await ref.get();
+
+  await ref.set(withTimestamps(staffing, existing.data() as { createdAt?: string }), { merge: true });
+  return ref.path;
+}
+
+export async function getProcessingSheet(orgId: string, contractId: string) {
+  const ref = adminDb.doc(executionPath(orgId, contractId, "processing"));
+  const snap = await ref.get();
+  if (!snap.exists) {
+    throw new Error("Processing sheet not found");
+  }
+
+  return snap.data() as ProcessingSheet;
+}
+
+export async function upsertProcessingSheet(
+  orgId: string,
+  contractId: string,
+  processing: Omit<ProcessingSheet, "createdAt" | "updatedAt">,
+) {
+  const ref = adminDb.doc(executionPath(orgId, contractId, "processing"));
+  const existing = await ref.get();
+
+  await ref.set(withTimestamps(processing, existing.data() as { createdAt?: string }), { merge: true });
+  return ref.path;
+}
+
+export async function getExecutionData(orgId: string, contractId: string): Promise<ExecutionData> {
+  const [bookingsSnap, staffingSnap, processingSnap] = await Promise.all([
+    adminDb.doc(executionPath(orgId, contractId, "bookings")).get(),
+    adminDb.doc(executionPath(orgId, contractId, "staffing")).get(),
+    adminDb.doc(executionPath(orgId, contractId, "processing")).get(),
+  ]);
+
+  return {
+    bookings: bookingsSnap.exists ? (bookingsSnap.data() as BookingsSheet) : undefined,
+    staffing: staffingSnap.exists ? ((staffingSnap.data() as StaffingSheet) as ExecutionData["staffing"]) : undefined,
+    processing: processingSnap.exists ? (processingSnap.data() as ProcessingSheet) : undefined,
+  };
 }
 
 export async function upsertCompanyConfiguration(
@@ -142,6 +245,21 @@ export async function upsertItem(
   await ref.set(withTimestamps(item, existing.data() as { createdAt?: string }), { merge: true });
 
   return ref.id;
+}
+
+export async function getItem(orgId: string, itemId: string) {
+  const ref = adminDb.doc(`${orgPath(orgId)}/items/${itemId}`);
+  const snap = await ref.get();
+  if (!snap.exists) {
+    throw new Error("Item not found");
+  }
+
+  return { id: snap.id, ...(snap.data() as Omit<Item, "id">) };
+}
+
+export async function deleteItem(orgId: string, itemId: string): Promise<void> {
+  const ref = adminDb.doc(`${orgPath(orgId)}/items/${itemId}`);
+  await ref.delete();
 }
 
 export async function upsertContract(

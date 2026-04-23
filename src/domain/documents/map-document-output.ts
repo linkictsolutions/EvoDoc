@@ -28,6 +28,13 @@ export function mapDocumentOutput(
   const parity = computeContractExcelParity(snapshot.contract.terms, companyConfiguration);
   const finalFields = resolveContractSiLcFinalFields(snapshot, parity);
   const documentVariant = snapshot.docVariant ?? (docType === "shipping_instructions" ? "standard" : "final");
+  const bookings = snapshot.executionData?.bookings;
+  const staffingRows = snapshot.executionData?.staffing?.finalRows ?? [];
+  const processing = snapshot.executionData?.processing ?? {
+    stationName: snapshot.contract.processing.stationName,
+    stationAddress: snapshot.contract.processing.stationAddress,
+    moisturePercent: snapshot.contract.processing.moisturePercent,
+  };
 
   const sharedTotals = {
     totalBags: finalFields.noOfBags,
@@ -61,6 +68,9 @@ export function mapDocumentOutput(
                 { label: "Port of Loading", value: finalFields.portOfLoading },
                 { label: "Port of Discharge", value: finalFields.destination },
                 { label: "Final Destination", value: finalFields.destination },
+                { label: "Bill of Lading", value: bookings?.billOfLadingNumber ?? "-" },
+                { label: "Vessel", value: bookings?.vesselName ?? "-" },
+                { label: "Voyage", value: bookings?.voyageNo ?? "-" },
                 { label: "Bank of Beneficiary", value: snapshot.contract.banking.beneficiaryBank ?? "-" },
                 { label: "Beneficiary Bank Address", value: snapshot.contract.banking.bankAddress ?? "-" },
                 { label: "SWIFT Number", value: snapshot.contract.banking.receiver ?? "-" },
@@ -103,6 +113,9 @@ export function mapDocumentOutput(
                 label: "Contract Date",
                 value: new Date(snapshot.contract.createdAt).toISOString().slice(0, 10),
               },
+              { label: "Bill of Lading", value: bookings?.billOfLadingNumber ?? "-" },
+              { label: "Vessel", value: bookings?.vesselName ?? "-" },
+              { label: "Voyage", value: bookings?.voyageNo ?? "-" },
             ],
           },
           {
@@ -192,9 +205,10 @@ export function mapDocumentOutput(
               { label: "Applicant", value: finalFields.applicant },
               { label: "Consignee", value: finalFields.consignee },
               { label: "Contract Ref", value: snapshot.contract.contractNumber },
-              { label: "Vessel", value: snapshot.shipment.vessel ?? "-" },
-              { label: "Voyage", value: snapshot.shipment.voyageNo ?? "-" },
-              { label: "Booking Number", value: snapshot.contract.shipping.bookingNumber ?? "-" },
+              { label: "Bill of Lading", value: bookings?.billOfLadingNumber ?? "-" },
+              { label: "Vessel", value: bookings?.vesselName ?? snapshot.shipment.vessel ?? "-" },
+              { label: "Voyage", value: bookings?.voyageNo ?? snapshot.shipment.voyageNo ?? "-" },
+              { label: "Booking Number", value: bookings?.bookingNumber ?? snapshot.contract.shipping.bookingNumber ?? "-" },
             ],
           },
           {
@@ -214,14 +228,23 @@ export function mapDocumentOutput(
           {
             heading: "Processing",
             rows: [
-              { label: "Station", value: snapshot.contract.processing.stationName },
-              { label: "Address", value: snapshot.contract.processing.stationAddress },
+              { label: "Station", value: processing.stationName },
+              { label: "Address", value: processing.stationAddress },
               {
                 label: "Moisture",
-                value: `${snapshot.contract.processing.moisturePercent.toFixed(2)}%`,
+                value: `${processing.moisturePercent.toFixed(2)}%`,
               },
             ],
           },
+          ...(staffingRows.length > 0 ? [{
+            heading: "Container and Seal Lines",
+            rows: staffingRows.flatMap((row) => [
+              { label: `Container ${row.rowNo}`, value: row.containerNumber ?? "-" },
+              { label: `Seal ${row.rowNo}`, value: row.sealNumber ?? "-" },
+              { label: `Cert ${row.rowNo}`, value: row.certNumber ?? "-" },
+              { label: `Net Weight ${row.rowNo}`, value: row.netWeightKg?.toFixed(3) ?? "-" },
+            ]),
+          }] : []),
         ],
         totals: sharedTotals,
       };
@@ -249,7 +272,8 @@ export function mapDocumentOutput(
               { label: "Alternative 2", value: finalFields.alternative2 },
               { label: "Port of Loading", value: finalFields.portOfLoading },
               { label: "Destination", value: finalFields.destination },
-              { label: "Booking Number", value: snapshot.contract.shipping.bookingNumber ?? "-" },
+              { label: "Booking Number", value: bookings?.bookingNumber ?? snapshot.contract.shipping.bookingNumber ?? "-" },
+              { label: "Vessel / Voyage", value: [bookings?.vesselName, bookings?.voyageNo].filter(Boolean).join(" ") || "-" },
             ],
           },
           {
@@ -265,6 +289,14 @@ export function mapDocumentOutput(
               { label: "Cert No", value: finalFields.certNo },
             ],
           },
+          ...(staffingRows.length > 0 ? [{
+            heading: "Container Instructions",
+            rows: staffingRows.flatMap((row) => [
+              { label: `Container ${row.rowNo}`, value: row.containerNumber ?? "-" },
+              { label: `Seal ${row.rowNo}`, value: row.sealNumber ?? "-" },
+              { label: `Cert ${row.rowNo}`, value: row.certNumber ?? "-" },
+            ]),
+          }] : []),
         ],
         totals: sharedTotals,
       };

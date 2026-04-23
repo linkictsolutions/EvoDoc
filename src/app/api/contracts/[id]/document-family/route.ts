@@ -8,14 +8,14 @@ import {
   resolveDocumentFamily,
   resolveVariantForFamily,
 } from "@/domain/documents/catalog";
+import { buildExecutionShipment, hydrateExecutionData } from "@/domain/execution";
 import { requireActor } from "@/lib/auth/server";
 import { fail, getRequestId, ok } from "@/lib/api/response";
-import { adminDb } from "@/lib/firebase/admin";
 import {
+  getExecutionData,
   getCompanyConfiguration,
   getContract,
   getCustomer,
-  getShipment,
   listGeneratedDocuments,
 } from "@/lib/repositories/firestore-repository";
 import { buildDocumentOutput } from "@/lib/workflow/document-generation";
@@ -50,23 +50,31 @@ export async function GET(
     const familyDefinition = getDocumentFamilyDefinition(family);
     const variant = resolveVariantForFamily(family, parsed.variant as DocumentVariant | undefined);
 
-    const [contract, documents, shipmentSnap] = await Promise.all([
+    const [contract, documents, execution] = await Promise.all([
       getContract(orgId, contractId),
       listGeneratedDocuments(orgId, contractId),
-      adminDb
-        .collection(`organizations/${orgId}/contracts/${contractId}/shipments`)
-        .orderBy("updatedAt", "desc")
-        .limit(1)
-        .get(),
+      getExecutionData(orgId, contractId),
     ]);
 
     const [customer, companyConfiguration] = await Promise.all([
       getCustomer(orgId, contract.customerId),
       getCompanyConfiguration(orgId).catch(() => undefined),
     ]);
-    const latestShipmentId = shipmentSnap.empty ? undefined : shipmentSnap.docs[0].id;
-    const shipment = latestShipmentId
-      ? await getShipment(orgId, contractId, latestShipmentId)
+    const executionData = hydrateExecutionData(execution);
+    const hasBookingHeader = Boolean(
+      executionData.bookings?.bookingNumber
+      || executionData.bookings?.billOfLadingNumber
+      || executionData.bookings?.vesselName
+      || executionData.bookings?.voyageNo,
+    );
+    const hasExecutionRows = Boolean(
+      executionData.bookings?.entries.some((entry) => entry.containerNumber || entry.sealNumber || entry.tareWeightKg)
+      || executionData.staffing?.finalRows.some((row) => row.containerNumber || row.sealNumber || row.netWeightKg),
+    );
+    const hasExecutionData = hasBookingHeader || hasExecutionRows;
+    const latestShipmentId = hasExecutionData ? "execution-derived" : undefined;
+    const shipment = hasExecutionData
+      ? buildExecutionShipment(contract, companyConfiguration, executionData)
       : makePreviewShipment(contractId, orgId);
 
     const revisions = documents
@@ -88,6 +96,7 @@ export async function GET(
     const canPreview =
       (family === "commercial_invoice" && variant === "permit")
       || (family === "packing_list" && variant === "permit")
+      || (family === "commercial_invoice" && hasBookingHeader)
       ? true
       : Boolean(latestShipmentId);
 
@@ -99,6 +108,7 @@ export async function GET(
           customer,
           shipment,
           companyConfiguration,
+          executionData,
         })
       : null;
 
@@ -109,6 +119,7 @@ export async function GET(
           contract,
           customer,
           shipment,
+          executionData,
         })
       : null;
 
@@ -125,7 +136,7 @@ export async function GET(
       latestShipmentId: latestShipmentId ?? null,
       currentPreview,
       previewWarnings: previewRules?.warnings ?? [],
-      unavailableReason: canPreview ? null : "Add a shipment to preview this document.",
+      unavailableReason: canPreview ? null : "Add execution data in Bookings, Staffing, or Processing to preview this document.",
       revisions,
       familyRevisionCount: documents.filter((document) => {
         const existingFamily = document.documentFamily ?? resolveDocumentFamily(document.docType);

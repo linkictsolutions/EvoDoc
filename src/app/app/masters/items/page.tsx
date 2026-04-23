@@ -1,5 +1,5 @@
-import { ItemsPage } from "@/components/masters/items-page";
+import { ItemsListPage } from "@/components/masters/items-list-page";
 
 export default function ItemsMasterPage() {
-  return <ItemsPage />;
+  return <ItemsListPage />;
 }

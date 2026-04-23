@@ -9,12 +9,42 @@ interface ContractWorkspaceNavProps {
 }
 
 const tabs = [
-  { key: "overview", label: "Overview", href: (id: string) => `/app/contracts/${id}` },
-  { key: "inputs", label: "Inputs", href: (id: string) => `/app/contracts/${id}/inputs` },
-  { key: "resolved", label: "Resolved Values", href: (id: string) => `/app/contracts/${id}/resolved-values` },
-  { key: "shipments", label: "Shipments", href: (id: string) => `/app/contracts/${id}/shipments` },
-  { key: "documents", label: "Documents", href: (id: string) => `/app/contracts/${id}/documents` },
-  { key: "activity", label: "Activity", href: (id: string) => `/app/contracts/${id}/activity` },
+  {
+    key: "overview",
+    label: "Overview",
+    hint: "Contract snapshot and next actions.",
+    href: (id: string) => `/app/contracts/${id}`,
+  },
+  {
+    key: "inputs",
+    label: "Inputs",
+    hint: "Contract, shipping instruction, and bank LC sources.",
+    href: (id: string) => `/app/contracts/${id}/inputs`,
+  },
+  {
+    key: "resolved",
+    label: "Resolved Values",
+    hint: "Final precedence layer from contract, SI, and LC.",
+    href: (id: string) => `/app/contracts/${id}/resolved-values`,
+  },
+  {
+    key: "execution",
+    label: "Execution",
+    hint: "Bookings, staffing, and processing details.",
+    href: (id: string) => `/app/contracts/${id}/execution`,
+  },
+  {
+    key: "documents",
+    label: "Documents",
+    hint: "Generate revisions and review output history.",
+    href: (id: string) => `/app/contracts/${id}/documents`,
+  },
+  {
+    key: "activity",
+    label: "Activity",
+    hint: "Audit trail and workflow events.",
+    href: (id: string) => `/app/contracts/${id}/activity`,
+  },
 ];
 
 function activeKey(pathname: string, contractId: string): string {
@@ -32,8 +62,8 @@ function activeKey(pathname: string, contractId: string): string {
     return "resolved";
   }
 
-  if (pathname.startsWith(`${base}/shipments`)) {
-    return "shipments";
+  if (pathname.startsWith(`${base}/execution`) || pathname.startsWith(`${base}/shipments`)) {
+    return "execution";
   }
 
   if (pathname.startsWith(`${base}/documents`)) {
@@ -52,16 +82,24 @@ export function ContractWorkspaceNav({ contractId }: ContractWorkspaceNavProps) 
   const current = activeKey(pathname, contractId);
 
   return (
-    <nav className="workspace-tabs">
-      {tabs.map((tab) => (
-        <Link
-          key={tab.key}
-          href={tab.href(contractId)}
-          className={clsx("workspace-tab", current === tab.key && "active")}
-        >
-          {tab.label}
-        </Link>
-      ))}
-    </nav>
+    <aside className="workspace-sidebar card">
+      <h3>Contract Workspace</h3>
+      <p className="sidebar-subtitle">Navigate every stage of the contract lifecycle.</p>
+      <nav className="workspace-sidebar-nav">
+        {tabs.map((tab, index) => (
+          <Link
+            key={tab.key}
+            href={tab.href(contractId)}
+            className={clsx("workspace-sidebar-link", current === tab.key && "active")}
+          >
+            <span className="workspace-sidebar-index">{index + 1}</span>
+            <span className="workspace-sidebar-copy">
+              <strong>{tab.label}</strong>
+              <small>{tab.hint}</small>
+            </span>
+          </Link>
+        ))}
+      </nav>
+    </aside>
   );
 }

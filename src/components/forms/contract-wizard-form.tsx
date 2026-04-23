@@ -1,12 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
+import type { CompanyConfiguration } from "@/types/models";
 
 const formSchema = z.object({
   customerName: z.string().min(1),
@@ -46,6 +47,8 @@ const formSchema = z.object({
 });
 
 type FormData = z.infer<typeof formSchema>;
+const fallbackPaymentTerms = ["CAD", "LC", "Advance & CAD", "Advance"];
+const fallbackDeliveryTerms = ["F.O.B"];
 
 const stepFields: Array<Array<keyof FormData>> = [
   ["contractNumber", "customerName", "customerAddress", "customerCountry"],
@@ -74,11 +77,15 @@ export function ContractWizardForm() {
   const [step, setStep] = useState(0);
   const [apiError, setApiError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [paymentTermOptions, setPaymentTermOptions] = useState<string[]>(fallbackPaymentTerms);
+  const [deliveryTermOptions, setDeliveryTermOptions] = useState<string[]>(fallbackDeliveryTerms);
 
   const {
     register,
     handleSubmit,
+    getValues,
     trigger,
+    setValue,
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -90,11 +97,50 @@ export function ContractWizardForm() {
       quality: "Specialty coffee",
       origin: "Ethiopia",
       grade: "G1",
-      paymentTerm: "CAD",
-      deliveryTerm: "F.O.B",
+      paymentTerm: fallbackPaymentTerms[0],
+      deliveryTerm: fallbackDeliveryTerms[0],
       lastCertNo: 0,
     },
   });
+
+  useEffect(() => {
+    let mounted = true;
+
+    apiClient<CompanyConfiguration>(`/api/company-configuration?orgId=${DEFAULT_ORG_ID}`)
+      .then((configuration) => {
+        if (!mounted) {
+          return;
+        }
+
+        const paymentTerms = configuration.paymentTerms?.filter((term) => term.trim().length > 0) ?? [];
+        const deliveryTerms = configuration.deliveryTerms?.filter((term) => term.trim().length > 0) ?? [];
+        const effectivePaymentTerms = paymentTerms.length > 0 ? paymentTerms : fallbackPaymentTerms;
+        const effectiveDeliveryTerms = deliveryTerms.length > 0 ? deliveryTerms : fallbackDeliveryTerms;
+
+        setPaymentTermOptions(effectivePaymentTerms);
+        setDeliveryTermOptions(effectiveDeliveryTerms);
+
+        const currentPaymentTerm = (getValues("paymentTerm") ?? "").trim();
+        if (!currentPaymentTerm || !effectivePaymentTerms.includes(currentPaymentTerm)) {
+          setValue("paymentTerm", effectivePaymentTerms[0]);
+        }
+
+        const currentDeliveryTerm = (getValues("deliveryTerm") ?? "").trim();
+        if (!currentDeliveryTerm || !effectiveDeliveryTerms.includes(currentDeliveryTerm)) {
+          setValue("deliveryTerm", effectiveDeliveryTerms[0]);
+        }
+      })
+      .catch(() => {
+        if (mounted) {
+          setPaymentTermOptions(fallbackPaymentTerms);
+          setDeliveryTermOptions(fallbackDeliveryTerms);
+        }
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [getValues, setValue]);
 
   const progress = useMemo(() => Math.round(((step + 1) / (stepFields.length + 1)) * 100), [step]);
 
@@ -181,17 +227,17 @@ export function ContractWizardForm() {
         <small>{errors.contractNumber?.message}</small>
       </label>
       <label>
-        Customer Name
+        Buyer Name
         <input {...register("customerName")} />
         <small>{errors.customerName?.message}</small>
       </label>
       <label>
-        Customer Address
+        Buyer Address
         <input {...register("customerAddress")} />
         <small>{errors.customerAddress?.message}</small>
       </label>
       <label>
-        Customer Country
+        Buyer Country
         <input {...register("customerCountry")} />
         <small>{errors.customerCountry?.message}</small>
       </label>
@@ -259,15 +305,23 @@ export function ContractWizardForm() {
           </label>
           <label>
             Payment Term
-            <input {...register("paymentTerm")} />
+            <select {...register("paymentTerm")}>
+              {paymentTermOptions.map((term) => (
+                <option key={term} value={term}>{term}</option>
+              ))}
+            </select>
           </label>
           <label>
             Delivery Term
-            <input {...register("deliveryTerm")} />
+            <select {...register("deliveryTerm")}>
+              {deliveryTermOptions.map((term) => (
+                <option key={term} value={term}>{term}</option>
+              ))}
+            </select>
           </label>
           <label>
             Shipment Period
-            <input {...register("shipmentPeriod")} />
+            <input type="date" {...register("shipmentPeriod")} />
           </label>
           <label>
             Crop Year
@@ -362,7 +416,7 @@ export function ContractWizardForm() {
       {step === stepFields.length && (
         <div className="review-box">
           <h3>Review and Submit</h3>
-          <p>This saves contract and customer data as draft records.</p>
+          <p>This saves contract and buyer data as draft records.</p>
           {apiError ? <p className="error-text">{apiError}</p> : null}
           <button type="submit" disabled={isSaving}>{isSaving ? "Saving..." : "Save Draft"}</button>
         </div>

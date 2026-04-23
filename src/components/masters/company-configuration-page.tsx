@@ -18,10 +18,8 @@ type CompanyConfigurationFormState = {
   transitorCompanyName: string;
   transitorPhoneNumber: string;
   transitorLocation: string;
-  paymentTermCad: string;
-  paymentTermLc: string;
-  paymentTermAdvanceCad: string;
-  paymentTermAdvance: string;
+  paymentTerms: string[];
+  deliveryTerms: string[];
   bulkReferenceKg: string;
   packagingDefinitions: PackagingDefinition[];
 };
@@ -40,10 +38,8 @@ function toFormState(configuration: CompanyConfiguration): CompanyConfigurationF
     transitorCompanyName: configuration.transitorCompanyName ?? "",
     transitorPhoneNumber: configuration.transitorPhoneNumber ?? "",
     transitorLocation: configuration.transitorLocation ?? "",
-    paymentTermCad: configuration.paymentTermCad,
-    paymentTermLc: configuration.paymentTermLc,
-    paymentTermAdvanceCad: configuration.paymentTermAdvanceCad,
-    paymentTermAdvance: configuration.paymentTermAdvance,
+    paymentTerms: configuration.paymentTerms,
+    deliveryTerms: configuration.deliveryTerms,
     bulkReferenceKg: String(configuration.bulkReferenceKg),
     packagingDefinitions: configuration.packagingDefinitions,
   };
@@ -117,6 +113,98 @@ export function CompanyConfigurationPage() {
     });
   }
 
+  function updatePaymentTerm(index: number, value: string) {
+    setForm((current) => {
+      if (!current) {
+        return current;
+      }
+
+      const nextTerms = current.paymentTerms.map((term, termIndex) => {
+        if (termIndex !== index) {
+          return term;
+        }
+        return value;
+      });
+
+      return {
+        ...current,
+        paymentTerms: nextTerms,
+      };
+    });
+  }
+
+  function addPaymentTerm() {
+    setForm((current) => {
+      if (!current) {
+        return current;
+      }
+
+      return {
+        ...current,
+        paymentTerms: [...current.paymentTerms, ""],
+      };
+    });
+  }
+
+  function removePaymentTerm(index: number) {
+    setForm((current) => {
+      if (!current || current.paymentTerms.length <= 1) {
+        return current;
+      }
+
+      return {
+        ...current,
+        paymentTerms: current.paymentTerms.filter((_, termIndex) => termIndex !== index),
+      };
+    });
+  }
+
+  function updateDeliveryTerm(index: number, value: string) {
+    setForm((current) => {
+      if (!current) {
+        return current;
+      }
+
+      const nextTerms = current.deliveryTerms.map((term, termIndex) => {
+        if (termIndex !== index) {
+          return term;
+        }
+        return value;
+      });
+
+      return {
+        ...current,
+        deliveryTerms: nextTerms,
+      };
+    });
+  }
+
+  function addDeliveryTerm() {
+    setForm((current) => {
+      if (!current) {
+        return current;
+      }
+
+      return {
+        ...current,
+        deliveryTerms: [...current.deliveryTerms, ""],
+      };
+    });
+  }
+
+  function removeDeliveryTerm(index: number) {
+    setForm((current) => {
+      if (!current || current.deliveryTerms.length <= 1) {
+        return current;
+      }
+
+      return {
+        ...current,
+        deliveryTerms: current.deliveryTerms.filter((_, termIndex) => termIndex !== index),
+      };
+    });
+  }
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!form) {
@@ -168,13 +256,13 @@ export function CompanyConfigurationPage() {
       </header>
 
       <form className="card form-grid" onSubmit={handleSubmit}>
-        <div className="section-heading" style={{ gridColumn: "1 / -1" }}>
+        <div className="section-heading span-all">
           <div>
             <h3>Seller Identity</h3>
             <p className="sidebar-subtitle">Workbook owner information reused across invoices and shipping documents.</p>
           </div>
           <div className="row-actions">
-            <button type="button" onClick={() => void loadConfiguration()} disabled={loading || saving}>
+            <button type="button" className="button-secondary" onClick={() => void loadConfiguration()} disabled={loading || saving}>
               Refresh
             </button>
             <button type="submit" disabled={saving}>
@@ -191,11 +279,11 @@ export function CompanyConfigurationPage() {
           Company Email
           <input type="email" value={form.companyEmail} onChange={(event) => updateField("companyEmail", event.target.value)} />
         </label>
-        <label style={{ gridColumn: "1 / -1" }}>
+        <label className="span-all">
           Seller Address
           <textarea rows={3} value={form.sellerAddress} onChange={(event) => updateField("sellerAddress", event.target.value)} required />
         </label>
-        <label style={{ gridColumn: "1 / -1" }}>
+        <label className="span-all">
           Amharic Name
           <input value={form.sellerAmharicName} onChange={(event) => updateField("sellerAmharicName", event.target.value)} />
         </label>
@@ -204,7 +292,7 @@ export function CompanyConfigurationPage() {
           <input value={form.companyPhone} onChange={(event) => updateField("companyPhone", event.target.value)} />
         </label>
 
-        <div className="section-heading" style={{ gridColumn: "1 / -1", marginTop: "0.5rem" }}>
+        <div className="section-heading span-all mt-sm">
           <div>
             <h3>Export Defaults</h3>
             <p className="sidebar-subtitle">Origin, HS code, ICO prefix, and issue location referenced by templates.</p>
@@ -239,30 +327,102 @@ export function CompanyConfigurationPage() {
           />
         </label>
 
-        <div className="section-heading" style={{ gridColumn: "1 / -1", marginTop: "0.5rem" }}>
+        <div className="section-heading span-all mt-sm">
           <div>
-            <h3>Payment Terms and Transitor</h3>
-            <p className="sidebar-subtitle">Values currently held in Form Configuration rows 15 to 23.</p>
+            <h3>Payment and Delivery Terms</h3>
+            <p className="sidebar-subtitle">Maintain selectable options used in contract creation.</p>
           </div>
         </div>
 
-        <label>
-          Payment Term: CAD
-          <input value={form.paymentTermCad} onChange={(event) => updateField("paymentTermCad", event.target.value)} required />
-        </label>
-        <label>
-          Payment Term: LC
-          <input value={form.paymentTermLc} onChange={(event) => updateField("paymentTermLc", event.target.value)} required />
-        </label>
-        <label>
-          Payment Term: Advance &amp; CAD
-          <input value={form.paymentTermAdvanceCad} onChange={(event) => updateField("paymentTermAdvanceCad", event.target.value)} required />
-        </label>
-        <label>
-          Payment Term: Advance
-          <input value={form.paymentTermAdvance} onChange={(event) => updateField("paymentTermAdvance", event.target.value)} required />
-        </label>
-        <label style={{ gridColumn: "1 / -1" }}>
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style={{ width: "72px" }}>#</th>
+                <th>Payment Term</th>
+                <th style={{ width: "130px" }}>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {form.paymentTerms.map((term, index) => (
+                <tr key={`payment-term-${index + 1}`}>
+                  <td>{index + 1}</td>
+                  <td>
+                    <input
+                      value={term}
+                      onChange={(event) => updatePaymentTerm(index, event.target.value)}
+                      required
+                    />
+                  </td>
+                  <td>
+                    <button
+                      type="button"
+                      className="button-secondary"
+                      onClick={() => removePaymentTerm(index)}
+                      disabled={form.paymentTerms.length <= 1}
+                    >
+                      Remove
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="row-actions mt-sm">
+            <button type="button" className="button-secondary" onClick={addPaymentTerm}>
+              Add Payment Term
+            </button>
+          </div>
+        </div>
+
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style={{ width: "72px" }}>#</th>
+                <th>Delivery Term</th>
+                <th style={{ width: "130px" }}>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {form.deliveryTerms.map((term, index) => (
+                <tr key={`delivery-term-${index + 1}`}>
+                  <td>{index + 1}</td>
+                  <td>
+                    <input
+                      value={term}
+                      onChange={(event) => updateDeliveryTerm(index, event.target.value)}
+                      required
+                    />
+                  </td>
+                  <td>
+                    <button
+                      type="button"
+                      className="button-secondary"
+                      onClick={() => removeDeliveryTerm(index)}
+                      disabled={form.deliveryTerms.length <= 1}
+                    >
+                      Remove
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="row-actions mt-sm">
+            <button type="button" className="button-secondary" onClick={addDeliveryTerm}>
+              Add Delivery Term
+            </button>
+          </div>
+        </div>
+
+        <div className="section-heading span-all mt-sm">
+          <div>
+            <h3>Transitor</h3>
+            <p className="sidebar-subtitle">Transit partner details used in shipping-related documents.</p>
+          </div>
+        </div>
+        <label className="span-all">
           Transitor Company Name
           <input value={form.transitorCompanyName} onChange={(event) => updateField("transitorCompanyName", event.target.value)} />
         </label>
@@ -275,14 +435,14 @@ export function CompanyConfigurationPage() {
           <input value={form.transitorLocation} onChange={(event) => updateField("transitorLocation", event.target.value)} />
         </label>
 
-        <div className="section-heading" style={{ gridColumn: "1 / -1", marginTop: "0.5rem" }}>
+        <div className="section-heading span-all mt-sm">
           <div>
             <h3>Packaging Definitions</h3>
             <p className="sidebar-subtitle">Bag weights and tare values currently referenced by workbook formulas.</p>
           </div>
         </div>
 
-        <div style={{ gridColumn: "1 / -1" }}>
+        <div className="span-all table-wrap">
           <table>
             <thead>
               <tr>
@@ -338,9 +498,9 @@ export function CompanyConfigurationPage() {
           </table>
         </div>
 
-        {error ? <p className="error-text" style={{ gridColumn: "1 / -1" }}>{error}</p> : null}
+        {error ? <p className="error-text span-all">{error}</p> : null}
         {savedAt ? (
-          <p className="sidebar-subtitle" style={{ gridColumn: "1 / -1" }}>
+          <p className="sidebar-subtitle span-all">
             Last loaded version: {new Date(savedAt).toLocaleString()}
           </p>
         ) : null}

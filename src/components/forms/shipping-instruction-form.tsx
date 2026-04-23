@@ -240,14 +240,14 @@ export function ShippingInstructionForm({
       </header>
 
       <form className="card form-grid" onSubmit={handleSubmit(onSubmit)}>
-        <h3 style={{ gridColumn: "1 / -1" }}>Contract Link</h3>
+        <h3 className="span-all">Contract Link</h3>
         <label>
           Contract ID (link only, no auto-fill)
           <input {...register("contractId")} readOnly={Boolean(initialContractId)} />
           <small>{errors.contractId?.message}</small>
         </label>
 
-        <h3 style={{ gridColumn: "1 / -1" }}>Route and Carrier</h3>
+        <h3 className="span-all">Route and Carrier</h3>
         <label>
           Destination (Port, Country) - C5
           <input {...register("destinationPort")} />
@@ -283,12 +283,12 @@ export function ShippingInstructionForm({
           Alternative 2 Service Contract - E11
           <input {...register("alternative2ServiceContract")} />
         </label>
-        <label style={{ gridColumn: "1 / -1" }}>
+        <label className="span-all">
           <span>Alternative 1 Selected - H9</span>
           <input type="checkbox" {...register("alternative1Selected")} />
         </label>
 
-        <h3 style={{ gridColumn: "1 / -1" }}>Cargo Block (C15:C23)</h3>
+        <h3 className="span-all">Cargo Block (C15:C23)</h3>
         <label>
           Quantity - C15
           <input {...register("quantityValue")} />
@@ -318,16 +318,16 @@ export function ShippingInstructionForm({
           Shipment Month - C21
           <input {...register("shipmentMonth")} />
         </label>
-        <label style={{ gridColumn: "1 / -1" }}>
+        <label className="span-all">
           Bag Marking - C22
           <textarea rows={3} {...register("bagMarkings")} />
         </label>
-        <label style={{ gridColumn: "1 / -1" }}>
+        <label className="span-all">
           Description - C23
           <textarea rows={4} {...register("description")} />
         </label>
 
-        <h3 style={{ gridColumn: "1 / -1" }}>Revised Entry Section (C/E/F rows 25, 27, 29)</h3>
+        <h3 className="span-all">Revised Entry Section (C/E/F rows 25, 27, 29)</h3>
         <label>
           Consignee - C25
           <textarea rows={3} {...register("consignee")} />
@@ -356,7 +356,7 @@ export function ShippingInstructionForm({
         <div className="row-actions">
           <button type="submit" disabled={saving}>{saving ? "Saving..." : "Save Shipping Instruction"}</button>
           <Link href={bankLcHref}>
-            <button type="button">Continue to Bank & LC</button>
+            <button type="button" className="button-secondary">Continue to Bank & LC</button>
           </Link>
         </div>
         {savedContractId ? <p>Saved to Contract ID: {savedContractId}</p> : null}

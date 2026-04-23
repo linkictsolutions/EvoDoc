@@ -42,7 +42,6 @@ export interface Customer extends Timestamped {
   id: string;
   orgId: string;
   name: string;
-  shortName?: string;
   address: string;
   country: string;
   contactName?: string;
@@ -86,10 +85,8 @@ export interface CompanyConfiguration extends Timestamped {
   transitorCompanyName?: string;
   transitorPhoneNumber?: string;
   transitorLocation?: string;
-  paymentTermCad: string;
-  paymentTermLc: string;
-  paymentTermAdvanceCad: string;
-  paymentTermAdvance: string;
+  paymentTerms: string[];
+  deliveryTerms: string[];
   bulkReferenceKg: number;
   packagingDefinitions: PackagingDefinition[];
 }
@@ -172,6 +169,93 @@ export interface ProcessingInfo {
   moisturePercent: number;
 }
 
+export type VehicleKind = "TRUCK" | "TRAILER";
+
+export interface BookingEntry {
+  rowNo: number;
+  vehicleNo?: number;
+  vehicleType: VehicleKind;
+  plateNo?: string;
+  driverName?: string;
+  driverPhoneNo?: string;
+  djiboutiPhoneNo?: string;
+  licenseNo?: string;
+  containerNumber?: string;
+  sealNumber?: string;
+  tareWeightKg?: number;
+}
+
+export interface BookingsSheet extends Timestamped {
+  orgId: string;
+  contractId: string;
+  bookingNumber?: string;
+  shippingLine?: string;
+  vesselName?: string;
+  voyageNo?: string;
+  freeDays?: string;
+  billOfLadingNumber?: string;
+  entries: BookingEntry[];
+}
+
+export interface StaffingInstructionRow {
+  rowNo: number;
+  vehicleNo?: number;
+  vehicleType: VehicleKind;
+  plateNo?: string;
+  driverName?: string;
+  driverPhoneNo?: string;
+  licenseNo?: string;
+  containerNumber?: string;
+  sealNumber?: string;
+  sealNumberV2?: string;
+  certNumber?: string;
+  certNumberV2?: string;
+  tareWeightKg?: number;
+  firstWeightKg?: number;
+  secondWeightKg?: number;
+  netWeightKg?: number;
+  doNumber?: string;
+}
+
+export interface StaffingFinalRow {
+  rowNo: number;
+  vehicleNo?: number;
+  vehicleType: VehicleKind;
+  plateNo?: string;
+  driverName?: string;
+  driverPhoneNo?: string;
+  licenseNo?: string;
+  containerNumber?: string;
+  sealNumber?: string;
+  certNumber?: string;
+  tareWeightKg?: number;
+  firstWeightKg?: number;
+  secondWeightKg?: number;
+  netWeightKg?: number;
+  doNumber?: string;
+}
+
+export interface StaffingSheet extends Timestamped {
+  orgId: string;
+  contractId: string;
+  instructionRows: StaffingInstructionRow[];
+}
+
+export interface ProcessingSheet extends Timestamped {
+  orgId: string;
+  contractId: string;
+  moisturePercent: number;
+  stationName: string;
+  stationNameLocal?: string;
+  stationAddress: string;
+}
+
+export interface ExecutionData {
+  bookings?: BookingsSheet;
+  staffing?: StaffingSheet & { finalRows: StaffingFinalRow[] };
+  processing?: ProcessingSheet;
+}
+
 export interface Contract extends Timestamped {
   id: string;
   orgId: string;
@@ -241,6 +325,7 @@ export interface DocumentInputSnapshot<TDocType extends DocumentType = DocumentT
   customer: Customer;
   shipment: Shipment;
   companyConfiguration?: CompanyConfiguration;
+  executionData?: ExecutionData;
 }
 
 export interface DocumentOutputSnapshot<TDocType extends DocumentType = DocumentType> {
