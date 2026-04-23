@@ -23,7 +23,7 @@ import { buildDocumentOutput } from "@/lib/workflow/document-generation";
 import type { DocumentFamily, DocumentVariant } from "@/types/models";
 
 const querySchema = z.object({
-  family: z.enum(["commercial_invoice", "packing_list", "shipping_instruction"]),
+  family: z.enum(["commercial_invoice", "packing_list", "shipping_instruction", "certificate_of_quality", "certificate_of_weight"]),
   variant: z.enum(["permit", "final", "standard"]).optional(),
 });
 

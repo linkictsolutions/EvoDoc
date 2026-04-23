@@ -212,6 +212,14 @@ export const companyConfigurationInputSchema = z.object({
           header: z.boolean(),
           footer: z.boolean(),
         }),
+        quality_certificate: z.object({
+          header: z.boolean(),
+          footer: z.boolean(),
+        }),
+        weight_certificate: z.object({
+          header: z.boolean(),
+          footer: z.boolean(),
+        }),
       }),
     }),
     bulkReferenceKg: z.number().positive(),
@@ -321,7 +329,7 @@ export const generateDocumentSchema = z.object({
   orgId: z.string().min(1),
   contractId: z.string().min(1),
   shipmentId: z.string().optional(),
-  docType: z.enum(["invoice", "packing_list", "shipping_instructions"]),
+  docType: z.enum(["invoice", "packing_list", "shipping_instructions", "quality_certificate", "weight_certificate"]),
   docVariant: z.enum(["permit", "final", "standard"]).optional(),
   templateVersion: z.string().default("v1"),
 });

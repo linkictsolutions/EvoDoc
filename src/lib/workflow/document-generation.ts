@@ -1,6 +1,8 @@
 import { buildInvoiceOutput } from "@/domain/documents/invoice";
 import { buildPackingListOutput } from "@/domain/documents/packing";
+import { buildQualityCertificateOutput } from "@/domain/documents/quality";
 import { buildShippingInstructionsOutput } from "@/domain/documents/si";
+import { buildWeightCertificateOutput } from "@/domain/documents/weight";
 import { defaultVariantForFamily, resolveDocumentFamily } from "@/domain/documents/catalog";
 import { getLogicVersion } from "@/domain/versioning";
 import { createHash } from "node:crypto";
@@ -23,6 +25,10 @@ export function buildDocumentOutput(
       return buildPackingListOutput(snapshot as DocumentInputSnapshot<"packing_list">);
     case "shipping_instructions":
       return buildShippingInstructionsOutput(snapshot as DocumentInputSnapshot<"shipping_instructions">);
+    case "quality_certificate":
+      return buildQualityCertificateOutput(snapshot as DocumentInputSnapshot<"quality_certificate">);
+    case "weight_certificate":
+      return buildWeightCertificateOutput(snapshot as DocumentInputSnapshot<"weight_certificate">);
     default:
       throw new Error(`Unsupported docType: ${docType}`);
   }

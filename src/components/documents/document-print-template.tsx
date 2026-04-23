@@ -451,6 +451,278 @@ function SiPrintView({ output, documentId }: Props) {
   );
 }
 
+function indexedValues(rows: Row[], prefix: string): Map<number, string> {
+  const values = new Map<number, string>();
+
+  for (const row of rows) {
+    if (!row.label.startsWith(prefix)) {
+      continue;
+    }
+
+    const match = row.label.match(/(\d+)$/);
+    if (!match) {
+      continue;
+    }
+
+    values.set(Number(match[1]), row.value);
+  }
+
+  return values;
+}
+
+function CertificateOfQualityPrintView({ output, documentId }: Props) {
+  const rows = flattenRows(output);
+  const containers = indexedValues(rows, "Container No ");
+  const seals = indexedValues(rows, "Seal No ");
+  const bags = indexedValues(rows, "Bags per Container ");
+  const lineIndexes = Array.from(new Set([
+    ...containers.keys(),
+    ...seals.keys(),
+    ...bags.keys(),
+  ])).sort((a, b) => a - b);
+
+  return (
+    <article className="print-sheet quality-certificate-sheet">
+      <header className="quality-certificate-header">
+        <h1>CERTIFICATE OF QUALITY</h1>
+        <div className="quality-certificate-meta">
+          <p><strong>Date:</strong> {display(value(rows, "Date"))}</p>
+          <p><strong>Ref No:</strong> {display(value(rows, "Ref No"))}</p>
+        </div>
+      </header>
+
+      <p className="quality-certificate-statement">
+        {display(value(rows, "Statement"))}
+      </p>
+
+      <table className="print-table quality-certificate-table">
+        <tbody>
+          <tr>
+            <th>Mode of Transportation</th>
+            <td>{display(value(rows, "Mode of Transportation"))}</td>
+          </tr>
+          <tr>
+            <th>Moisture Content</th>
+            <td>{display(value(rows, "Moisture Content"))}</td>
+          </tr>
+          <tr>
+            <th>Shipper</th>
+            <td>{display(value(rows, "Shipper"))}</td>
+          </tr>
+          <tr>
+            <th>Notify</th>
+            <td>{display(value(rows, "Notify"))}</td>
+          </tr>
+          <tr>
+            <th>2nd Notify</th>
+            <td>{display(value(rows, "Second Notify"))}</td>
+          </tr>
+          <tr>
+            <th>Description of Goods</th>
+            <td>{display(value(rows, "Description of Goods"))}</td>
+          </tr>
+          <tr>
+            <th>Origin</th>
+            <td>{display(value(rows, "Origin"))}</td>
+          </tr>
+          <tr>
+            <th>Quality</th>
+            <td>{display(value(rows, "Quality"))}</td>
+          </tr>
+          <tr>
+            <th>ICO No</th>
+            <td>{display(value(rows, "ICO No"))}</td>
+          </tr>
+          <tr>
+            <th>Cert No</th>
+            <td>{display(value(rows, "Cert No"))}</td>
+          </tr>
+          <tr>
+            <th>Net Weight</th>
+            <td>{display(value(rows, "Net Weight"))}</td>
+          </tr>
+          <tr>
+            <th>Gross Weight</th>
+            <td>{display(value(rows, "Gross Weight"))}</td>
+          </tr>
+          <tr>
+            <th>Quantity in LB</th>
+            <td>{display(value(rows, "Quantity in LB"))}</td>
+          </tr>
+          <tr>
+            <th>From</th>
+            <td>{display(value(rows, "From"))}</td>
+          </tr>
+          <tr>
+            <th>To</th>
+            <td>{display(value(rows, "To"))}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table className="print-table quality-certificate-table mt-sm">
+        <thead>
+          <tr>
+            <th>Container No</th>
+            <th>Seal No</th>
+            <th>Quantity of Bags per Container</th>
+          </tr>
+        </thead>
+        <tbody>
+          {lineIndexes.length > 0 ? (
+            lineIndexes.map((index) => (
+              <tr key={index}>
+                <td>{display(containers.get(index))}</td>
+                <td>{display(seals.get(index))}</td>
+                <td>{display(bags.get(index))}</td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan={3}>No prepared containers in staffing yet.</td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+
+      <p className="quality-certificate-signatory mt-sm">
+        <strong>Signatory Company:</strong> {display(value(rows, "Signatory Company"))}
+      </p>
+
+      <p className="permit-doc-id">Document ID: {documentId}</p>
+    </article>
+  );
+}
+
+function CertificateOfWeightPrintView({ output, documentId }: Props) {
+  const rows = flattenRows(output);
+  const containers = indexedValues(rows, "Container No ");
+  const seals = indexedValues(rows, "Seal No ");
+  const bags = indexedValues(rows, "Bags per Container ");
+  const bagWeightNet = indexedValues(rows, "Bag Weight Net ");
+  const bagWeightGross = indexedValues(rows, "Bag Weight Gross ");
+  const containerNetWeight = indexedValues(rows, "Container Net Weight ");
+  const containerGrossWeight = indexedValues(rows, "Container Gross Weight ");
+  const lineIndexes = Array.from(new Set([
+    ...containers.keys(),
+    ...seals.keys(),
+    ...bags.keys(),
+    ...bagWeightNet.keys(),
+    ...bagWeightGross.keys(),
+    ...containerNetWeight.keys(),
+    ...containerGrossWeight.keys(),
+  ])).sort((a, b) => a - b);
+
+  return (
+    <article className="print-sheet weight-certificate-sheet">
+      <header className="weight-certificate-header">
+        <h1>CERTIFICATE OF WEIGHT</h1>
+        <div className="weight-certificate-meta">
+          <p><strong>Date:</strong> {display(value(rows, "Date"))}</p>
+          <p><strong>Ref No:</strong> {display(value(rows, "Ref No"))}</p>
+        </div>
+      </header>
+
+      <table className="print-table weight-certificate-table">
+        <tbody>
+          <tr>
+            <th>Shipper</th>
+            <td>{display(value(rows, "Shipper"))}</td>
+          </tr>
+          <tr>
+            <th>Notify</th>
+            <td>{display(value(rows, "Notify"))}</td>
+          </tr>
+          <tr>
+            <th>2nd Notify</th>
+            <td>{display(value(rows, "Second Notify"))}</td>
+          </tr>
+          <tr>
+            <th>Description of Goods</th>
+            <td>{display(value(rows, "Description of Goods"))}</td>
+          </tr>
+          <tr>
+            <th>Net Weight</th>
+            <td>{display(value(rows, "Net Weight"))}</td>
+          </tr>
+          <tr>
+            <th>Gross Weight</th>
+            <td>{display(value(rows, "Gross Weight"))}</td>
+          </tr>
+          <tr>
+            <th>Packages in Bags</th>
+            <td>{display(value(rows, "Packages in Bags"))}</td>
+          </tr>
+          <tr>
+            <th>Origin</th>
+            <td>{display(value(rows, "Origin"))}</td>
+          </tr>
+          <tr>
+            <th>Quality</th>
+            <td>{display(value(rows, "Quality"))}</td>
+          </tr>
+          <tr>
+            <th>ICO No</th>
+            <td>{display(value(rows, "ICO No"))}</td>
+          </tr>
+          <tr>
+            <th>Cert No</th>
+            <td>{display(value(rows, "Cert No"))}</td>
+          </tr>
+          <tr>
+            <th>From</th>
+            <td>{display(value(rows, "From"))}</td>
+          </tr>
+          <tr>
+            <th>To</th>
+            <td>{display(value(rows, "To"))}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table className="print-table weight-certificate-table mt-sm">
+        <thead>
+          <tr>
+            <th>Container No</th>
+            <th>Seal No</th>
+            <th>Quantity of Bags Per Container</th>
+            <th>Bag Weight (Net)</th>
+            <th>Bag Weight (Gross)</th>
+            <th>Container Net Weight (KGS)</th>
+            <th>Container Gross Weight (KGS)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {lineIndexes.length > 0 ? (
+            lineIndexes.map((index) => (
+              <tr key={index}>
+                <td>{display(containers.get(index))}</td>
+                <td>{display(seals.get(index))}</td>
+                <td>{display(bags.get(index))}</td>
+                <td>{display(bagWeightNet.get(index))}</td>
+                <td>{display(bagWeightGross.get(index))}</td>
+                <td>{display(containerNetWeight.get(index))}</td>
+                <td>{display(containerGrossWeight.get(index))}</td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan={7}>No prepared containers in staffing yet.</td>
+            </tr>
+          )}
+          <tr>
+            <td colSpan={5} className="table-align-right"><strong>TOTAL SUM</strong></td>
+            <td><strong>{display(value(rows, "Total Net Weight"))}</strong></td>
+            <td><strong>{display(value(rows, "Total Gross Weight"))}</strong></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p className="permit-doc-id">Document ID: {documentId}</p>
+    </article>
+  );
+}
+
 function DocumentPrintPageFrame(
   {
     children,
@@ -526,6 +798,10 @@ export function DocumentPrintTemplate({
     } else {
       content = <PackingListPrintView output={output} documentId={documentId} input={input} />;
     }
+  } else if (output.docType === "quality_certificate") {
+    content = <CertificateOfQualityPrintView output={output} documentId={documentId} input={input} />;
+  } else if (output.docType === "weight_certificate") {
+    content = <CertificateOfWeightPrintView output={output} documentId={documentId} input={input} />;
   } else {
     content = <SiPrintView output={output} documentId={documentId} input={input} />;
   }

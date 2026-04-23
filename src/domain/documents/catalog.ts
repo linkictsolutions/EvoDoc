@@ -26,6 +26,18 @@ export const documentFamilies: DocumentFamilyDefinition[] = [
     docType: "shipping_instructions",
     variants: ["standard"],
   },
+  {
+    family: "certificate_of_quality",
+    label: "Certificate of Quality",
+    docType: "quality_certificate",
+    variants: ["standard"],
+  },
+  {
+    family: "certificate_of_weight",
+    label: "Certificate of Weight",
+    docType: "weight_certificate",
+    variants: ["standard"],
+  },
 ];
 
 export function getDocumentFamilyDefinition(family: DocumentFamily): DocumentFamilyDefinition {
@@ -46,11 +58,24 @@ export function resolveDocumentFamily(docType: DocumentType): DocumentFamily {
     return "packing_list";
   }
 
+  if (docType === "quality_certificate") {
+    return "certificate_of_quality";
+  }
+
+  if (docType === "weight_certificate") {
+    return "certificate_of_weight";
+  }
+
   return "shipping_instruction";
 }
 
 export function defaultVariantForFamily(family: DocumentFamily): DocumentVariant {
-  if (family === "shipping_instruction" || family === "commercial_invoice") {
+  if (
+    family === "shipping_instruction"
+    || family === "commercial_invoice"
+    || family === "certificate_of_quality"
+    || family === "certificate_of_weight"
+  ) {
     return "standard";
   }
 
@@ -61,7 +86,11 @@ export function resolveVariantForFamily(
   family: DocumentFamily,
   variant?: DocumentVariant,
 ): DocumentVariant {
-  if (family === "commercial_invoice") {
+  if (
+    family === "commercial_invoice"
+    || family === "certificate_of_quality"
+    || family === "certificate_of_weight"
+  ) {
     return "standard";
   }
 

@@ -12,9 +12,14 @@ type ContractDetail = {
   shipments: Array<{ id: string }>;
   documents: Array<{
     id: string;
-    docType: "invoice" | "packing_list" | "shipping_instructions";
+    docType: "invoice" | "packing_list" | "shipping_instructions" | "quality_certificate" | "weight_certificate";
     docVariant?: "permit" | "final" | "standard";
-    documentFamily?: "commercial_invoice" | "packing_list" | "shipping_instruction";
+    documentFamily?:
+      | "commercial_invoice"
+      | "packing_list"
+      | "shipping_instruction"
+      | "certificate_of_quality"
+      | "certificate_of_weight";
     revisionNumber?: number;
     status: string;
     updatedAt: string;
@@ -22,7 +27,12 @@ type ContractDetail = {
 };
 
 type FamilyCard = {
-  family: "commercial_invoice" | "packing_list" | "shipping_instruction";
+  family:
+    | "commercial_invoice"
+    | "packing_list"
+    | "shipping_instruction"
+    | "certificate_of_quality"
+    | "certificate_of_weight";
   label: string;
   description: string;
   variants: Array<"permit" | "final" | "standard">;
@@ -47,6 +57,18 @@ const families: FamilyCard[] = [
     description: "Carrier-facing shipping instruction generated from final resolved contract values.",
     variants: ["standard"],
   },
+  {
+    family: "certificate_of_quality",
+    label: "Certificate of Quality",
+    description: "Quality certificate generated from resolved values, bookings, processing moisture, and staffing containers.",
+    variants: ["standard"],
+  },
+  {
+    family: "certificate_of_weight",
+    label: "Certificate of Weight",
+    description: "Weight certificate generated from resolved values and prepared staffing containers with per-container totals.",
+    variants: ["standard"],
+  },
 ];
 
 function displayFamilyVariants(family: FamilyCard): string {
@@ -66,7 +88,11 @@ function familyMatches(
       ? "commercial_invoice"
       : document.docType === "packing_list"
         ? "packing_list"
-        : "shipping_instruction");
+        : document.docType === "shipping_instructions"
+          ? "shipping_instruction"
+          : document.docType === "quality_certificate"
+            ? "certificate_of_quality"
+            : "certificate_of_weight");
 
   return storedFamily === family;
 }

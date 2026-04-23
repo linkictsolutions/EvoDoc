@@ -1,4 +1,6 @@
 import { buildCommercialInvoiceIccSample } from "@/domain/commercial-invoice-icc";
+import { buildCertificateOfQualitySample } from "@/domain/certificate-quality";
+import { buildCertificateOfWeightSample } from "@/domain/certificate-weight";
 import { resolveCompanyConfiguration } from "@/domain/company-configuration";
 import { computeContractExcelParity, resolveContractSiLcFinalFields } from "@/domain/excel-parity";
 import { formatMoney, formatWeight } from "@/domain/rounding";
@@ -31,7 +33,14 @@ export function mapDocumentOutput(
   );
   const parity = computeContractExcelParity(snapshot.contract.terms, companyConfiguration);
   const finalFields = resolveContractSiLcFinalFields(snapshot, parity);
-  const documentVariant = snapshot.docVariant ?? (docType === "shipping_instructions" ? "standard" : "final");
+  const documentVariant = snapshot.docVariant
+    ?? (
+      docType === "shipping_instructions"
+      || docType === "quality_certificate"
+      || docType === "weight_certificate"
+        ? "standard"
+        : "final"
+    );
   const bookings = snapshot.executionData?.bookings;
   const staffingRows = snapshot.executionData?.staffing?.finalRows ?? [];
   const processing = snapshot.executionData?.processing ?? {
@@ -285,6 +294,142 @@ export function mapDocumentOutput(
         ],
         totals: sharedTotals,
       };
+
+    case "quality_certificate":
+      {
+        const sample = buildCertificateOfQualitySample({
+          contract: snapshot.contract,
+          companyConfigurationInput: companyConfiguration,
+          finalFields,
+          processing: snapshot.executionData?.processing,
+          bookings: snapshot.executionData?.bookings,
+          staffingRows,
+        });
+
+        const containerRows = sample.containerLines.flatMap((line, index) => ([
+          { label: `Container No ${index + 1}`, value: line.containerNo },
+          { label: `Seal No ${index + 1}`, value: line.sealNo },
+          { label: `Bags per Container ${index + 1}`, value: line.bagsPerContainer },
+        ]));
+
+        return {
+          docType,
+          docVariant: "standard",
+          title: "Certificate of Quality",
+          sections: [
+            {
+              heading: "Certificate Header",
+              rows: sectionRowsFromRecord({
+                Date: sample.header.date,
+                "Ref No": sample.header.refNo,
+                Statement: sample.header.titleStatement,
+              }),
+            },
+            {
+              heading: "Certificate Details",
+              rows: sectionRowsFromRecord({
+                "Mode of Transportation": sample.details.modeOfTransportation,
+                "Moisture Content": sample.details.moistureContent,
+                Shipper: sample.details.shipper,
+                Notify: sample.details.notify,
+                "Second Notify": sample.details.secondNotify,
+                "Description of Goods": sample.details.descriptionOfGoods,
+                Origin: sample.details.origin,
+                Quality: sample.details.quality,
+                "ICO No": sample.details.icoNo,
+                "Cert No": sample.details.certNo,
+                "Net Weight": sample.details.netWeight,
+                "Gross Weight": sample.details.grossWeight,
+                "Quantity in LB": sample.details.quantityLb,
+                From: sample.details.from,
+                To: sample.details.to,
+              }),
+            },
+            {
+              heading: "Container Table",
+              rows: containerRows,
+            },
+            {
+              heading: "Sign-off",
+              rows: sectionRowsFromRecord({
+                "Signatory Company": sample.details.signatoryCompany,
+              }),
+            },
+          ],
+          totals: {
+            ...sharedTotals,
+            preparedContainers: String(sample.containerLines.length),
+          },
+        };
+      }
+
+    case "weight_certificate":
+      {
+        const sample = buildCertificateOfWeightSample({
+          contract: snapshot.contract,
+          companyConfigurationInput: companyConfiguration,
+          finalFields,
+          staffingRows,
+        });
+
+        const containerRows = sample.containerLines.flatMap((line, index) => ([
+          { label: `Container No ${index + 1}`, value: line.containerNo },
+          { label: `Seal No ${index + 1}`, value: line.sealNo },
+          { label: `Bags per Container ${index + 1}`, value: line.bagsPerContainer },
+          { label: `Bag Weight Net ${index + 1}`, value: line.bagWeightNet },
+          { label: `Bag Weight Gross ${index + 1}`, value: line.bagWeightGross },
+          { label: `Container Net Weight ${index + 1}`, value: line.containerNetWeight },
+          { label: `Container Gross Weight ${index + 1}`, value: line.containerGrossWeight },
+        ]));
+
+        return {
+          docType,
+          docVariant: "standard",
+          title: "Certificate of Weight",
+          sections: [
+            {
+              heading: "Certificate Header",
+              rows: sectionRowsFromRecord({
+                Date: sample.header.date,
+                "Ref No": sample.header.refNo,
+              }),
+            },
+            {
+              heading: "Certificate Details",
+              rows: sectionRowsFromRecord({
+                Shipper: sample.details.shipper,
+                Notify: sample.details.notify,
+                "Second Notify": sample.details.secondNotify,
+                "Description of Goods": sample.details.descriptionOfGoods,
+                "Net Weight": sample.details.netWeight,
+                "Gross Weight": sample.details.grossWeight,
+                "Packages in Bags": sample.details.packagesInBags,
+                Origin: sample.details.origin,
+                Quality: sample.details.quality,
+                "ICO No": sample.details.icoNo,
+                "Cert No": sample.details.certNo,
+                From: sample.details.from,
+                To: sample.details.to,
+              }),
+            },
+            {
+              heading: "Container Weight Table",
+              rows: containerRows,
+            },
+            {
+              heading: "Totals",
+              rows: sectionRowsFromRecord({
+                "Total Net Weight": sample.totals.totalNetWeightKgs,
+                "Total Gross Weight": sample.totals.totalGrossWeightKgs,
+              }),
+            },
+          ],
+          totals: {
+            ...sharedTotals,
+            preparedContainers: String(sample.containerLines.length),
+          },
+        };
+      }
 
     default:
       throw new Error(`Unsupported document type: ${docType}`);

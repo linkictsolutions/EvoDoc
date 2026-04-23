@@ -1226,6 +1226,102 @@ tbody tr:hover {
   color: #555;
 }
 
+.quality-certificate-sheet {
+  width: min(980px, 100%);
+  color: #111;
+  font-family: "Times New Roman", Times, serif;
+}
+
+.quality-certificate-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.45rem;
+}
+
+.quality-certificate-header h1 {
+  font-size: 1.05rem;
+  letter-spacing: 0.02em;
+}
+
+.quality-certificate-meta {
+  display: grid;
+  gap: 0.12rem;
+  font-size: 0.78rem;
+}
+
+.quality-certificate-statement {
+  margin-bottom: 0.42rem;
+  font-size: 0.8rem;
+}
+
+.quality-certificate-table {
+  table-layout: fixed;
+}
+
+.quality-certificate-table th,
+.quality-certificate-table td {
+  font-size: 0.76rem;
+  padding: 0.2rem 0.3rem;
+}
+
+.quality-certificate-table th {
+  width: 34%;
+  background: #fff;
+}
+
+.quality-certificate-signatory {
+  font-size: 0.8rem;
+}
+
+.weight-certificate-sheet {
+  width: min(1060px, 100%);
+  color: #111;
+  font-family: "Times New Roman", Times, serif;
+}
+
+.weight-certificate-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.45rem;
+}
+
+.weight-certificate-header h1 {
+  font-size: 1.05rem;
+  letter-spacing: 0.02em;
+}
+
+.weight-certificate-meta {
+  display: grid;
+  gap: 0.12rem;
+  font-size: 0.78rem;
+}
+
+.weight-certificate-table {
+  table-layout: fixed;
+}
+
+.weight-certificate-table th,
+.weight-certificate-table td {
+  font-size: 0.74rem;
+  padding: 0.17rem 0.23rem;
+  line-height: 1.14;
+  white-space: pre-wrap;
+}
+
+.weight-certificate-table thead th {
+  background: #fff;
+  font-weight: 700;
+}
+
+.weight-certificate-table tbody th {
+  width: 34%;
+  background: #fff;
+}
+
 .doc-row {
   display: grid;
   grid-template-columns: 220px 1fr;
@@ -1436,6 +1532,38 @@ tbody tr:hover {
   .permit-doc-id {
     margin-top: 0.22rem;
     font-size: 0.56rem;
+  }
+
+  .quality-certificate-header h1 {
+    font-size: 0.9rem;
+  }
+
+  .quality-certificate-meta,
+  .quality-certificate-statement,
+  .quality-certificate-signatory {
+    font-size: 0.68rem;
+  }
+
+  .quality-certificate-table th,
+  .quality-certificate-table td {
+    font-size: 0.64rem;
+    padding: 0.14rem 0.18rem;
+    line-height: 1.12;
+  }
+
+  .weight-certificate-header h1 {
+    font-size: 0.88rem;
+  }
+
+  .weight-certificate-meta {
+    font-size: 0.66rem;
+  }
+
+  .weight-certificate-table th,
+  .weight-certificate-table td {
+    font-size: 0.58rem;
+    padding: 0.12rem 0.14rem;
+    line-height: 1.1;
   }
 
   .permit-invoice-sheet {

@@ -35,6 +35,8 @@ const documentTypeLabels: Record<DocumentType, string> = {
   invoice: "Commercial Invoice",
   packing_list: "Packing List",
   shipping_instructions: "Shipping Instruction",
+  quality_certificate: "Certificate of Quality",
+  weight_certificate: "Certificate of Weight",
 };
 
 function toFormState(configuration: CompanyConfiguration): CompanyConfigurationFormState {

@@ -136,14 +136,19 @@ export function validateDocumentGenerationRules(
   snapshot: DocumentInputSnapshot,
 ): BusinessRuleResult {
   const result = makeResult();
-  const allowPartialSourceData = snapshot.docType === "invoice";
+  const allowPartialSourceData =
+    snapshot.docType === "invoice"
+    || snapshot.docType === "quality_certificate"
+    || snapshot.docType === "weight_certificate";
 
   if (snapshot.contract.status === "closed") {
     result.errors.push("Cannot generate document for a closed contract.");
   }
 
-  if (!allowPartialSourceData && snapshot.shipment.totals.totalNetWeightKg <= 0) {
-    result.errors.push("Cannot generate document with non-positive net shipment weight.");
+  if (!allowPartialSourceData && snapshot.shipment.totals.totalNetWeightKg < 0) {
+    result.errors.push("Cannot generate document with negative net shipment weight.");
+  } else if (!allowPartialSourceData && snapshot.shipment.totals.totalNetWeightKg === 0) {
+    result.warnings.push("Net shipment weight is zero; generated document may have incomplete execution values.");
   }
 
   if (!snapshot.customer.name.trim()) {
@@ -156,6 +161,30 @@ export function validateDocumentGenerationRules(
 
   if (!allowPartialSourceData && snapshot.shipment.status === "draft") {
     result.warnings.push("Shipment is still in draft status during document generation.");
+  }
+
+  if (snapshot.docType === "quality_certificate") {
+    const preparedContainers = snapshot.executionData?.staffing?.finalRows
+      ?.filter((row) => row.containerNumber && row.containerNumber.trim() !== "")
+      .length ?? 0;
+
+    if (preparedContainers === 0) {
+      result.warnings.push("No prepared staffing containers found; Certificate of Quality container table will be empty.");
+    }
+
+    if (typeof snapshot.executionData?.processing?.moisturePercent !== "number") {
+      result.warnings.push("Processing moisture is missing; moisture content field may be blank.");
+    }
+  }
+
+  if (snapshot.docType === "weight_certificate") {
+    const preparedContainers = snapshot.executionData?.staffing?.finalRows
+      ?.filter((row) => row.containerNumber && row.containerNumber.trim() !== "")
+      .length ?? 0;
+
+    if (preparedContainers === 0) {
+      result.warnings.push("No prepared staffing containers found; Certificate of Weight container table will be empty.");
+    }
   }
 
   const contractRules = validateContractBusinessRules(snapshot.contract);

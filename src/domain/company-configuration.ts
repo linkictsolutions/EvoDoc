@@ -57,6 +57,8 @@ const DEFAULT_DOCUMENT_BRANDING: DocumentBrandingSettings = {
     invoice: { header: false, footer: false },
     packing_list: { header: false, footer: false },
     shipping_instructions: { header: false, footer: false },
+    quality_certificate: { header: false, footer: false },
+    weight_certificate: { header: false, footer: false },
   },
 };
 
@@ -198,6 +200,18 @@ function resolveDocumentBranding(
           ?? DEFAULT_DOCUMENT_BRANDING.applyByDocType.shipping_instructions.header,
         footer: configuration?.documentBranding?.applyByDocType?.shipping_instructions?.footer
           ?? DEFAULT_DOCUMENT_BRANDING.applyByDocType.shipping_instructions.footer,
+      },
+      quality_certificate: {
+        header: configuration?.documentBranding?.applyByDocType?.quality_certificate?.header
+          ?? DEFAULT_DOCUMENT_BRANDING.applyByDocType.quality_certificate.header,
+        footer: configuration?.documentBranding?.applyByDocType?.quality_certificate?.footer
+          ?? DEFAULT_DOCUMENT_BRANDING.applyByDocType.quality_certificate.footer,
+      },
+      weight_certificate: {
+        header: configuration?.documentBranding?.applyByDocType?.weight_certificate?.header
+          ?? DEFAULT_DOCUMENT_BRANDING.applyByDocType.weight_certificate.header,
+        footer: configuration?.documentBranding?.applyByDocType?.weight_certificate?.footer
+          ?? DEFAULT_DOCUMENT_BRANDING.applyByDocType.weight_certificate.footer,
       },
     },
   };

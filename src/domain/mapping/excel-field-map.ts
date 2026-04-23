@@ -3,7 +3,7 @@ export interface ExcelFieldMapEntry {
   sheet: string;
   excelCellOrRange: string;
   mappedField: string;
-  docTypes: Array<"invoice" | "packing_list" | "shipping_instructions">;
+  docTypes: Array<"invoice" | "packing_list" | "shipping_instructions" | "quality_certificate" | "weight_certificate">;
   notes?: string;
 }
 
@@ -247,5 +247,23 @@ export const excelFieldMap: ExcelFieldMapEntry[] = [
     excelCellOrRange: "E10,E11,E12,E13,E18,E19,E20,H21,O21,E23,E27,E29,E30,E31",
     mappedField: "shippingInstruction.templateBindings",
     docTypes: ["shipping_instructions"],
+  },
+  {
+    workbook: "Coffee Doc-Praxis-V2.xlsm",
+    sheet: "Certificate of Quality",
+    excelCellOrRange: "B9,C11:C25,B28:D37,C39",
+    mappedField: "certificateOfQuality.templateBindings",
+    docTypes: ["quality_certificate"],
+    notes:
+      "Sheet17 formulas verified in workbook XML: header/party/weight fields from Contract-SI-LC, Form Configuration, Bookings, Processing; bottom container table from Staffing rows.",
+  },
+  {
+    workbook: "Coffee Doc-Praxis-V2.xlsm",
+    sheet: "Certificate of Weight",
+    excelCellOrRange: "C9:C21,C25:I34,H35:I35",
+    mappedField: "certificateOfWeight.templateBindings",
+    docTypes: ["weight_certificate"],
+    notes:
+      "Sheet18 formulas verified in workbook XML: party/summary fields from Contract-SI-LC, Contract, and Form Configuration; container rows from Staffing with per-container bag and weight calculations.",
   },
 ];

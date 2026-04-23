@@ -2,8 +2,18 @@ export type UserRole = "admin" | "editor" | "viewer";
 
 export type ContractStatus = "draft" | "active" | "closed";
 
-export type DocumentType = "invoice" | "packing_list" | "shipping_instructions";
-export type DocumentFamily = "commercial_invoice" | "packing_list" | "shipping_instruction";
+export type DocumentType =
+  | "invoice"
+  | "packing_list"
+  | "shipping_instructions"
+  | "quality_certificate"
+  | "weight_certificate";
+export type DocumentFamily =
+  | "commercial_invoice"
+  | "packing_list"
+  | "shipping_instruction"
+  | "certificate_of_quality"
+  | "certificate_of_weight";
 export type DocumentVariant = "permit" | "final" | "standard";
 
 export type DocumentStatus =

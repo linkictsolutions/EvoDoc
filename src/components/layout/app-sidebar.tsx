@@ -254,6 +254,8 @@ function prettifySegment(segment: string): string {
     "commercial_invoice": "Commercial Invoice (ICC)",
     "packing_list": "Packing List",
     "shipping_instruction": "Shipping Instruction",
+    "certificate_of_quality": "Certificate of Quality",
+    "certificate_of_weight": "Certificate of Weight",
   };
 
   return labels[segment] ?? segment.replace(/-/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
