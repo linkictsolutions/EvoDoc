@@ -77,7 +77,7 @@ function IccInvoicePrintView({ output, documentId, isFinal }: Props) {
         </tbody>
       </table>
 
-      <table className="print-table icc-table mt-sm">
+      <table className="print-table icc-table icc-footer-table mt-sm">
         <thead>
           <tr>
             <th>S / N</th>
@@ -179,9 +179,9 @@ function IccInvoicePrintView({ output, documentId, isFinal }: Props) {
             <td><strong>Packaging &amp; Marking (Label):</strong> {display(value(rows, "Packaging & Marking (Label)"))}</td>
             <td></td>
           </tr>
-          <tr>
-            <td><strong>FULL MARKING</strong><br />{display(value(rows, "Full Marking"))}</td>
-            <td></td>
+          <tr className="icc-full-marking-row">
+            <td className="icc-full-marking-cell"><strong>FULL MARKING</strong><br />{display(value(rows, "Full Marking"))}</td>
+            <td className="icc-signature-cell"></td>
           </tr>
         </tbody>
       </table>

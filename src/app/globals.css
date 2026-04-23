@@ -1075,12 +1075,30 @@ tbody tr:hover {
 .icc-sheet {
   width: min(1100px, 100%);
   font-size: 0.8rem;
+  min-height: calc(297mm - var(--brand-header-height, 0mm) - var(--brand-footer-height, 0mm));
+  display: grid;
+  grid-template-rows: auto auto auto 1fr auto;
+  gap: 0.3rem;
+}
+
+.icc-sheet .mt-sm {
+  margin-top: 0;
 }
 
 .icc-table th,
 .icc-table td {
   font-size: 0.78rem;
   padding: 0.28rem 0.35rem;
+}
+
+.icc-footer-table {
+  height: 100%;
+}
+
+.icc-footer-table .icc-full-marking-cell,
+.icc-footer-table .icc-signature-cell {
+  min-height: 42mm;
+  vertical-align: top;
 }
 
 .document-print-page {
@@ -1309,55 +1327,122 @@ tbody tr:hover {
     margin: 0;
   }
 
+  html,
   body {
-    background: white;
+    width: 210mm;
+    min-height: 297mm;
+    height: 297mm;
+    background: #fff;
+  }
+
+  body {
+    margin: 0;
+    background: #fff;
   }
 
   .app-sidebar,
   .app-toolbar,
   .print-controls,
   .screen-only {
-    display: none;
+    display: none !important;
   }
 
-  body * {
-    visibility: hidden;
+  .app-shell {
+    min-height: auto;
+    display: block;
   }
 
-  .document-print-root,
-  .document-print-root * {
-    visibility: visible;
+  .app-content-shell,
+  .app-body {
+    display: block;
+    padding: 0 !important;
+    margin: 0 !important;
+    min-height: auto;
+  }
+
+  .app-body > * {
+    display: none !important;
+  }
+
+  .app-body > .document-print-page {
+    display: block !important;
+  }
+
+  .document-print-page {
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0;
+    padding: 0;
+    display: block;
   }
 
   .document-print-root {
-    position: absolute;
-    inset: 0 auto auto 0;
-    width: 100%;
+    position: relative;
+    width: 210mm;
+    min-height: 297mm;
     margin: 0;
-  }
-
-  .app-body,
-  .document-print-page {
-    padding: 0;
-    margin: 0;
+    inset: auto;
   }
 
   .print-sheet {
     border: none;
     width: 100%;
     padding: 0;
+    margin: 0;
   }
 
   .document-branded-page {
-    width: 100%;
-    min-height: auto;
+    width: 210mm;
+    min-height: 297mm;
+    height: 297mm;
+    margin: 0;
     box-shadow: none;
-    break-inside: avoid;
+    overflow: hidden;
+    break-inside: avoid-page;
     page-break-inside: avoid;
+    break-after: auto;
+    page-break-after: auto;
+  }
+
+  .document-branded-page:not(:last-child) {
+    break-after: page;
     page-break-after: always;
+  }
+
+  .document-branded-content {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .icc-sheet {
+    font-size: 0.72rem;
+    line-height: 1.15;
+    gap: 0.2rem;
+  }
+
+  .icc-table th,
+  .icc-table td {
+    font-size: 0.66rem;
+    padding: 0.14rem 0.16rem;
+    line-height: 1.12;
+    word-break: break-word;
+  }
+
+  .icc-footer-table .icc-full-marking-cell,
+  .icc-footer-table .icc-signature-cell {
+    min-height: 48mm;
+  }
+
+  .permit-doc-id {
+    margin-top: 0.22rem;
+    font-size: 0.56rem;
   }
 
   .permit-invoice-sheet {
     padding: 0;
+  }
+
+  .print-table th {
+    background: #fff;
   }
 }
