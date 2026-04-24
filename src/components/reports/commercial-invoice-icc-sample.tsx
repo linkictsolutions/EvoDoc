@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
+import { CenteredLoader } from "@/components/ui/centered-loader";
 
 type CommercialInvoiceIccSample = {
   contractId: string;
@@ -124,11 +125,8 @@ export function CommercialInvoiceIccSampleView({
   return (
     <section className="page-shell">
       <header className="page-header">
-        <h1>Commercial Invoice (ICC) Sample</h1>
-        <p>
-          Workbook parity mapping from <strong>Commercial Invoice(ICC)</strong> with
-          precedence-resolved values from <strong>Contract-SI-LC</strong>.
-        </p>
+        <h1>Commercial Invoice (ICC) Preview</h1>
+        <p>Preview the invoice output using the current contract data.</p>
       </header>
 
       <section className="card">
@@ -138,13 +136,14 @@ export function CommercialInvoiceIccSampleView({
             <input value={contractId} onChange={(event) => setContractId(event.target.value)} />
           </label>
           <button type="button" onClick={() => void loadSample(contractId)} disabled={loading}>
-            {loading ? "Loading..." : "Load ICC Sample"}
+            {loading ? "Loading..." : "Load Preview"}
           </button>
           {sample ? (
-            <button type="button" className="button-secondary" onClick={() => window.print()}>Print Sample</button>
+            <button type="button" className="button-secondary" onClick={() => window.print()}>Print Preview</button>
           ) : null}
         </div>
         {error ? <p className="error-text mt-md">{error}</p> : null}
+        {loading && !sample ? <CenteredLoader label="Loading preview..." scope="inline" /> : null}
       </section>
 
       {sample ? (
@@ -286,11 +285,11 @@ export function CommercialInvoiceIccSampleView({
                 <td></td>
               </tr>
               <tr>
-                <td><strong>Packaging &amp; Marking (Label):</strong> {display(sample.footer.packagingAndMarkingLabel)}</td>
+                <td className="preserve-linebreaks"><strong>Packaging &amp; Marking (Label):</strong> {display(sample.footer.packagingAndMarkingLabel)}</td>
                 <td></td>
               </tr>
               <tr>
-                <td><strong>FULL MARKING</strong><br />{display(sample.footer.fullMarking)}</td>
+                <td className="preserve-linebreaks"><strong>FULL MARKING</strong><br />{display(sample.footer.fullMarking)}</td>
                 <td></td>
               </tr>
             </tbody>
@@ -298,16 +297,6 @@ export function CommercialInvoiceIccSampleView({
         </article>
       ) : null}
 
-      {sample ? (
-        <section className="card">
-          <h3>Mapping Notes</h3>
-          <ul className="list-indent">
-            {sample.mappingNotes.map((note) => (
-              <li key={note}>{note}</li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
     </section>
   );
 }

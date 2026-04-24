@@ -1,10 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { DocumentPrintTemplate } from "@/components/documents/document-print-template";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
-import type { CompanyConfiguration, DocumentInputSnapshot, DocumentOutputSnapshot } from "@/types/models";
+import { CenteredLoader } from "@/components/ui/centered-loader";
+import type {
+  CompanyConfiguration,
+  DocumentFamily,
+  DocumentInputSnapshot,
+  DocumentOutputSnapshot,
+  DocumentType,
+} from "@/types/models";
 
 type PrintPayload = {
   id: string;
@@ -13,11 +21,37 @@ type PrintPayload = {
   inputSnapshot: DocumentInputSnapshot;
 };
 
+function resolveFamilyFromDocType(docType: DocumentType): DocumentFamily {
+  if (docType === "invoice") {
+    return "commercial_invoice";
+  }
+
+  if (docType === "packing_list") {
+    return "packing_list";
+  }
+
+  if (docType === "quality_certificate") {
+    return "certificate_of_quality";
+  }
+
+  if (docType === "weight_certificate") {
+    return "certificate_of_weight";
+  }
+
+  if (docType === "way_bill") {
+    return "way_bill";
+  }
+
+  return "shipping_instruction";
+}
+
 export default function DocumentPrintPage({
   params,
 }: {
   params: Promise<{ id: string; docId: string }>;
 }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [payload, setPayload] = useState<PrintPayload | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -53,6 +87,16 @@ export default function DocumentPrintPage({
     };
   }, [params]);
 
+  useEffect(() => {
+    if (searchParams.get("family") || !payload?.outputSnapshot.docType) {
+      return;
+    }
+
+    const currentPath = window.location.pathname;
+    const resolved = resolveFamilyFromDocType(payload.outputSnapshot.docType);
+    router.replace(`${currentPath}?family=${encodeURIComponent(resolved)}`);
+  }, [payload?.outputSnapshot.docType, router, searchParams]);
+
   if (error) {
     return (
       <main>
@@ -67,7 +111,7 @@ export default function DocumentPrintPage({
     return (
       <main>
         <section className="card">
-          <p>Loading print data...</p>
+          <CenteredLoader label="Loading print data..." />
         </section>
       </main>
     );

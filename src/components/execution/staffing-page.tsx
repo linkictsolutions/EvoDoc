@@ -6,6 +6,7 @@ import { DEFAULT_ORG_ID } from "@/lib/config";
 import { computeContractExcelParity } from "@/domain/excel-parity";
 import { collectSealOptions, deriveFinalStaffingRows } from "@/domain/execution";
 import type { BookingsSheet, Contract, StaffingFinalRow, StaffingSheet } from "@/types/models";
+import { CenteredLoader } from "@/components/ui/centered-loader";
 
 type StaffingPayload = StaffingSheet & { finalRows: StaffingFinalRow[] };
 type ContractDetailResponse = {
@@ -126,8 +127,20 @@ export function StaffingPage({ contractId }: { contractId: string }) {
     }
   }
 
-  if (loading || !form) {
-    return <section className="card"><p>Loading staffing...</p></section>;
+  if (loading) {
+    return (
+      <section className="card">
+        <CenteredLoader label="Loading staffing..." />
+      </section>
+    );
+  }
+
+  if (!form) {
+    return (
+      <section className="card">
+        <p className="error-text">{error ?? "Unable to load staffing."}</p>
+      </section>
+    );
   }
 
   return (
@@ -141,7 +154,7 @@ export function StaffingPage({ contractId }: { contractId: string }) {
         <div className="section-heading">
           <div>
             <h3>Staffing Instruction &amp; Report</h3>
-            <p className="sidebar-subtitle">Workbook rows 6 to 15. Plate, driver, phone, license, container, and tare weight are sourced from Bookings.</p>
+            <p className="sidebar-subtitle">Vehicle, driver, container, seal, and tare details are synced from Bookings.</p>
           </div>
           <div className="row-actions">
             <button type="button" className="button-secondary" onClick={() => void load()} disabled={saving}>Refresh from Bookings</button>

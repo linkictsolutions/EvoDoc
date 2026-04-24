@@ -145,11 +145,12 @@ export function buildCertificateOfQualitySample(args: {
   const moistureValue = typeof args.processing?.moisturePercent === "number"
     ? String(args.processing.moisturePercent)
     : "";
+  const documentRefNo = clean(args.contract.documentRefs?.certificate_of_quality);
 
   return {
     header: {
       date: formatDate(new Date().toISOString()),
-      refNo: args.contract.contractNumber,
+      refNo: documentRefNo,
       titleStatement,
     },
     details: {
@@ -179,4 +180,3 @@ export function buildCertificateOfQualitySample(args: {
     ],
   };
 }
-

@@ -8,6 +8,7 @@ import { z } from "zod";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
 import type { Contract } from "@/types/models";
+import { CenteredLoader } from "@/components/ui/centered-loader";
 
 const schema = z.object({
   contractId: z.string().min(1, "Contract number is required"),
@@ -219,8 +220,8 @@ export function BankLcForm({
     <section className="page-shell">
       <header className="page-header">
         <h1>Bank &amp; LC Source Document</h1>
-        <p>Recreates Bank & LC sheet as an independent source input.</p>
-        {loadingExisting ? <p>Loading existing Bank & LC data...</p> : null}
+        <p>Capture banking and letter-of-credit details for this contract.</p>
+        {loadingExisting ? <CenteredLoader label="Loading existing Bank & LC data..." scope="inline" /> : null}
       </header>
 
       <form className="card form-grid" onSubmit={handleSubmit(onSubmit)}>
@@ -231,96 +232,96 @@ export function BankLcForm({
           <small>{errors.contractId?.message}</small>
         </label>
 
-        <h3 className="span-all">LC Information (C column)</h3>
+        <h3 className="span-all">LC Information</h3>
         <label>
-          LC No - C4
+          LC No
           <input {...register("lcNumber")} />
         </label>
         <label>
-          Applicant - C10
+          Applicant
           <input {...register("applicant")} />
         </label>
         <label>
-          Port of Loading / Airport of Dep. - C12
+          Port of Loading / Airport of Departure
           <input {...register("portOfLoading")} />
         </label>
         <label>
-          Port of Discharge / Airport of Dest. - C14
+          Port of Discharge / Airport of Destination
           <input {...register("portOfDischarge")} />
         </label>
         <label>
-          Latest Date of Shipment - C16
+          Latest Date of Shipment
           <input {...register("latestShipmentDate")} />
         </label>
         <label className="span-all">
-          Description of Goods - C18
+          Description of Goods
           <textarea rows={3} {...register("goodsDescription")} />
         </label>
         <label>
-          No of Bag - C20
+          Number of Bags
           <input {...register("noOfBags")} />
         </label>
         <label>
-          Currency Amount - C27
+          Currency Amount
           <input {...register("currencyAmount")} />
         </label>
         <label>
-          Sender - C7
+          Sender
           <input {...register("sender")} />
         </label>
         <label>
-          Receiver - C8
+          Receiver
           <input {...register("receiver")} />
         </label>
 
         <h3 className="span-all">Consignee and Notify Parties</h3>
         <label>
-          Consignee - C22
+          Consignee
           <textarea rows={2} {...register("consignee")} />
         </label>
         <label>
-          Notify - C25
+          Notify
           <textarea rows={2} {...register("notify")} />
         </label>
         <label>
-          2nd Notify - C26
+          2nd Notify
           <textarea rows={2} {...register("secondNotify")} />
         </label>
 
-        <h3 className="span-all">Bank Information (G column)</h3>
+        <h3 className="span-all">Bank Information</h3>
         <label>
-          Bank Permit - G5
+          Bank Permit
           <input {...register("permitNumber")} />
         </label>
         <label>
-          Beneficiary Bank - G7
+          Beneficiary Bank
           <input {...register("beneficiaryBank")} />
         </label>
         <label>
-          Address of Bank - G9/G14
+          Address of Bank
           <input {...register("bankAddress")} />
         </label>
         <label>
-          Beneficiaries Acc. No - G11
+          Beneficiary Account No
           <input {...register("beneficiaryAccountNumber")} />
         </label>
         <label>
-          Correspondent Bank - G13
+          Correspondent Bank
           <input {...register("correspondentBank")} />
         </label>
         <label>
-          SWIFT Number - G15
+          SWIFT Number
           <input {...register("swiftCode")} />
         </label>
         <label>
-          Acc. No - G16
+          Account No
           <input {...register("accountNumber")} />
         </label>
 
         <div className="row-actions">
           <button type="submit" disabled={saving}>{saving ? "Saving..." : "Save Bank & LC"}</button>
           <Link href={reportHref}>
-            <button type="button" className="button-secondary">View Contract-SI-LC Final Report</button>
+            <button type="button" className="button-secondary">View Resolved Values</button>
           </Link>
         </div>
         {savedContractId ? <p>Saved to Contract ID: {savedContractId}</p> : null}

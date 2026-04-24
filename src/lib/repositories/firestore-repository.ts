@@ -8,6 +8,7 @@ import type {
   Contract,
   ContractSourceInput,
   Customer,
+  DocumentFamily,
   ExecutionData,
   GeneratedDocument,
   Item,
@@ -406,6 +407,36 @@ export async function upsertContract(
   );
 
   return ref.id;
+}
+
+export async function setContractDocumentRef(
+  orgId: string,
+  contractId: string,
+  family: DocumentFamily,
+  refNo: string,
+): Promise<string> {
+  const ref = adminDb.doc(`${orgPath(orgId)}/contracts/${contractId}`);
+  const existing = await ref.get();
+
+  if (!existing.exists) {
+    throw new Error("Contract not found");
+  }
+
+  const normalizedRefNo = refNo.trim();
+
+  await ref.set(
+    withTimestamps(
+      {
+        documentRefs: {
+          [family]: normalizedRefNo,
+        },
+      },
+      existing.data() as { createdAt?: string },
+    ),
+    { merge: true },
+  );
+
+  return normalizedRefNo;
 }
 
 export async function deleteContractCascade(orgId: string, contractIdOrNumber: string): Promise<{

@@ -8,6 +8,7 @@ import { z } from "zod";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
 import type { Contract } from "@/types/models";
+import { CenteredLoader } from "@/components/ui/centered-loader";
 
 const schema = z.object({
   contractId: z.string().min(1, "Contract number is required"),
@@ -237,10 +238,10 @@ export function ShippingInstructionForm({
         <h1>Shipping Instruction Source Document</h1>
         <p>
           {autoLoadExisting
-            ? "Recreates the Shipping Instruction sheet and loads existing values for editing."
-            : "Recreates the Shipping Instruction sheet as a separate source input."}
+            ? "Loads existing shipping details for editing."
+            : "Create and maintain shipping details for this contract."}
         </p>
-        {loadingExisting ? <p>Loading existing shipping data...</p> : null}
+        {loadingExisting ? <CenteredLoader label="Loading existing shipping data..." scope="inline" /> : null}
       </header>
 
       <form className="card form-grid" onSubmit={handleSubmit(onSubmit)}>
@@ -253,91 +254,91 @@ export function ShippingInstructionForm({
 
         <h3 className="span-all">Route and Carrier</h3>
         <label>
-          Destination (Port, Country) - C5
+          Destination (Port, Country)
           <input {...register("destinationPort")} />
           <small>{errors.destinationPort?.message}</small>
         </label>
         <label>
-          Port of Loading - C13
+          Port of Loading
           <input {...register("portOfLoading")} />
           <small>{errors.portOfLoading?.message}</small>
         </label>
         <label>
-          Shipping Line - C7
+          Shipping Line
           <input {...register("shippingLine")} />
           <small>{errors.shippingLine?.message}</small>
         </label>
         <label>
-          Service Contract - E7
+          Service Contract
           <input {...register("serviceContract")} />
         </label>
         <label>
-          Alternative 1 - C9
+          Alternative 1
           <input {...register("alternative1")} />
         </label>
         <label>
-          Alternative 1 Service Contract - E9
+          Alternative 1 Service Contract
           <input {...register("alternative1ServiceContract")} />
         </label>
         <label>
-          Alternative 2 - C11
+          Alternative 2
           <input {...register("alternative2")} />
         </label>
         <label>
-          Alternative 2 Service Contract - E11
+          Alternative 2 Service Contract
           <input {...register("alternative2ServiceContract")} />
         </label>
 
-        <h3 className="span-all">Cargo Block (C15:C23)</h3>
+        <h3 className="span-all">Cargo Details</h3>
         <label>
-          Quantity - C15
+          Quantity
           <input {...register("quantityValue")} />
           <small>{errors.quantityValue?.message}</small>
         </label>
         <label>
-          Quality - C16
+          Quality
           <textarea rows={3} {...register("qualityValue")} />
           <small>{errors.qualityValue?.message}</small>
         </label>
         <label>
-          Packaging - C17
+          Packaging
           <input {...register("packagingValue")} />
           <small>{errors.packagingValue?.message}</small>
         </label>
         <label>
-          No of Bags - C18
+          Number of Bags
           <input {...register("noOfBagsValue")} />
           <small>{errors.noOfBagsValue?.message}</small>
         </label>
         <label>
-          Containers - C19
+          Containers
           <input {...register("containerCountValue")} />
           <small>{errors.containerCountValue?.message}</small>
         </label>
         <label>
-          Shipment Month - C21
+          Shipment Month
           <input type="month" {...register("shipmentMonth")} />
         </label>
         <label>
-          Bag Marking - C22
+          Bag Marking
           <textarea rows={6} {...register("bagMarkings")} />
         </label>
         <label>
-          Description - C23
+          Description
           <textarea rows={8} {...register("description")} />
         </label>
 
         <h3 className="span-all">Consignee and Notify Parties</h3>
         <label>
-          Consignee - C25
+          Consignee
           <textarea rows={3} {...register("consignee")} />
         </label>
         <label>
-          Notify - C27
+          Notify
           <textarea rows={3} {...register("notifyParty")} />
         </label>
         <label>
-          2nd Notify - C29
+          2nd Notify
           <textarea rows={3} {...register("secondNotify")} />
         </label>
 

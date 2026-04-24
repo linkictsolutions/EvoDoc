@@ -178,11 +178,11 @@ function IccInvoicePrintView({ output, documentId, isFinal }: Props) {
             <td></td>
           </tr>
           <tr>
-            <td><strong>Packaging &amp; Marking (Label):</strong> {display(value(rows, "Packaging & Marking (Label)"))}</td>
+            <td className="preserve-linebreaks"><strong>Packaging &amp; Marking (Label):</strong> {display(value(rows, "Packaging & Marking (Label)"))}</td>
             <td></td>
           </tr>
           <tr className="icc-full-marking-row">
-            <td className="icc-full-marking-cell"><strong>FULL MARKING</strong><br />{display(value(rows, "Full Marking"))}</td>
+            <td className="icc-full-marking-cell preserve-linebreaks"><strong>FULL MARKING</strong><br />{display(value(rows, "Full Marking"))}</td>
             <td className="icc-signature-cell"></td>
           </tr>
         </tbody>
@@ -324,7 +324,7 @@ function PackingListIccPrintView({ output, documentId, isFinal }: Props) {
             <td><strong>Total Net Weight (MT):</strong> {display(value(rows, "Total Net Weight (MT)"))}</td>
           </tr>
           <tr>
-            <td><strong>Packaging &amp; Marking (Label):</strong> {display(value(rows, "Packaging & Marking (Label)"))}</td>
+            <td className="preserve-linebreaks"><strong>Packaging &amp; Marking (Label):</strong> {display(value(rows, "Packaging & Marking (Label)"))}</td>
             <td><strong>Total Gross Weight (MT):</strong> {display(value(rows, "Total Gross Weight (MT)"))}</td>
           </tr>
           <tr>
@@ -340,7 +340,7 @@ function PackingListIccPrintView({ output, documentId, isFinal }: Props) {
       <table className="print-table packing-icc-table mt-sm packing-icc-footer-table">
         <tbody>
           <tr className="packing-icc-full-marking-row">
-            <td className="packing-icc-marking-cell"><strong>FULL MARKING:</strong><br />{display(value(rows, "Full Marking"))}</td>
+            <td className="packing-icc-marking-cell preserve-linebreaks"><strong>FULL MARKING:</strong><br />{display(value(rows, "Full Marking"))}</td>
             <td className="packing-icc-signature-cell"><strong>Authorized Signature &amp; Company Seal/Stamp</strong></td>
           </tr>
         </tbody>
@@ -425,7 +425,7 @@ function PermitPackingListPrintView({ output, documentId }: Props) {
           </tr>
           <tr>
             <th>PACKAGING &amp; MARKING</th>
-            <td colSpan={6}>{packagingMarking}</td>
+            <td colSpan={6} className="preserve-linebreaks">{packagingMarking}</td>
           </tr>
           <tr>
             <th rowSpan={3}>DESCRIPTION OF GOODS</th>

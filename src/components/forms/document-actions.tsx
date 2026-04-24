@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import type { DocumentType, DocumentVariant } from "@/types/models";
+import type { DocumentFamily, DocumentType, DocumentVariant } from "@/types/models";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
 
@@ -11,12 +11,14 @@ export function GenerateDocumentButton({
   shipmentId,
   docType,
   docVariant,
+  family,
   buttonLabel,
 }: {
   contractId: string;
   shipmentId?: string;
   docType: DocumentType;
   docVariant?: DocumentVariant;
+  family?: DocumentFamily;
   buttonLabel?: string;
 }) {
   const router = useRouter();
@@ -39,7 +41,8 @@ export function GenerateDocumentButton({
         }),
       });
 
-      router.push(`/app/contracts/${encodeURIComponent(contractId)}/documents/generated/${data.docId}/review`);
+      const familyQuery = family ? `?family=${encodeURIComponent(family)}` : "";
+      router.push(`/app/contracts/${encodeURIComponent(contractId)}/documents/generated/${data.docId}/review${familyQuery}`);
     } catch (generateError) {
       setError((generateError as Error).message);
     } finally {

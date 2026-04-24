@@ -9,7 +9,7 @@ const items = [
     href: "/app/input/contract",
     label: "Contract",
     code: "C",
-    hint: "Main commercial sheet values.",
+    hint: "Main commercial terms and quantities.",
     status: "ready",
   },
   {

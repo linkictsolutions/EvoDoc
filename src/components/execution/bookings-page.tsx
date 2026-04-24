@@ -5,6 +5,7 @@ import { appendVehiclePair, removeLastVehiclePair, syncBookingEntryPairs } from 
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
 import type { BookingsSheet } from "@/types/models";
+import { CenteredLoader } from "@/components/ui/centered-loader";
 
 export function BookingsPage({ contractId }: { contractId: string }) {
   const [form, setForm] = useState<BookingsSheet | null>(null);
@@ -99,8 +100,20 @@ export function BookingsPage({ contractId }: { contractId: string }) {
     }
   }
 
-  if (loading || !form) {
-    return <section className="card"><p>Loading bookings...</p></section>;
+  if (loading) {
+    return (
+      <section className="card">
+        <CenteredLoader label="Loading bookings..." />
+      </section>
+    );
+  }
+
+  if (!form) {
+    return (
+      <section className="card">
+        <p className="error-text">{error ?? "Unable to load bookings."}</p>
+      </section>
+    );
   }
 
   return (

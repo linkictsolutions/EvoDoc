@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
 import type { CompanyConfiguration, Item } from "@/types/models";
+import { CenteredLoader } from "@/components/ui/centered-loader";
 
 type ItemFormState = {
   itemCode: string;
@@ -137,10 +138,9 @@ export function ItemFormPage({ itemId }: { itemId?: string }) {
   if (loading) {
     return (
       <section className="page-shell">
-        <header className="page-header">
-          <h1>{isEdit ? "Edit Item" : "Add New Item"}</h1>
-          <p>Loading item details...</p>
-        </header>
+        <section className="card">
+          <CenteredLoader label="Loading item details..." />
+        </section>
       </section>
     );
   }

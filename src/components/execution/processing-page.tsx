@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
 import type { ProcessingSheet } from "@/types/models";
+import { CenteredLoader } from "@/components/ui/centered-loader";
 
 export function ProcessingPage({ contractId }: { contractId: string }) {
   const [form, setForm] = useState<ProcessingSheet | null>(null);
@@ -56,8 +57,20 @@ export function ProcessingPage({ contractId }: { contractId: string }) {
     }
   }
 
-  if (loading || !form) {
-    return <section className="card"><p>Loading processing...</p></section>;
+  if (loading) {
+    return (
+      <section className="card">
+        <CenteredLoader label="Loading processing..." />
+      </section>
+    );
+  }
+
+  if (!form) {
+    return (
+      <section className="card">
+        <p className="error-text">{error ?? "Unable to load processing."}</p>
+      </section>
+    );
   }
 
   return (

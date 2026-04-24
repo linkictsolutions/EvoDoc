@@ -9,6 +9,7 @@ import { computeContractExcelParity } from "@/domain/excel-parity";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
 import type { CompanyConfiguration, Customer } from "@/types/models";
+import { CenteredLoader } from "@/components/ui/centered-loader";
 
 const schema = z.object({
   customerName: z.string().min(1),
@@ -398,7 +399,7 @@ export function ContractCoreForm({
       <header className="page-header">
         <h1>Contract Source Document</h1>
         <p>Start the export workflow by completing the core contract source document.</p>
-        {loadingExisting ? <p>Loading existing contract data...</p> : null}
+        {loadingExisting ? <CenteredLoader label="Loading existing contract data..." scope="inline" /> : null}
       </header>
 
       <form className="card form-grid" onSubmit={handleSubmit(onSubmit)}>
@@ -542,9 +543,9 @@ export function ContractCoreForm({
       </form>
 
       <section className="card">
-        <h3>Auto-Calculated (Excel Parity)</h3>
+        <h3>Auto-Calculated Values</h3>
         {!computed ? (
-          <p>Enter valid numeric values to compute parity outputs.</p>
+          <p>Enter valid numeric values to compute totals.</p>
         ) : (
           <div className="table-wrap">
             <table>

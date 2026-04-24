@@ -246,6 +246,7 @@ export function buildWayBillSample(args: {
     : (transitorLocation || transitorPhone);
   const sellerName = clean(companyConfiguration.sellerName);
   const goodsDescription = buildDetailOfGoods(sellerName, args.finalFields);
+  const documentRefNo = clean(args.contract.documentRefs?.way_bill);
 
   return {
     title: "Way Bill",
@@ -274,7 +275,7 @@ export function buildWayBillSample(args: {
         key: `driver-${index + 1}-${tabSuffix.replace(/\s+/g, "-").toLowerCase()}`,
         tabLabel: truckNo ? `${driverName} (${truckNo})` : driverName,
         date: formatDate(new Date().toISOString()),
-        refNo: args.contract.contractNumber,
+        refNo: documentRefNo,
         to,
         toContact: toContact ? `${toContact}` : "",
         truckNo,

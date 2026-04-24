@@ -40,7 +40,7 @@ export function ContractEditSidebar({ contractId }: ContractEditSidebarProps) {
   return (
     <aside className="module-sidebar card input-sidebar">
       <h3>Contract Source Documents</h3>
-      <p className="sidebar-subtitle">Edit each source document in workbook order.</p>
+      <p className="sidebar-subtitle">Edit each source document in process order.</p>
       <nav className="sidebar-nav">
         {items.map((item) => (
           <Link

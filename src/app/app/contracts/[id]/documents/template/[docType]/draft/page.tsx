@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import type { DocumentType } from "@/types/models";
 import { GenerateDocumentButton } from "@/components/forms/document-actions";
+import { CenteredLoader } from "@/components/ui/centered-loader";
 
 export default function DocumentDraftPage({
   params,
@@ -18,7 +19,11 @@ export default function DocumentDraftPage({
   }, [params]);
 
   if (!state) {
-    return <section className="card"><p>Loading...</p></section>;
+    return (
+      <section className="card">
+        <CenteredLoader label="Loading..." />
+      </section>
+    );
   }
 
   const shipmentId = searchParams.get("shipmentId");

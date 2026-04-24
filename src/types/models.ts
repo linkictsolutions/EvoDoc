@@ -293,6 +293,7 @@ export interface Contract extends Timestamped {
   id: string;
   orgId: string;
   contractNumber: string;
+  documentRefs?: Partial<Record<DocumentFamily, string>>;
   customerId: string;
   status: ContractStatus;
   terms: ContractTerms;

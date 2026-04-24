@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
+import { CenteredLoader } from "@/components/ui/centered-loader";
 
 type ContractDetail = {
   contract: {
@@ -59,7 +60,11 @@ export default function ContractDetailPage({ params }: { params: Promise<{ id: s
   }
 
   if (!state) {
-    return <section className="card"><p>Loading contract...</p></section>;
+    return (
+      <section className="card">
+        <CenteredLoader label="Loading contract..." />
+      </section>
+    );
   }
 
   const hasBookings = Boolean(state.executionData?.bookings?.entries?.length);
@@ -119,7 +124,7 @@ export default function ContractDetailPage({ params }: { params: Promise<{ id: s
         <ul className="journey-list">
           <li><strong>Source Documents</strong>: Contract, Shipping Instruction, and Bank &amp; LC source records.</li>
           <li><strong>Resolved Values</strong>: final field precedence after LC/SI overrides.</li>
-          <li><strong>Execution</strong>: Bookings, Staffing, and Processing workbook sheets attached to this contract.</li>
+          <li><strong>Execution</strong>: Bookings, Staffing, and Processing data attached to this contract.</li>
           <li><strong>Documents</strong>: generated Commercial Invoice (ICC), Packing List (ICC), Shipping Instruction, and certificate outputs.</li>
           <li><strong>Activity</strong>: audit trail of writes and workflow events.</li>
         </ul>

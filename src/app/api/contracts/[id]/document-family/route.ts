@@ -10,12 +10,14 @@ import { buildExecutionShipment, hydrateExecutionData } from "@/domain/execution
 import { requireActor } from "@/lib/auth/server";
 import { fail, getRequestId, ok } from "@/lib/api/response";
 import {
+  appendAuditLog,
   getExecutionData,
   getCompanyConfiguration,
   getContract,
   getCustomer,
   listGeneratedDocuments,
   resolveContractId,
+  setContractDocumentRef,
 } from "@/lib/repositories/firestore-repository";
 import { buildDocumentOutput } from "@/lib/workflow/document-generation";
 import type { DocumentFamily } from "@/types/models";
@@ -29,6 +31,19 @@ const querySchema = z.object({
     "certificate_of_weight",
     "way_bill",
   ]),
+});
+
+const bodySchema = z.object({
+  orgId: z.string().min(1),
+  family: z.enum([
+    "commercial_invoice",
+    "packing_list",
+    "shipping_instruction",
+    "certificate_of_quality",
+    "certificate_of_weight",
+    "way_bill",
+  ]),
+  refNo: z.string(),
 });
 
 export async function GET(
@@ -135,6 +150,7 @@ export async function GET(
       family,
       familyLabel: familyDefinition.label,
       docType: familyDefinition.docType,
+      refNo: contract.documentRefs?.[family] ?? "",
       latestShipmentId: latestShipmentId ?? null,
       currentPreview,
       previewWarnings: previewRules?.warnings ?? [],
@@ -144,6 +160,42 @@ export async function GET(
         const existingFamily = document.documentFamily ?? resolveDocumentFamily(document.docType);
         return existingFamily === family;
       }).length,
+    });
+  } catch (error) {
+    return fail(requestId, (error as Error).message, 400);
+  }
+}
+
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const requestId = getRequestId();
+
+  try {
+    const body = await request.json();
+    const parsed = bodySchema.parse(body);
+    const actor = await requireActor(parsed.orgId, ["admin", "editor"]);
+    const { id: contractIdentifier } = await params;
+    const contractId = await resolveContractId(parsed.orgId, contractIdentifier);
+    const normalizedRefNo = await setContractDocumentRef(parsed.orgId, contractId, parsed.family, parsed.refNo);
+
+    await appendAuditLog(
+      parsed.orgId,
+      actor.uid,
+      "contract.document_ref.updated",
+      `organizations/${parsed.orgId}/contracts/${contractId}`,
+      null,
+      {
+        family: parsed.family,
+        refNo: normalizedRefNo,
+      },
+      requestId,
+    );
+
+    return ok(requestId, {
+      family: parsed.family,
+      refNo: normalizedRefNo,
     });
   } catch (error) {
     return fail(requestId, (error as Error).message, 400);

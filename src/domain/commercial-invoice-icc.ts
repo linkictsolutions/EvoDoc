@@ -178,13 +178,14 @@ export function buildCommercialInvoiceIccSample(
   const typeOfShipment = `${Math.max(0, containerCount)} X 20FT (FCL)`;
   const billOfLadingNumber = clean(bookings?.billOfLadingNumber) || clean(latestShipment?.bookingReference) || clean(contract.shipping.bookingNumber);
   const vesselAndVoyageNumber = [clean(bookings?.vesselName), clean(bookings?.voyageNo)].filter(Boolean).join(" , ") || vesselVoyage(latestShipment);
+  const documentRefNo = clean(contract.documentRefs?.commercial_invoice);
 
   return {
     contractId: contract.id,
     contractNumber: contract.contractNumber,
     header: {
       date: today,
-      refNo: contract.contractNumber,
+      refNo: documentRefNo,
       salesContractRef: contract.contractNumber,
       salesContractDate: contractDate,
       exporterBeneficiarySeller: sellerLine,

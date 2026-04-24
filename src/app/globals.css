@@ -455,6 +455,11 @@ tbody tr:hover {
   display: grid;
   gap: 0.95rem;
   width: min(1220px, 100%);
+  min-width: 0;
+}
+
+.page-shell > * {
+  min-width: 0;
 }
 
 .page-header {
@@ -481,6 +486,7 @@ tbody tr:hover {
   border-radius: var(--radius-md);
   padding: 1rem;
   box-shadow: var(--shadow-xs);
+  min-width: 0;
 }
 
 .card + .card {
@@ -550,6 +556,12 @@ tbody tr:hover {
   justify-content: flex-end;
 }
 
+.revision-history-modal {
+  width: min(1080px, 100%);
+  max-height: min(82vh, 900px);
+  overflow: auto;
+}
+
 .progress-wrap {
   display: grid;
   gap: 0.34rem;
@@ -571,10 +583,50 @@ tbody tr:hover {
   color: var(--danger-text);
 }
 
+.centered-loader {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 0.55rem;
+  text-align: center;
+  color: var(--muted);
+}
+
+.centered-loader-card {
+  min-height: 190px;
+}
+
+.centered-loader-page {
+  min-height: 55vh;
+}
+
+.centered-loader-inline {
+  min-height: 120px;
+}
+
+.centered-loader-spinner {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: 3px solid var(--border);
+  border-top-color: var(--brand);
+  animation: centered-loader-spin 800ms linear infinite;
+}
+
+@keyframes centered-loader-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .table-wrap {
+  width: 100%;
+  max-width: 100%;
   overflow-x: auto;
+  overflow-y: hidden;
   border: 1px solid var(--border);
   border-radius: 12px;
+  -webkit-overflow-scrolling: touch;
 }
 
 .table-wrap table th,
@@ -589,8 +641,42 @@ tbody tr:hover {
 
 .table-wrap table td.multiline-cell {
   white-space: pre-wrap;
+  overflow-wrap: anywhere;
   word-break: break-word;
   min-width: 180px;
+}
+
+.preserve-linebreaks {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.table-wrap table td.preserve-linebreaks,
+.table-wrap table th.preserve-linebreaks,
+.print-table td.preserve-linebreaks,
+.print-table th.preserve-linebreaks {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.table-wrap table.resolved-values-table {
+  width: 100%;
+  min-width: 1120px;
+  table-layout: fixed;
+}
+
+.table-wrap table.resolved-values-table th,
+.table-wrap table.resolved-values-table td {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.table-wrap table.resolved-values-table td.multiline-cell,
+.table-wrap table.resolved-values-table td.preserve-linebreaks {
+  white-space: pre-line;
 }
 
 .bookings-page {

@@ -9,7 +9,7 @@ const items = [
     href: "/app/documents/commercial-invoice-icc",
     label: "Commercial Invoice (ICC)",
     code: "CI",
-    hint: "Workbook parity sample preview.",
+    hint: "Preview template output.",
     status: "ready",
   },
 ];
@@ -20,7 +20,7 @@ export function DocumentSidebar() {
   return (
     <aside className="input-sidebar module-sidebar card">
       <h3>Document Category</h3>
-      <p className="sidebar-subtitle">Preview output sheets from resolved data.</p>
+      <p className="sidebar-subtitle">Preview generated output from current resolved data.</p>
       <nav className="sidebar-nav">
         {items.map((item) => (
           <Link

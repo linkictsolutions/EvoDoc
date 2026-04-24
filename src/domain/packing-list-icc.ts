@@ -179,6 +179,7 @@ export function buildPackingListIccSample(args: {
   const grandTotalNetWeightKgs = formatQuantity(lineItems.reduce((total, line) => total + (parseNumeric(line.netWeightKgs) ?? 0), 0));
   const grandTotalGrossWeightKgs = formatQuantity(lineItems.reduce((total, line) => total + (parseNumeric(line.grossWeightKgs) ?? 0), 0));
   const today = formatDate(new Date().toISOString());
+  const documentRefNo = clean(args.contract.documentRefs?.packing_list);
 
   return {
     contractId: args.contract.id,
@@ -186,7 +187,7 @@ export function buildPackingListIccSample(args: {
     header: {
       date: today,
       salesContractRef: clean(args.contract.contractNumber),
-      refNo: clean(args.contract.contractNumber),
+      refNo: documentRefNo,
       salesContractDate: formatDate(args.contract.createdAt),
       exporterBeneficiarySeller: `${companyConfiguration.sellerName}, ${companyConfiguration.sellerAddress}`,
       bankPermitNumber: clean(args.contract.banking.permitNumber),

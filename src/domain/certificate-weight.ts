@@ -178,6 +178,7 @@ export function buildCertificateOfWeightSample(args: {
   const parity = computeContractExcelParity(args.contract.terms, companyConfiguration);
   const certNo = clean(args.finalFields.certNo);
   const bagWeights = resolveBagWeights(companyConfiguration, args.contract, args.finalFields);
+  const documentRefNo = clean(args.contract.documentRefs?.certificate_of_weight);
 
   const containerLines = buildContainerLines({
     staffingRows: args.staffingRows,
@@ -192,7 +193,7 @@ export function buildCertificateOfWeightSample(args: {
   return {
     header: {
       date: formatDate(new Date().toISOString()),
-      refNo: args.contract.contractNumber,
+      refNo: documentRefNo,
     },
     details: {
       shipper: `${companyConfiguration.sellerName} ${companyConfiguration.sellerAddress}`,

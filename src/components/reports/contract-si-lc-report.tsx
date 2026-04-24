@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
+import { CenteredLoader } from "@/components/ui/centered-loader";
 
 type Row = {
   rowNumber: number;
@@ -26,6 +27,18 @@ type Report = {
 
 interface ContractSiLcReportViewProps {
   initialContractId?: string;
+}
+
+function displayResolvedValue(value: string): string {
+  return value.replace(/\\n/g, "\n");
+}
+
+function valueCellClass(label: string, value: string): string {
+  if (/\r?\n/.test(value) || /description|marking/i.test(label)) {
+    return "preserve-linebreaks";
+  }
+
+  return "multiline-cell";
 }
 
 export function ContractSiLcReportView({ initialContractId }: ContractSiLcReportViewProps) {
@@ -81,12 +94,10 @@ export function ContractSiLcReportView({ initialContractId }: ContractSiLcReport
   return (
     <section className="page-shell">
       <header className="page-header">
-        <h1>{initialContractId ? "Resolved Values" : "Contract-SI-LC Final Report"}</h1>
-        <p>
-          Final resolution follows workbook precedence: <strong>J &gt; I &gt; H &gt; G &gt; F</strong>.
-        </p>
+        <h1>Resolved Values</h1>
+        <p>Review merged values from contract, shipping, and bank details.</p>
         {initialContractId ? (
-          <p className="sidebar-subtitle">This is the web-app version of the Excel consolidation layer.</p>
+          <p className="sidebar-subtitle">This view shows the current merged values for this contract.</p>
         ) : null}
       </header>
 
@@ -98,10 +109,11 @@ export function ContractSiLcReportView({ initialContractId }: ContractSiLcReport
               <input value={contractId} onChange={(event) => setContractId(event.target.value)} />
             </label>
             <button type="button" onClick={() => void loadReport(contractId)} disabled={loading}>
-              {loading ? "Loading..." : "Load Final Report"}
+              {loading ? "Loading..." : "Load Resolved Values"}
             </button>
           </div>
           {error ? <p className="error-text mt-md">{error}</p> : null}
+          {loading && !report ? <CenteredLoader label="Loading resolved values..." scope="inline" /> : null}
         </section>
       ) : null}
 
@@ -111,37 +123,53 @@ export function ContractSiLcReportView({ initialContractId }: ContractSiLcReport
         </section>
       ) : null}
 
+      {initialContractId && loading && !report && !error ? (
+        <section className="card">
+          <CenteredLoader label="Loading resolved values..." />
+        </section>
+      ) : null}
+
       {report ? (
         <section className="card">
           <h3>Contract #{report.contractNumber}</h3>
           <p>Buyer: {report.customerName}</p>
-          <p className="muted-text mt-sm">{report.precedence}</p>
-          <div className="table-wrap mt-md">
-            <table>
+          <p className="muted-text mt-sm">Priority order is applied from latest updates to base contract values.</p>
+          <div className="table-wrap mt-md resolved-values-wrap">
+            <table className="resolved-values-table">
               <thead>
                 <tr>
-                  <th>Row</th>
                   <th>Field</th>
-                  <th>Contract (F)</th>
-                  <th>SI (G)</th>
-                  <th>Rev SI (H)</th>
-                  <th>LC (I)</th>
-                  <th>Rev LC (J)</th>
-                  <th>Final (K)</th>
+                  <th>Contract</th>
+                  <th>Shipping</th>
+                  <th>Updated Shipping</th>
+                  <th>Bank &amp; LC</th>
+                  <th>Updated Bank &amp; LC</th>
+                  <th>Final Value</th>
                   <th>Source</th>
                 </tr>
               </thead>
               <tbody>
                 {report.rows.map((row) => (
-                  <tr key={row.rowNumber}>
-                    <td>{row.rowNumber}</td>
+                  <tr key={`${row.rowNumber}-${row.label}`}>
                     <td className="wrap">{row.label}</td>
-                    <td className="multiline-cell">{row.contractValue || "-"}</td>
-                    <td className="multiline-cell">{row.shippingValue || "-"}</td>
-                    <td className="multiline-cell">{row.revisedShippingValue || "-"}</td>
-                    <td className="multiline-cell">{row.lcValue || "-"}</td>
-                    <td className="multiline-cell">{row.revisedLcValue || "-"}</td>
-                    <td className="multiline-cell"><strong>{row.finalValue}</strong></td>
+                    <td className={valueCellClass(row.label, row.contractValue)}>
+                      {displayResolvedValue(row.contractValue || "-")}
+                    </td>
+                    <td className={valueCellClass(row.label, row.shippingValue)}>
+                      {displayResolvedValue(row.shippingValue || "-")}
+                    </td>
+                    <td className={valueCellClass(row.label, row.revisedShippingValue)}>
+                      {displayResolvedValue(row.revisedShippingValue || "-")}
+                    </td>
+                    <td className={valueCellClass(row.label, row.lcValue)}>
+                      {displayResolvedValue(row.lcValue || "-")}
+                    </td>
+                    <td className={valueCellClass(row.label, row.revisedLcValue)}>
+                      {displayResolvedValue(row.revisedLcValue || "-")}
+                    </td>
+                    <td className={valueCellClass(row.label, row.finalValue)}>
+                      <strong>{displayResolvedValue(row.finalValue)}</strong>
+                    </td>
                     <td><span className={`source-badge source-${row.finalSource}`}>{row.finalSource}</span></td>
                   </tr>
                 ))}

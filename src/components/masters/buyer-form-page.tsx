@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
 import type { Customer } from "@/types/models";
+import { CenteredLoader } from "@/components/ui/centered-loader";
 
 type BuyerFormState = {
   name: string;
@@ -108,10 +109,9 @@ export function BuyerFormPage({ buyerId }: { buyerId?: string }) {
   if (loading) {
     return (
       <section className="page-shell">
-        <header className="page-header">
-          <h1>Edit Buyer</h1>
-          <p>Loading buyer details...</p>
-        </header>
+        <section className="card">
+          <CenteredLoader label="Loading buyer details..." />
+        </section>
       </section>
     );
   }

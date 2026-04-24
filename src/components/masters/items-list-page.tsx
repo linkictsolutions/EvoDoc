@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { CenteredLoader } from "@/components/ui/centered-loader";
 import type { Item } from "@/types/models";
 
 export function ItemsListPage() {
@@ -96,9 +97,15 @@ export function ItemsListPage() {
               </tr>
             </thead>
             <tbody>
-              {items.length === 0 ? (
+              {loading ? (
                 <tr>
-                  <td colSpan={5}>{loading ? "Loading items..." : "No items saved yet."}</td>
+                  <td colSpan={5}>
+                    <CenteredLoader label="Loading items..." scope="inline" />
+                  </td>
+                </tr>
+              ) : items.length === 0 ? (
+                <tr>
+                  <td colSpan={5}>No items saved yet.</td>
                 </tr>
               ) : (
                 items.map((item) => (

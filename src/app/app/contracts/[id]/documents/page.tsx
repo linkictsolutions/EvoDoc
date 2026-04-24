@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
+import { CenteredLoader } from "@/components/ui/centered-loader";
 
 type ContractDetail = {
   contract: {
@@ -128,7 +129,11 @@ export default function ContractDocumentsPage({ params }: { params: Promise<{ id
   }
 
   if (!state) {
-    return <section className="card"><p>Loading documents...</p></section>;
+    return (
+      <section className="card">
+        <CenteredLoader label="Loading documents..." />
+      </section>
+    );
   }
 
   return (

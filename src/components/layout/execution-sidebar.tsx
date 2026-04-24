@@ -15,8 +15,8 @@ export function ExecutionSidebar({ contractId }: { contractId: string }) {
 
   return (
     <aside className="card module-sidebar input-sidebar">
-      <h3>Execution Sheets</h3>
-      <p className="sidebar-subtitle">Workbook execution sources used by invoice, packing list, and SI.</p>
+      <h3>Execution Data</h3>
+      <p className="sidebar-subtitle">Operational data used by invoices, packing lists, and shipping documents.</p>
       <nav className="sidebar-nav">
         {items.map((item) => {
           const href = `/app/contracts/${contractId}/execution/${item.href}`;

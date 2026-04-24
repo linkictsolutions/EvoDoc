@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
+import { CenteredLoader } from "@/components/ui/centered-loader";
 import type {
   CompanyConfiguration,
   DocumentBrandingSettings,
@@ -390,13 +391,22 @@ export function CompanyConfigurationPage() {
     }
   }
 
-  if (loading || !form) {
+  if (loading) {
     return (
       <section className="page-shell">
-        <header className="page-header">
-          <h1>Company Configuration</h1>
-          <p>Loading organization defaults from the workbook configuration model.</p>
-        </header>
+        <section className="card">
+          <CenteredLoader label="Loading organization defaults..." />
+        </section>
+      </section>
+    );
+  }
+
+  if (!form) {
+    return (
+      <section className="page-shell">
+        <section className="card">
+          <p className="error-text">{error ?? "Unable to load organization defaults."}</p>
+        </section>
       </section>
     );
   }
@@ -406,8 +416,7 @@ export function CompanyConfigurationPage() {
       <header className="page-header">
         <h1>Company Configuration</h1>
         <p>
-          Organization-level defaults from the Excel <strong>Form Configuration</strong> sheet.
-          These values feed document generation across all contracts.
+          Organization-level defaults used across contracts and generated documents.
         </p>
       </header>
 
@@ -658,7 +667,7 @@ export function CompanyConfigurationPage() {
             <div className="section-heading span-all mt-sm">
               <div>
                 <h3>Packaging Definitions</h3>
-                <p className="sidebar-subtitle">Bag weights and tare values currently referenced by workbook formulas.</p>
+                <p className="sidebar-subtitle">Bag weight and tare settings used in document totals.</p>
               </div>
             </div>
 

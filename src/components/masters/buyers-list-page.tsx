@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { CenteredLoader } from "@/components/ui/centered-loader";
 import type { Customer } from "@/types/models";
 
 export function BuyersListPage() {
@@ -96,9 +97,15 @@ export function BuyersListPage() {
               </tr>
             </thead>
             <tbody>
-              {buyers.length === 0 ? (
+              {loading ? (
                 <tr>
-                  <td colSpan={5}>{loading ? "Loading buyers..." : "No buyers saved yet."}</td>
+                  <td colSpan={5}>
+                    <CenteredLoader label="Loading buyers..." scope="inline" />
+                  </td>
+                </tr>
+              ) : buyers.length === 0 ? (
+                <tr>
+                  <td colSpan={5}>No buyers saved yet.</td>
                 </tr>
               ) : (
                 buyers.map((buyer) => (

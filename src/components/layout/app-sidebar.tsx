@@ -42,7 +42,7 @@ const sections: NavSection[] = [
       {
         href: "/app/documents",
         label: "Reports",
-        description: "Preview generated and mapped output sheets.",
+        description: "Preview generated outputs and reports.",
         short: "RP",
         matchPrefix: "/app/documents",
       },
@@ -242,7 +242,7 @@ function prettifySegment(segment: string): string {
     input: "Source Documents",
     "shipping-instruction": "Shipping Instruction",
     "bank-lc": "Bank & LC",
-    "contract-si-lc": "Contract-SI-LC",
+    "contract-si-lc": "Resolved Values",
     "commercial-invoice-icc": "Commercial Invoice ICC",
     "commercial_invoice": "Commercial Invoice (ICC)",
     "packing_list": "Packing List (ICC)",
@@ -285,25 +285,75 @@ function breadcrumbLabel(segment: string, previous: string | null): string {
   return prettifySegment(segment);
 }
 
-function buildBreadcrumbs(pathname: string): Array<{ href: string; label: string }> {
+const documentFamilySegments = new Set([
+  "commercial_invoice",
+  "packing_list",
+  "shipping_instruction",
+  "certificate_of_quality",
+  "certificate_of_weight",
+  "way_bill",
+]);
+
+function resolveDocumentFamilySegment(value: string | null): string | null {
+  if (!value) {
+    return null;
+  }
+
+  return documentFamilySegments.has(value) ? value : null;
+}
+
+function buildBreadcrumbsWithContext(
+  pathname: string,
+  documentFamilyFromQuery: string | null,
+): Array<{ href: string; label: string }> {
   const rawSegments = pathname.split("/").filter(Boolean);
   if (rawSegments.length === 0) {
     return [];
   }
 
   const segments = rawSegments[0] === "app" ? rawSegments.slice(1) : rawSegments;
+  const familySegment = resolveDocumentFamilySegment(documentFamilyFromQuery);
+  const isGeneratedDocumentPath = segments[0] === "contracts"
+    && segments[2] === "documents"
+    && segments[3] === "generated";
   const breadcrumbs: Array<{ href: string; label: string }> = [{ href: "/app", label: "Overview" }];
 
   let currentPath = "/app";
   let previous: string | null = null;
+  let index = 0;
 
   for (const segment of segments) {
+    if (isGeneratedDocumentPath && familySegment && segment === "generated" && index === 3) {
+      const contractId = segments[1];
+      breadcrumbs.push({
+        href: `/app/contracts/${contractId}/documents/${familySegment}`,
+        label: prettifySegment(familySegment),
+      });
+    }
+
     currentPath += `/${segment}`;
+    let href = currentPath;
+
+    if (isGeneratedDocumentPath) {
+      const contractId = segments[1];
+      const familyHref = familySegment
+        ? `/app/contracts/${contractId}/documents/${familySegment}`
+        : `/app/contracts/${contractId}/documents`;
+
+      if (segment === "generated") {
+        href = familyHref;
+      } else if (previous === "generated" && isLikelyEntityId(segment)) {
+        const familyQuery = familySegment ? `?family=${encodeURIComponent(familySegment)}` : "";
+        href = `/app/contracts/${contractId}/documents/generated/${segment}/review${familyQuery}`;
+      }
+    }
+
     breadcrumbs.push({
-      href: currentPath,
+      href,
       label: breadcrumbLabel(segment, previous),
     });
     previous = segment;
+    index += 1;
   }
 
   return breadcrumbs;
@@ -316,7 +366,6 @@ export function AppSidebar({ children }: { children: ReactNode }) {
   const contractId = candidateContractId && candidateContractId !== "new" ? candidateContractId : null;
   const navSections = contractId ? buildContractSections(contractId) : sections;
   const toolbar = toolbarCopy(pathname);
-  const breadcrumbs = buildBreadcrumbs(pathname);
   const [collapsed, setCollapsed] = useState(() => {
     if (typeof window === "undefined") {
       return false;
@@ -329,6 +378,11 @@ export function AppSidebar({ children }: { children: ReactNode }) {
   useEffect(() => {
     window.localStorage.setItem("evodoc.sidebar.collapsed", String(collapsed));
   }, [collapsed]);
+
+  const documentFamilyQuery = typeof window === "undefined"
+    ? null
+    : new URLSearchParams(window.location.search).get("family");
+  const breadcrumbs = buildBreadcrumbsWithContext(pathname, documentFamilyQuery);
 
   return (
     <div className={clsx("app-shell", collapsed && "is-collapsed", mobileOpen && "is-mobile-open")}>

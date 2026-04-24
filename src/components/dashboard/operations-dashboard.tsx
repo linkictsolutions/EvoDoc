@@ -87,7 +87,7 @@ export function OperationsDashboard() {
           <div className="section-heading">
             <div>
               <h3>Recommended Journey</h3>
-              <p className="sidebar-subtitle">The app should follow the real export operation, not the spreadsheet layout.</p>
+              <p className="sidebar-subtitle">Follow this flow for a clean and consistent export process.</p>
             </div>
           </div>
           <ol className="journey-list">
