@@ -7,8 +7,35 @@ import { DEFAULT_ORG_ID } from "@/lib/config";
 import type { BookingsSheet } from "@/types/models";
 import { CenteredLoader } from "@/components/ui/centered-loader";
 
+type ContractShippingOptionsResponse = {
+  contract: {
+    shipping: {
+      shippingLine?: string;
+      alternative1?: string;
+      alternative2?: string;
+    };
+  };
+};
+
+function buildShippingLineOptions(
+  contractData: ContractShippingOptionsResponse | null,
+  currentShippingLine?: string,
+): string[] {
+  const options = [
+    contractData?.contract.shipping.shippingLine,
+    contractData?.contract.shipping.alternative1,
+    contractData?.contract.shipping.alternative2,
+    currentShippingLine,
+  ]
+    .map((value) => value?.trim())
+    .filter((value): value is string => Boolean(value));
+
+  return Array.from(new Set(options));
+}
+
 export function BookingsPage({ contractId }: { contractId: string }) {
   const [form, setForm] = useState<BookingsSheet | null>(null);
+  const [shippingLineOptions, setShippingLineOptions] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -17,8 +44,12 @@ export function BookingsPage({ contractId }: { contractId: string }) {
     setLoading(true);
     setError(null);
     try {
-      const data = await apiClient<BookingsSheet>(`/api/contracts/${contractId}/execution/bookings?orgId=${DEFAULT_ORG_ID}`);
-      setForm(data);
+      const [bookingsData, contractData] = await Promise.all([
+        apiClient<BookingsSheet>(`/api/contracts/${contractId}/execution/bookings?orgId=${DEFAULT_ORG_ID}`),
+        apiClient<ContractShippingOptionsResponse>(`/api/contracts/${contractId}?orgId=${DEFAULT_ORG_ID}`).catch(() => null),
+      ]);
+      setForm(bookingsData);
+      setShippingLineOptions(buildShippingLineOptions(contractData, bookingsData.shippingLine));
     } catch (loadError) {
       setError((loadError as Error).message);
     } finally {
@@ -130,7 +161,20 @@ export function BookingsPage({ contractId }: { contractId: string }) {
         </label>
         <label>
           Shipping Line
-          <input value={form.shippingLine ?? ""} onChange={(event) => updateHeader("shippingLine", event.target.value)} />
+          <select
+            value={form.shippingLine ?? ""}
+            onChange={(event) => updateHeader("shippingLine", event.target.value)}
+          >
+            <option value="">Select shipping line</option>
+            {shippingLineOptions.map((option) => (
+              <option key={option} value={option}>{option}</option>
+            ))}
+          </select>
+          <small>
+            {shippingLineOptions.length === 0
+              ? "No options found in Shipping Instruction yet. Add Shipping Line or Alternatives there first."
+              : ""}
+          </small>
         </label>
         <label>
           Vessel Name

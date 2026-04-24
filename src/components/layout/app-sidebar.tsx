@@ -168,13 +168,6 @@ function buildContractSections(contractId: string): NavSection[] {
           short: "DC",
           matchPrefix: `/app/contracts/${contractId}/documents`,
         },
-        {
-          href: `/app/contracts/${contractId}/shipments`,
-          label: "Shipments",
-          description: "Shipment snapshots and totals.",
-          short: "SP",
-          matchPrefix: `/app/contracts/${contractId}/shipments`,
-        },
       ],
     },
   ];

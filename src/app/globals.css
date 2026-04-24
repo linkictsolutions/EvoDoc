@@ -215,8 +215,10 @@ tbody tr:hover {
 
 .app-shell {
   min-height: 100vh;
+  height: 100vh;
   display: grid;
   grid-template-columns: 276px minmax(0, 1fr);
+  overflow: hidden;
 }
 
 .app-shell.is-collapsed {
@@ -226,12 +228,15 @@ tbody tr:hover {
 .app-sidebar {
   position: sticky;
   top: 0;
-  min-height: 100vh;
+  height: 100vh;
+  min-height: 0;
   padding: 1rem 0.8rem;
   background: linear-gradient(180deg, #12253d, #0f2136);
   color: #d8e6f8;
   border-right: 1px solid rgba(255, 255, 255, 0.08);
   z-index: 20;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .sidebar-brand {
@@ -379,8 +384,12 @@ tbody tr:hover {
 
 .app-content-shell {
   min-width: 0;
+  min-height: 0;
   display: grid;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: auto minmax(0, 1fr);
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .app-toolbar {
@@ -1747,7 +1756,9 @@ tbody tr:hover {
 
   .app-shell {
     min-height: auto;
+    height: auto;
     display: block;
+    overflow: visible;
   }
 
   .app-content-shell,
@@ -1756,6 +1767,8 @@ tbody tr:hover {
     padding: 0 !important;
     margin: 0 !important;
     min-height: auto;
+    height: auto;
+    overflow: visible !important;
   }
 
   .app-body > * {
