@@ -457,83 +457,139 @@ function PermitPackingListPrintView({ output, documentId }: Props) {
 
 function SiPrintView({ output, documentId }: Props) {
   const rows = flattenRows(output);
-  const shipper = value(rows, "Shipper");
+  const pick = (...labels: string[]): string => {
+    for (const label of labels) {
+      const resolved = value(rows, label);
+      if (resolved !== "-") {
+        return resolved;
+      }
+    }
+
+    return "-";
+  };
+
+  const containers = indexedValues(rows, "Container No ");
+  const seals = indexedValues(rows, "Seal No ");
+  const certs = indexedValues(rows, "Cert No ");
+  const fallbackContainers = indexedValues(rows, "Container ");
+  const fallbackSeals = indexedValues(rows, "Seal ");
+  const fallbackCerts = indexedValues(rows, "Cert ");
+  const lineIndexes = Array.from(new Set([
+    ...containers.keys(),
+    ...seals.keys(),
+    ...certs.keys(),
+    ...fallbackContainers.keys(),
+    ...fallbackSeals.keys(),
+    ...fallbackCerts.keys(),
+  ])).sort((a, b) => a - b);
 
   return (
-    <article className="print-sheet print-si">
-      <header className="doc-header doc-header-stack">
-        <div>
-          <p className="doc-company">{shipper}</p>
-          <p className="doc-meta">SHIPPING INSTRUCTION</p>
-        </div>
-        <div className="doc-header-right">
-          <p className="doc-meta">Document ID: {documentId}</p>
-        </div>
-      </header>
+    <article className="print-sheet si-sheet">
+      <table className="print-table si-table">
+        <tbody>
+          <tr>
+            <td colSpan={6}><strong>SHIPPING INSTRUCTION</strong></td>
+            <td colSpan={4} className="table-align-right"><strong>PAGE 1 OF 1</strong></td>
+          </tr>
+          <tr>
+            <td colSpan={5}><strong>Date:</strong> {display(pick("Date"))}</td>
+            <td colSpan={5}><strong>Ref No:</strong> {display(pick("Ref No"))}</td>
+          </tr>
+          <tr>
+            <td colSpan={6}><strong>Shipping Line:</strong> {display(pick("Shipping Line"))}</td>
+            <td colSpan={4}><strong>Service Contract No:</strong> {display(pick("Service Contract No"))}</td>
+          </tr>
+          <tr>
+            <td colSpan={2}><strong>Shipper</strong></td>
+            <td colSpan={8} className="preserve-linebreaks">{display(pick("Shipper"))}</td>
+          </tr>
+          <tr>
+            <td colSpan={2}><strong>Consignee</strong></td>
+            <td colSpan={8} className="preserve-linebreaks">{display(pick("Consignee"))}</td>
+          </tr>
+          <tr>
+            <td colSpan={2}><strong>Notify Party</strong></td>
+            <td colSpan={8} className="preserve-linebreaks">{display(pick("Notify"))}</td>
+          </tr>
+          <tr>
+            <td colSpan={2}><strong>2nd Notify Party</strong></td>
+            <td colSpan={8} className="preserve-linebreaks">{display(pick("Second Notify"))}</td>
+          </tr>
+          <tr>
+            <td colSpan={2}><strong>Cargo Description</strong></td>
+            <td colSpan={8} className="preserve-linebreaks">{display(pick("Cargo Description", "Description"))}</td>
+          </tr>
+          <tr>
+            <td colSpan={2}><strong>HS Code</strong></td>
+            <td colSpan={3}>{display(pick("HS Code"))}</td>
+            <td colSpan={2}><strong>Quantity</strong></td>
+            <td colSpan={3}>{display(pick("Quantity"))}</td>
+          </tr>
+          <tr>
+            <td colSpan={2}><strong>Gross Weight</strong></td>
+            <td colSpan={3}>{display(pick("Gross Weight", "Gross Weight (KG)"))}</td>
+            <td colSpan={2}><strong>Net Weight</strong></td>
+            <td colSpan={3}>{display(pick("Net Weight", "Net Weight (KG)"))}</td>
+          </tr>
+          <tr>
+            <td colSpan={2}><strong>Cert Number</strong></td>
+            <td colSpan={3}>{display(pick("Cert Number", "Cert No"))}</td>
+            <td colSpan={2}><strong>Container Type</strong></td>
+            <td colSpan={3}>{display(pick("Number Type and Size of Containers"))}</td>
+          </tr>
+          <tr>
+            <td colSpan={2}><strong>Port of Loading</strong></td>
+            <td colSpan={3}>{display(pick("Port of Loading"))}</td>
+            <td colSpan={2}><strong>Place of Discharge</strong></td>
+            <td colSpan={3}>{display(pick("Place of Discharge", "Destination"))}</td>
+          </tr>
+          <tr>
+            <td colSpan={2}><strong>Booking Number</strong></td>
+            <td colSpan={3}>{display(pick("Booking Number"))}</td>
+            <td colSpan={2}><strong>Vessel / Voyage</strong></td>
+            <td colSpan={3}>{display(pick("Vessel / Voyage", "Vessel / Voyage Number"))}</td>
+          </tr>
+          <tr>
+            <td colSpan={2}><strong>Vessel Departure (ETD) / Date</strong></td>
+            <td colSpan={8}>{display(pick("Vessel Departure (ETD) / Date"))}</td>
+          </tr>
+          <tr>
+            <td colSpan={2}><strong>Additional Document / Remark</strong></td>
+            <td colSpan={8} className="preserve-linebreaks">{display(pick("Additional Document / Remark"))}</td>
+          </tr>
+          <tr>
+            <td colSpan={2}><strong>Cargo Moved By</strong></td>
+            <td colSpan={8}>{display(pick("Cargo Moved By"))}</td>
+          </tr>
+        </tbody>
+      </table>
 
-      <section className="doc-section">
-        <table className="print-table">
-          <tbody>
+      <table className="print-table si-table mt-sm">
+        <thead>
+          <tr>
+            <th>Container No</th>
+            <th>Seal No</th>
+            <th>Cert No</th>
+          </tr>
+        </thead>
+        <tbody>
+          {lineIndexes.length > 0 ? (
+            lineIndexes.map((index) => (
+              <tr key={`si-container-row-${index}`}>
+                <td>{display(containers.get(index) ?? fallbackContainers.get(index))}</td>
+                <td>{display(seals.get(index) ?? fallbackSeals.get(index))}</td>
+                <td>{display(certs.get(index) ?? fallbackCerts.get(index))}</td>
+              </tr>
+            ))
+          ) : (
             <tr>
-              <th>Shipper</th>
-              <td>{value(rows, "Shipper")}</td>
+              <td colSpan={3}>No prepared containers in staffing yet.</td>
             </tr>
-            <tr>
-              <th>Consignee</th>
-              <td>{value(rows, "Consignee")}</td>
-            </tr>
-            <tr>
-              <th>Notify</th>
-              <td>{value(rows, "Notify")}</td>
-            </tr>
-            <tr>
-              <th>Second Notify</th>
-              <td>{value(rows, "Second Notify")}</td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
+          )}
+        </tbody>
+      </table>
 
-      <section className="doc-section">
-        <table className="print-table">
-          <tbody>
-            <tr>
-              <th>Shipping Line</th>
-              <td>{value(rows, "Shipping Line")}</td>
-              <th>Alternative 1</th>
-              <td>{value(rows, "Alternative 1")}</td>
-            </tr>
-            <tr>
-              <th>Alternative 2</th>
-              <td>{value(rows, "Alternative 2")}</td>
-              <th>Booking Number</th>
-              <td>{value(rows, "Booking Number")}</td>
-            </tr>
-            <tr>
-              <th>Port of Loading</th>
-              <td>{value(rows, "Port of Loading")}</td>
-              <th>Destination</th>
-              <td>{value(rows, "Destination")}</td>
-            </tr>
-            <tr>
-              <th>Description</th>
-              <td colSpan={3}>{value(rows, "Description")}</td>
-            </tr>
-            <tr>
-              <th>Quantity</th>
-              <td>{value(rows, "Quantity")}</td>
-              <th>Cert No</th>
-              <td>{value(rows, "Cert No")}</td>
-            </tr>
-            <tr>
-              <th>Gross Weight</th>
-              <td>{value(rows, "Gross Weight (KG)")}</td>
-              <th>Net Weight</th>
-              <td>{value(rows, "Net Weight (KG)")}</td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
+      <p className="permit-doc-id">Document ID: {documentId}</p>
     </article>
   );
 }

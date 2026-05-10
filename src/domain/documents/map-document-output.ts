@@ -238,56 +238,126 @@ export function mapDocumentOutput(
       }
 
     case "shipping_instructions":
-      return {
-        docType,
-        docVariant: documentVariant,
-        title: "Shipping Instructions",
-        sections: [
-          {
-            heading: "Parties",
-            rows: [
-              { label: "Shipper", value: sellerIdentity(snapshot) },
-              { label: "Consignee", value: finalFields.consignee },
-              { label: "Notify", value: finalFields.notify },
-              { label: "Second Notify", value: finalFields.secondNotify },
-            ],
-          },
-          {
-            heading: "Shipping Terms",
-            rows: [
-              { label: "Shipping Line", value: finalFields.shippingLine },
-              { label: "Alternative 1", value: finalFields.alternative1 },
-              { label: "Alternative 2", value: finalFields.alternative2 },
-              { label: "Port of Loading", value: finalFields.portOfLoading },
-              { label: "Destination", value: finalFields.destination },
-              { label: "Booking Number", value: bookings?.bookingNumber ?? snapshot.contract.shipping.bookingNumber ?? "-" },
-              { label: "Vessel / Voyage", value: [bookings?.vesselName, bookings?.voyageNo].filter(Boolean).join(" ") || "-" },
-            ],
-          },
-          {
-            heading: "Cargo and Weights",
-            rows: [
-              { label: "Description", value: finalFields.description },
-              {
-                label: "Quantity",
-                value: `${snapshot.contract.terms.quantityBags} BAGS (${parity.containerCount}*20)`,
-              },
-              { label: "Gross Weight (KG)", value: parity.grossWeightKg.toFixed(3) },
-              { label: "Net Weight (KG)", value: parity.quantityKg.toFixed(3) },
-              { label: "Cert No", value: finalFields.certNo },
-            ],
-          },
-          ...(staffingRows.length > 0 ? [{
-            heading: "Container Instructions",
-            rows: staffingRows.flatMap((row) => [
-              { label: `Container ${row.rowNo}`, value: row.containerNumber ?? "-" },
-              { label: `Seal ${row.rowNo}`, value: row.sealNumber ?? "-" },
-              { label: `Cert ${row.rowNo}`, value: row.certNumber ?? "-" },
-            ]),
-          }] : []),
-        ],
-        totals: sharedTotals,
-      };
+      {
+        const clean = (value: string | undefined | null): string => {
+          if (value === undefined || value === null) {
+            return "-";
+          }
+
+          const normalized = value.trim();
+          return normalized.length > 0 ? normalized : "-";
+        };
+
+        const formatDate = (value: string | undefined): string => {
+          if (!value) {
+            return "-";
+          }
+
+          const parsed = new Date(value);
+          if (Number.isNaN(parsed.getTime())) {
+            return clean(value);
+          }
+
+          return parsed.toLocaleDateString("en-GB");
+        };
+
+        const shippingLineOptions = [
+          clean(finalFields.shippingLine),
+          clean(finalFields.alternative1),
+          clean(finalFields.alternative2),
+        ].filter((entry) => entry !== "-");
+
+        const containerRows = staffingRows
+          .filter((row) => [row.containerNumber, row.sealNumber, row.certNumber].some((entry) => Boolean(entry?.trim())))
+          .map((row, index) => ([
+            { label: `Container No ${index + 1}`, value: clean(row.containerNumber) },
+            { label: `Seal No ${index + 1}`, value: clean(row.sealNumber) },
+            { label: `Cert No ${index + 1}`, value: clean(row.certNumber) },
+          ]))
+          .flat();
+
+        return {
+          docType,
+          docVariant: documentVariant,
+          title: "Shipping Instruction",
+          sections: [
+            {
+              heading: "SI Header",
+              rows: [
+                { label: "Date", value: formatDate(new Date().toISOString()) },
+                { label: "Ref No", value: clean(snapshot.contract.documentRefs?.shipping_instruction) },
+                {
+                  label: "Shipping Line",
+                  value: clean(finalFields.shippingLine),
+                },
+                {
+                  label: "Shipping Line Options",
+                  value: shippingLineOptions.join(" / ") || "-",
+                },
+                {
+                  label: "Service Contract No",
+                  value: clean(snapshot.contract.shipping.serviceContract),
+                },
+              ],
+            },
+            {
+              heading: "SI Parties",
+              rows: [
+                { label: "Shipper", value: clean(sellerIdentity(snapshot)) },
+                { label: "Consignee", value: clean(finalFields.consignee) },
+                { label: "Notify", value: clean(finalFields.notify) },
+                { label: "Second Notify", value: clean(finalFields.secondNotify) },
+              ],
+            },
+            {
+              heading: "SI Cargo",
+              rows: [
+                { label: "Cargo Description", value: clean(finalFields.description) },
+                { label: "HS Code", value: clean(companyConfiguration.defaultHsCode) },
+                {
+                  label: "Quantity",
+                  value: `${snapshot.contract.terms.quantityBags} BAGS (${parity.containerCount}*20)`,
+                },
+                { label: "Gross Weight", value: `${parity.grossWeightKg.toFixed(3)} KGS` },
+                { label: "Net Weight", value: `${parity.quantityKg.toFixed(3)} KGS` },
+                { label: "Cert Number", value: clean(finalFields.certNo) },
+                { label: "Number Type and Size of Containers", value: `${Math.max(0, parity.containerCount)} FCL` },
+              ],
+            },
+            {
+              heading: "SI Routing",
+              rows: [
+                { label: "Port of Loading", value: clean(finalFields.portOfLoading) },
+                { label: "Place of Discharge", value: clean(finalFields.destination) },
+                { label: "Booking Number", value: clean(bookings?.bookingNumber ?? snapshot.contract.shipping.bookingNumber) },
+                {
+                  label: "Vessel / Voyage",
+                  value: clean([bookings?.vesselName, bookings?.voyageNo].filter(Boolean).join(" ")),
+                },
+                {
+                  label: "Vessel Departure (ETD) / Date",
+                  value: clean(snapshot.contract.shipping.shipmentMonth ?? snapshot.contract.banking.latestShipmentDate),
+                },
+                {
+                  label: "Additional Document / Remark",
+                  value: "14 DAYS FREE TIME AT PORT OF DISCHARGE",
+                },
+                {
+                  label: "Cargo Moved By",
+                  value: "BY TRUCK",
+                },
+              ],
+            },
+            ...(containerRows.length > 0
+              ? [{
+                heading: "SI Container Table",
+                rows: containerRows,
+              }]
+              : []),
+          ],
+          totals: sharedTotals,
+        };
+      }
 
     case "quality_certificate":
       {

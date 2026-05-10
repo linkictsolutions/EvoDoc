@@ -1346,6 +1346,34 @@ tbody tr:hover {
   vertical-align: top;
 }
 
+.si-sheet {
+  width: min(1100px, 100%);
+  color: #111;
+  font-family: "Times New Roman", Times, serif;
+  min-height: calc(297mm - var(--brand-header-height, 0mm) - var(--brand-footer-height, 0mm));
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 0.3rem;
+}
+
+.si-table {
+  table-layout: fixed;
+}
+
+.si-table th,
+.si-table td {
+  font-size: 0.77rem;
+  padding: 0.2rem 0.28rem;
+  line-height: 1.14;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.si-table thead th {
+  background: #fff;
+  font-weight: 700;
+}
+
 .document-print-page {
   display: grid;
   gap: 1rem;
@@ -1866,6 +1894,19 @@ tbody tr:hover {
   .packing-icc-footer-table .packing-icc-marking-cell,
   .packing-icc-footer-table .packing-icc-signature-cell {
     min-height: 40mm;
+  }
+
+  .si-sheet {
+    font-size: 0.72rem;
+    line-height: 1.15;
+    gap: 0.2rem;
+  }
+
+  .si-table th,
+  .si-table td {
+    font-size: 0.66rem;
+    padding: 0.14rem 0.16rem;
+    line-height: 1.13;
   }
 
   .permit-doc-id {
