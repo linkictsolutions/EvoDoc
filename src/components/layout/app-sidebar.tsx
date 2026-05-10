@@ -3,7 +3,7 @@
 import Link from "next/link";
 import clsx from "clsx";
 import { useEffect, useState } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
 type NavItem = {
@@ -373,7 +373,6 @@ function buildBreadcrumbsWithContext(
 
 export function AppSidebar({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const pathnameSegments = pathname.split("/").filter(Boolean);
   const candidateContractId = pathnameSegments[0] === "app" && pathnameSegments[1] === "contracts" ? pathnameSegments[2] : null;
   const contractId = candidateContractId && candidateContractId !== "new" ? candidateContractId : null;
@@ -387,12 +386,30 @@ export function AppSidebar({ children }: { children: ReactNode }) {
     return window.localStorage.getItem("evodoc.sidebar.collapsed") === "true";
   });
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [documentFamilyQuery, setDocumentFamilyQuery] = useState<string | null>(null);
 
   useEffect(() => {
     window.localStorage.setItem("evodoc.sidebar.collapsed", String(collapsed));
   }, [collapsed]);
 
-  const documentFamilyQuery = searchParams.get("family");
+  useEffect(() => {
+    function updateDocumentFamilyQuery() {
+      if (typeof window === "undefined") {
+        return;
+      }
+
+      const query = new URLSearchParams(window.location.search).get("family");
+      setDocumentFamilyQuery(query);
+    }
+
+    updateDocumentFamilyQuery();
+    window.addEventListener("popstate", updateDocumentFamilyQuery);
+
+    return () => {
+      window.removeEventListener("popstate", updateDocumentFamilyQuery);
+    };
+  }, [pathname]);
+
   const breadcrumbs = buildBreadcrumbsWithContext(pathname, documentFamilyQuery);
 
   return (

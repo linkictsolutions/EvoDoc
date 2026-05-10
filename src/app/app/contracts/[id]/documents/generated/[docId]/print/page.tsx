@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { DocumentPrintTemplate } from "@/components/documents/document-print-template";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
@@ -55,9 +55,9 @@ export default function DocumentPrintPage({
   params: Promise<{ id: string; docId: string }>;
 }) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [payload, setPayload] = useState<PrintPayload | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [familyFromQuery, setFamilyFromQuery] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -92,14 +92,32 @@ export default function DocumentPrintPage({
   }, [params]);
 
   useEffect(() => {
-    if (searchParams.get("family") || !payload?.outputSnapshot.docType) {
+    if (familyFromQuery || !payload?.outputSnapshot.docType) {
       return;
     }
 
     const currentPath = window.location.pathname;
     const resolved = resolveFamilyFromDocType(payload.outputSnapshot.docType);
     router.replace(`${currentPath}?family=${encodeURIComponent(resolved)}`);
-  }, [payload?.outputSnapshot.docType, router, searchParams]);
+  }, [familyFromQuery, payload?.outputSnapshot.docType, router]);
+
+  useEffect(() => {
+    function updateFamilyFromQuery() {
+      if (typeof window === "undefined") {
+        return;
+      }
+
+      const nextFamily = new URLSearchParams(window.location.search).get("family");
+      setFamilyFromQuery(nextFamily);
+    }
+
+    updateFamilyFromQuery();
+    window.addEventListener("popstate", updateFamilyFromQuery);
+
+    return () => {
+      window.removeEventListener("popstate", updateFamilyFromQuery);
+    };
+  }, []);
 
   if (error) {
     return (

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { ReviewActions } from "@/components/forms/document-actions";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
@@ -55,14 +55,31 @@ export default function DocumentReviewPage({
   params: Promise<{ id: string; docId: string }>;
 }) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [contractId, setContractId] = useState("");
   const [docId, setDocId] = useState("");
   const [data, setData] = useState<PrintPayload | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const familyFromQuery = searchParams.get("family");
+  const [familyFromQuery, setFamilyFromQuery] = useState<string | null>(null);
   const resolvedFamily = familyFromQuery ?? (data ? resolveFamilyFromDocType(data.docType) : null);
   const familyQuery = resolvedFamily ? `?family=${encodeURIComponent(resolvedFamily)}` : "";
+
+  useEffect(() => {
+    function updateFamilyFromQuery() {
+      if (typeof window === "undefined") {
+        return;
+      }
+
+      const nextFamily = new URLSearchParams(window.location.search).get("family");
+      setFamilyFromQuery(nextFamily);
+    }
+
+    updateFamilyFromQuery();
+    window.addEventListener("popstate", updateFamilyFromQuery);
+
+    return () => {
+      window.removeEventListener("popstate", updateFamilyFromQuery);
+    };
+  }, []);
 
   useEffect(() => {
     let mounted = true;

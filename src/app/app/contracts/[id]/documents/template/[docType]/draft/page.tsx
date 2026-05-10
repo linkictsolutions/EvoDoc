@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import type { DocumentType } from "@/types/models";
 import { GenerateDocumentButton } from "@/components/forms/document-actions";
 import { CenteredLoader } from "@/components/ui/centered-loader";
@@ -11,12 +10,30 @@ export default function DocumentDraftPage({
 }: {
   params: Promise<{ id: string; docType: DocumentType }>;
 }) {
-  const searchParams = useSearchParams();
   const [state, setState] = useState<{ contractId: string; docType: DocumentType } | null>(null);
+  const [shipmentId, setShipmentId] = useState<string | null>(null);
 
   useEffect(() => {
     Promise.resolve(params).then(({ id, docType }) => setState({ contractId: id, docType }));
   }, [params]);
+
+  useEffect(() => {
+    function updateShipmentId() {
+      if (typeof window === "undefined") {
+        return;
+      }
+
+      const nextShipmentId = new URLSearchParams(window.location.search).get("shipmentId");
+      setShipmentId(nextShipmentId);
+    }
+
+    updateShipmentId();
+    window.addEventListener("popstate", updateShipmentId);
+
+    return () => {
+      window.removeEventListener("popstate", updateShipmentId);
+    };
+  }, []);
 
   if (!state) {
     return (
@@ -25,8 +42,6 @@ export default function DocumentDraftPage({
       </section>
     );
   }
-
-  const shipmentId = searchParams.get("shipmentId");
 
   return (
     <section className="page-shell">
