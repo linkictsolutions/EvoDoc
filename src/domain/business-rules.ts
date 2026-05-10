@@ -140,7 +140,8 @@ export function validateDocumentGenerationRules(
     snapshot.docType === "invoice"
     || snapshot.docType === "quality_certificate"
     || snapshot.docType === "weight_certificate"
-    || snapshot.docType === "way_bill";
+    || snapshot.docType === "way_bill"
+    || snapshot.docType === "ico_certificate";
 
   if (snapshot.contract.status === "closed") {
     result.errors.push("Cannot generate document for a closed contract.");

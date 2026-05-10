@@ -39,6 +39,7 @@ const documentTypeLabels: Record<DocumentType, string> = {
   quality_certificate: "Certificate of Quality",
   weight_certificate: "Certificate of Weight",
   way_bill: "Way Bill",
+  ico_certificate: "ICO Certificate of Origin",
 };
 
 function toFormState(configuration: CompanyConfiguration): CompanyConfigurationFormState {

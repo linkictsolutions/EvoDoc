@@ -13,6 +13,27 @@ type FamilyPayload = {
   familyLabel: string;
   docType: DocumentType;
   refNo: string;
+  icoOverrides?: {
+    exporterConsignor?: string;
+    notifyAddress?: string;
+    internalReferenceNo?: string;
+    countryCode?: string;
+    portCode?: string;
+    serialNo?: string;
+    producingCountry?: string;
+    countryDestination?: string;
+    dateOfExport?: string;
+    countryTransShipment?: string;
+    nameOfCarrier?: string;
+    icoIdentificationMark?: string;
+    otherMarksIcoNo?: string;
+    otherMarksCertNo?: string;
+    descriptionOtherSpecify?: string;
+    partBText?: string;
+    issuingDate?: string;
+    certifyingDate?: string;
+    place?: string;
+  } | null;
   latestShipmentId: string | null;
   currentPreview: DocumentOutputSnapshot | null;
   previewWarnings: string[];
@@ -52,7 +73,10 @@ export default function ContractDocumentFamilyPage({
   const [activeWayBillTab, setActiveWayBillTab] = useState(0);
   const [refNoInput, setRefNoInput] = useState("");
   const [savingRefNo, setSavingRefNo] = useState(false);
+  const [savingIcoOverrides, setSavingIcoOverrides] = useState(false);
   const [refNoNotice, setRefNoNotice] = useState<string | null>(null);
+  const [icoNotice, setIcoNotice] = useState<string | null>(null);
+  const [icoOverrides, setIcoOverrides] = useState<Record<string, string>>({});
   const [showRevisionHistory, setShowRevisionHistory] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [generateError, setGenerateError] = useState<string | null>(null);
@@ -96,6 +120,27 @@ export default function ContractDocumentFamilyPage({
         if (mounted) {
           setPayload(data);
           setRefNoInput(data.refNo ?? "");
+          setIcoOverrides({
+            exporterConsignor: data.icoOverrides?.exporterConsignor ?? "",
+            notifyAddress: data.icoOverrides?.notifyAddress ?? "",
+            internalReferenceNo: data.icoOverrides?.internalReferenceNo ?? "",
+            countryCode: data.icoOverrides?.countryCode ?? "",
+            portCode: data.icoOverrides?.portCode ?? "",
+            serialNo: data.icoOverrides?.serialNo ?? "",
+            producingCountry: data.icoOverrides?.producingCountry ?? "",
+            countryDestination: data.icoOverrides?.countryDestination ?? "",
+            dateOfExport: data.icoOverrides?.dateOfExport ?? "",
+            countryTransShipment: data.icoOverrides?.countryTransShipment ?? "",
+            nameOfCarrier: data.icoOverrides?.nameOfCarrier ?? "",
+            icoIdentificationMark: data.icoOverrides?.icoIdentificationMark ?? "",
+            otherMarksIcoNo: data.icoOverrides?.otherMarksIcoNo ?? "",
+            otherMarksCertNo: data.icoOverrides?.otherMarksCertNo ?? "",
+            descriptionOtherSpecify: data.icoOverrides?.descriptionOtherSpecify ?? "",
+            partBText: data.icoOverrides?.partBText ?? "",
+            issuingDate: data.icoOverrides?.issuingDate ?? "",
+            certifyingDate: data.icoOverrides?.certifyingDate ?? "",
+            place: data.icoOverrides?.place ?? "",
+          });
           setError(null);
         }
       })
@@ -174,6 +219,41 @@ export default function ContractDocumentFamilyPage({
     }
   }
 
+  async function saveIcoOverrides() {
+    if (!contractId) {
+      return;
+    }
+
+    setSavingIcoOverrides(true);
+    setIcoNotice(null);
+    setError(null);
+
+    try {
+      await apiClient<{ family: DocumentFamily; refNo: string }>(
+        `/api/contracts/${contractId}/document-family`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            orgId: DEFAULT_ORG_ID,
+            family,
+            refNo: refNoInput,
+            icoOverrides,
+          }),
+        },
+      );
+
+      const refreshed = await apiClient<FamilyPayload>(
+        `/api/contracts/${contractId}/document-family?orgId=${DEFAULT_ORG_ID}&family=${family}`,
+      );
+      setPayload(refreshed);
+      setIcoNotice("ICO inputs saved.");
+    } catch (saveError) {
+      setError((saveError as Error).message);
+    } finally {
+      setSavingIcoOverrides(false);
+    }
+  }
+
   if (error) {
     return <section className="card"><p className="error-text">{error}</p></section>;
   }
@@ -237,6 +317,50 @@ export default function ContractDocumentFamilyPage({
           </button>
         </div>
         {refNoNotice ? <p className="muted-text mt-sm">{refNoNotice}</p> : null}
+        {payload.family === "ico_certificate" ? (
+          <div className="mt-lg">
+            <h4>ICO Manual Inputs</h4>
+            <p className="sidebar-subtitle">Grouped manual entries for fields like 1, 6, 8 and related boxes. Save once for all changes.</p>
+            <div className="form-grid mt-sm">
+              {[
+                ["exporterConsignor", "1 Exporter/Consignor"],
+                ["notifyAddress", "2 Notify address"],
+                ["internalReferenceNo", "3 Internal reference No"],
+                ["countryCode", "4 Country code"],
+                ["portCode", "4 Port code"],
+                ["serialNo", "4 Serial No"],
+                ["producingCountry", "5 Producing country"],
+                ["countryDestination", "6 Country of destination"],
+                ["dateOfExport", "7 Date of export"],
+                ["countryTransShipment", "8 Country of trans-shipment"],
+                ["nameOfCarrier", "9 Name of carrier"],
+                ["icoIdentificationMark", "10 ICO Identification mark"],
+                ["otherMarksIcoNo", "10 Other marks: ICO No"],
+                ["otherMarksCertNo", "10 Other marks: Cert No"],
+                ["descriptionOtherSpecify", "14 Other (specify)"],
+                ["partBText", "17 Part B text"],
+                ["issuingDate", "16 Issuing date"],
+                ["certifyingDate", "16 Certifying date"],
+                ["place", "16 Place"],
+              ].map(([key, label]) => (
+                <label key={key}>
+                  <span>{label}</span>
+                  <textarea
+                    value={icoOverrides[key] ?? ""}
+                    onChange={(event) => setIcoOverrides((current) => ({ ...current, [key]: event.target.value }))}
+                    rows={key === "partBText" || key === "descriptionOtherSpecify" ? 3 : 2}
+                  />
+                </label>
+              ))}
+            </div>
+            <div className="row-actions mt-md">
+              <button type="button" onClick={() => void saveIcoOverrides()} disabled={savingIcoOverrides}>
+                {savingIcoOverrides ? "Saving ICO Inputs..." : "Save ICO Inputs"}
+              </button>
+            </div>
+            {icoNotice ? <p className="muted-text mt-sm">{icoNotice}</p> : null}
+          </div>
+        ) : null}
 
         {payload.unavailableReason ? (
           <p>{payload.unavailableReason}</p>

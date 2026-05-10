@@ -224,6 +224,10 @@ export const companyConfigurationInputSchema = z.object({
           header: z.boolean(),
           footer: z.boolean(),
         }),
+        ico_certificate: z.object({
+          header: z.boolean(),
+          footer: z.boolean(),
+        }),
       }),
     }),
     bulkReferenceKg: z.number().positive(),
@@ -340,6 +344,7 @@ export const generateDocumentSchema = z.object({
     "quality_certificate",
     "weight_certificate",
     "way_bill",
+    "ico_certificate",
   ]),
   docVariant: z.enum(["permit", "final", "standard"]).optional(),
   templateVersion: z.string().default("v1"),

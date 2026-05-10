@@ -474,14 +474,22 @@ function SiPrintView({ output, documentId }: Props) {
   const fallbackContainers = indexedValues(rows, "Container ");
   const fallbackSeals = indexedValues(rows, "Seal ");
   const fallbackCerts = indexedValues(rows, "Cert ");
-  const lineIndexes = Array.from(new Set([
+  const containerRows = Array.from(new Set([
     ...containers.keys(),
     ...seals.keys(),
     ...certs.keys(),
     ...fallbackContainers.keys(),
     ...fallbackSeals.keys(),
     ...fallbackCerts.keys(),
-  ])).sort((a, b) => a - b);
+  ]))
+    .sort((a, b) => a - b)
+    .map((index) => ({
+      index,
+      container: display(containers.get(index) ?? fallbackContainers.get(index)),
+      seal: display(seals.get(index) ?? fallbackSeals.get(index)),
+      cert: display(certs.get(index) ?? fallbackCerts.get(index)),
+    }))
+    .filter((row) => row.container !== "" || row.seal !== "" || row.cert !== "");
 
   return (
     <article className="print-sheet si-sheet">
@@ -496,70 +504,108 @@ function SiPrintView({ output, documentId }: Props) {
             <td colSpan={5}><strong>Ref No:</strong> {display(pick("Ref No"))}</td>
           </tr>
           <tr>
-            <td colSpan={6}><strong>Shipping Line:</strong> {display(pick("Shipping Line"))}</td>
-            <td colSpan={4}><strong>Service Contract No:</strong> {display(pick("Service Contract No"))}</td>
-          </tr>
-          <tr>
             <td colSpan={2}><strong>Shipper</strong></td>
-            <td colSpan={8} className="preserve-linebreaks">{display(pick("Shipper"))}</td>
+            <td colSpan={8} className="preserve-linebreaks">{display(pick("Shipper", "Shipper (E10)"))}</td>
           </tr>
           <tr>
             <td colSpan={2}><strong>Consignee</strong></td>
-            <td colSpan={8} className="preserve-linebreaks">{display(pick("Consignee"))}</td>
+            <td colSpan={8} className="preserve-linebreaks">{display(pick("Consignee", "Consignee (E11)"))}</td>
           </tr>
           <tr>
             <td colSpan={2}><strong>Notify Party</strong></td>
-            <td colSpan={8} className="preserve-linebreaks">{display(pick("Notify"))}</td>
+            <td colSpan={8} className="preserve-linebreaks">{display(pick("Notify", "Notify (E12)"))}</td>
           </tr>
           <tr>
             <td colSpan={2}><strong>2nd Notify Party</strong></td>
-            <td colSpan={8} className="preserve-linebreaks">{display(pick("Second Notify"))}</td>
+            <td colSpan={8} className="preserve-linebreaks">{display(pick("Second Notify", "2nd Notify (E13)"))}</td>
+          </tr>
+          <tr>
+            <td colSpan={2}><strong>Original Bill Type</strong></td>
+            <td colSpan={2}>PREPAID</td>
+            <td colSpan={2}>COLLECT</td>
+            <td colSpan={4}>PREPAID FOR DOCUMENTATION</td>
+          </tr>
+          <tr>
+            <td colSpan={2}><strong>Freight</strong></td>
+            <td colSpan={8}>FREIGHT PAYABLE ELSEWHERE IN BASEL/SWITZERLAND BY WALTER MATTER</td>
+          </tr>
+          <tr>
+            <td colSpan={2}><strong>Service Contract No</strong></td>
+            <td colSpan={8}>{display(pick("Shipping Line / Service Contract (E17)", "Service Contract No"))}</td>
           </tr>
           <tr>
             <td colSpan={2}><strong>Cargo Description</strong></td>
-            <td colSpan={8} className="preserve-linebreaks">{display(pick("Cargo Description", "Description"))}</td>
+            <td colSpan={8} className="preserve-linebreaks">{display(pick("Cargo Description", "Cargo Description (E18)", "Description"))}</td>
           </tr>
           <tr>
             <td colSpan={2}><strong>HS Code</strong></td>
-            <td colSpan={3}>{display(pick("HS Code"))}</td>
+            <td colSpan={3}>{display(pick("HS Code", "HS Code (E19)"))}</td>
             <td colSpan={2}><strong>Quantity</strong></td>
-            <td colSpan={3}>{display(pick("Quantity"))}</td>
+            <td colSpan={3}>{display(pick("Quantity", "Quantity (E20)"))}</td>
           </tr>
           <tr>
             <td colSpan={2}><strong>Gross Weight</strong></td>
-            <td colSpan={3}>{display(pick("Gross Weight", "Gross Weight (KG)"))}</td>
+            <td colSpan={3}>{display(pick("Gross Weight", "Gross Weight (KG)", "Gross Weight (H21)"))}</td>
             <td colSpan={2}><strong>Net Weight</strong></td>
-            <td colSpan={3}>{display(pick("Net Weight", "Net Weight (KG)"))}</td>
+            <td colSpan={3}>{display(pick("Net Weight", "Net Weight (KG)", "Net Weight (O21)"))}</td>
+          </tr>
+          <tr>
+            <td colSpan={2}><strong>Verified Gross Mass</strong></td>
+            <td colSpan={8}>SHOULD BE CONDUCTED.</td>
           </tr>
           <tr>
             <td colSpan={2}><strong>Cert Number</strong></td>
-            <td colSpan={3}>{display(pick("Cert Number", "Cert No"))}</td>
-            <td colSpan={2}><strong>Container Type</strong></td>
-            <td colSpan={3}>{display(pick("Number Type and Size of Containers"))}</td>
+            <td colSpan={3}>{display(pick("Cert Number", "Cert Number (E23)", "Cert No"))}</td>
+            <td colSpan={5}></td>
+          </tr>
+          <tr>
+            <td colSpan={2}><strong>Partial Shipment Allowed Yes/No</strong></td>
+            <td colSpan={8}>NOT ALLOWED</td>
+          </tr>
+          <tr>
+            <td colSpan={2}><strong>If Reefer Cargo; indicate temperature settings</strong></td>
+            <td colSpan={8}>---------</td>
+          </tr>
+          <tr>
+            <td colSpan={2}><strong>Number Type and Size of Containers</strong></td>
+            <td>20 DRY</td>
+            <td>40 DRY</td>
+            <td>40 DRHC</td>
+            <td>20 REEF</td>
+            <td>40 REF</td>
+            <td colSpan={2}>OTHER</td>
+          </tr>
+          <tr>
+            <td colSpan={2}></td>
+            <td colSpan={8}>{display(pick("Number Type and Size of Containers", "Number Type and Size of Containers (E27)"))}</td>
+          </tr>
+          <tr>
+            <td colSpan={2}><strong>Service Mode (CY/CY - CY/SD)</strong></td>
+            <td colSpan={8}></td>
           </tr>
           <tr>
             <td colSpan={2}><strong>Port of Loading</strong></td>
-            <td colSpan={3}>{display(pick("Port of Loading"))}</td>
+            <td colSpan={8}>{display(pick("Port of Loading", "Port of Loading (E29)"))}</td>
+          </tr>
+          <tr>
             <td colSpan={2}><strong>Place of Discharge</strong></td>
-            <td colSpan={3}>{display(pick("Place of Discharge", "Destination"))}</td>
+            <td colSpan={8}>{display(pick("Place of Discharge", "Place of Discharge (E30)", "Destination"))}</td>
           </tr>
           <tr>
             <td colSpan={2}><strong>Booking Number</strong></td>
-            <td colSpan={3}>{display(pick("Booking Number"))}</td>
-            <td colSpan={2}><strong>Vessel / Voyage</strong></td>
-            <td colSpan={3}>{display(pick("Vessel / Voyage", "Vessel / Voyage Number"))}</td>
+            <td colSpan={8}>{display(pick("Booking Number", "Booking Number (E31)"))}</td>
           </tr>
           <tr>
             <td colSpan={2}><strong>Vessel Departure (ETD) / Date</strong></td>
-            <td colSpan={8}>{display(pick("Vessel Departure (ETD) / Date"))}</td>
+            <td colSpan={8}>{display(pick("Vessel Departure (ETD) / Date", "Vessel Departure (ETD) / Date (E32)"))}</td>
           </tr>
           <tr>
             <td colSpan={2}><strong>Additional Document / Remark</strong></td>
-            <td colSpan={8} className="preserve-linebreaks">{display(pick("Additional Document / Remark"))}</td>
+            <td colSpan={8} className="preserve-linebreaks">{display(pick("Additional Document / Remark", "Additional Document / Remark (E33)"))}</td>
           </tr>
           <tr>
             <td colSpan={2}><strong>Cargo Moved By</strong></td>
-            <td colSpan={8}>{display(pick("Cargo Moved By"))}</td>
+            <td colSpan={8}>{display(pick("Cargo Moved By", "Cargo Moved By (E34)"))}</td>
           </tr>
         </tbody>
       </table>
@@ -573,12 +619,12 @@ function SiPrintView({ output, documentId }: Props) {
           </tr>
         </thead>
         <tbody>
-          {lineIndexes.length > 0 ? (
-            lineIndexes.map((index) => (
-              <tr key={`si-container-row-${index}`}>
-                <td>{display(containers.get(index) ?? fallbackContainers.get(index))}</td>
-                <td>{display(seals.get(index) ?? fallbackSeals.get(index))}</td>
-                <td>{display(certs.get(index) ?? fallbackCerts.get(index))}</td>
+          {containerRows.length > 0 ? (
+            containerRows.map((row) => (
+              <tr key={`si-container-row-${row.index}`}>
+                <td>{row.container || "-"}</td>
+                <td>{row.seal || "-"}</td>
+                <td>{row.cert || "-"}</td>
               </tr>
             ))
           ) : (
@@ -1046,6 +1092,198 @@ function WayBillPrintView({ output, documentId }: Props) {
   );
 }
 
+function IcoCertificatePrintView({ output, documentId }: Props) {
+  const rows = flattenRows(output);
+  const field = (label: string) => display(value(rows, label));
+  const checked = (label: string) => value(rows, label).trim().toLowerCase() === "yes";
+  const checkMark = (label: string) => (checked(label) ? "x" : "");
+
+  return (
+    <article className="print-sheet ico-sheet">
+      <section className="ico-part-a-wrap">
+        <aside className="ico-original-strip" aria-hidden>
+          <span>ORIGINAL</span>
+        </aside>
+
+        <section className="ico-form">
+          <div className="ico-topline">
+            <p>PART A: FOR USE BY AUTHORITIES OF ISSUING COUNTRY</p>
+            <p>ICO CERTIFICATE OF ORIGIN</p>
+          </div>
+
+          <div className="ico-grid-row h30 two-col">
+          <div className="cell with-code-boxes">
+            <strong>1 Exporter/Consignor</strong>
+              <p className="ico-wrap">{field("1 Exporter/Consignor")}</p>
+              <div className="ico-code-boxes" aria-hidden>
+                <span /><span /><span /><span />
+              </div>
+            </div>
+            <div className="cell ico-org-block">
+              <strong>Form approved by the:</strong>
+              <div className="ico-org-logo" aria-hidden />
+              <p className="ico-org-title">INTERNATIONAL COFFEE ORGANIZATION</p>
+              <p className="ico-org-meta">22 Berners Street, London W1T 3DD, England</p>
+              <p className="ico-org-meta">Tel: +44 (0) 20 7580 8591 &nbsp;&nbsp; Fax: +44 (0) 20 7580 6129</p>
+              <p className="ico-org-meta">Email: certs@ico.org</p>
+            </div>
+          </div>
+
+          <div className="ico-grid-row h30 two-col">
+            <div className="cell with-code-boxes">
+              <strong>2 Notify address</strong>
+              <p className="ico-wrap">{field("2 Notify Address")}</p>
+              <div className="ico-code-boxes" aria-hidden>
+                <span /><span /><span /><span />
+              </div>
+            </div>
+            <div className="cell right-stack">
+            <div className="stack-row h10">
+              <strong>3 Internal reference No.</strong>
+              <p>{field("3 Internal Reference No")}</p>
+            </div>
+            <div className="stack-row h10 split-3-32-28-32">
+              <div><strong>4 Country code</strong><p>{field("4 Country Code")}</p></div>
+              <div><strong>Port code</strong><p>{field("4 Port Code")}</p></div>
+              <div><strong>Serial No.</strong><p>{field("4 Serial No")}</p></div>
+            </div>
+            <div className="stack-row h10 with-code-boxes">
+              <strong>5 Producing country</strong>
+              <p>{field("5 Producing Country")}</p>
+              <div className="ico-code-boxes" aria-hidden>
+                <span /><span /><span /><span />
+              </div>
+            </div>
+          </div>
+        </div>
+
+          <div className="ico-grid-row h15 two-col">
+            <div className="cell with-code-boxes">
+              <strong>6 Country of destination</strong>
+              <p>{field("6 Country of Destination")}</p>
+              <div className="ico-code-boxes" aria-hidden>
+                <span /><span /><span /><span />
+              </div>
+            </div>
+          <div className="cell">
+            <strong>7 Date of export (DD/MM/YY)</strong>
+            <p>{field("7 Date of Export (DD/MM/YY)")}</p>
+          </div>
+        </div>
+
+          <div className="ico-grid-row h15 two-col">
+            <div className="cell with-code-boxes">
+              <strong>8 Country of trans-shipment</strong>
+              <p className="ico-wrap">{field("8 Country of Trans-shipment")}</p>
+              <div className="ico-code-boxes" aria-hidden>
+                <span /><span /><span /><span />
+              </div>
+            </div>
+            <div className="cell with-code-boxes">
+              <strong>9 Name of carrier</strong>
+              <p className="ico-wrap">{field("9 Name of Carrier")}</p>
+              <div className="ico-code-boxes" aria-hidden>
+                <span /><span /><span /><span />
+              </div>
+            </div>
+        </div>
+
+        <div className="ico-grid-row h35 two-col">
+          <div className="cell">
+            <strong>10 ICO Identification mark</strong>
+            <p className="ico-marking-line">{field("10 ICO Identification Mark") || "- - - / - - - - / - - - -"}</p>
+            <p>Other marks</p>
+            <p className="ico-wrap">{field("10 Other Marks ICO No")}</p>
+            <p className="ico-wrap">{field("10 Other Marks Cert No")}</p>
+          </div>
+          <div className="cell right-block">
+            <div className="ico-box11">
+              <strong>11&nbsp; Shipped in:</strong>
+              <div className="ico-check-grid">
+                <span><i className="chk">{checkMark("11 Shipped in - Bags")}</i> Bags</span>
+                <span><i className="chk">{checkMark("11 Shipped in - Bulk")}</i> Bulk</span>
+                <span><i className="chk">{checkMark("11 Shipped in - Containers")}</i> Containers</span>
+                <span><i className="chk">{checkMark("11 Shipped in - Other")}</i> Other</span>
+              </div>
+            </div>
+            <div className="ico-box12-13">
+              <div className="box12">
+                <strong>12&nbsp; Net weight of shipment</strong>
+                <p>{field("12 Net Weight of Shipment")}</p>
+              </div>
+              <div className="box13">
+                <strong>13&nbsp; Unit of weight</strong>
+                <div className="ico-unit-row">
+                  <span><i className="chk">{field("13 Unit of Weight").toLowerCase() === "kg" ? "x" : ""}</i> kg</span>
+                  <span><i className="chk">{field("13 Unit of Weight").toLowerCase() === "lb" ? "x" : ""}</i> lb</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="ico-grid-row h15 full">
+          <div className="cell">
+            <strong>14 Description of coffee</strong>
+            <div className="ico-check-row ico-check-row-spread">
+              <span><i className="chk">{checkMark("14 Description - Green Arabica")}</i> Green Arabica</span>
+              <span><i className="chk">{checkMark("14 Description - Green Robusta")}</i> Green Robusta</span>
+              <span><i className="chk">{checkMark("14 Description - Roasted")}</i> Roasted</span>
+              <span><i className="chk">{checkMark("14 Description - Soluble")}</i> Soluble</span>
+            </div>
+            <p className="ico-other-line"><i className="chk">{field("14 Description - Other (specify)") && field("14 Description - Other (specify)") !== "-" ? "x" : ""}</i> Other (specify) <span className="ico-wrap ico-other-text">{field("14 Description - Other (specify)")}</span></p>
+          </div>
+        </div>
+
+        <div className="ico-grid-row h10 full">
+          <div className="cell">
+            <strong>15 Other relevant information</strong>
+            <div className="ico-check-row ico-check-row-spread">
+              <span>Processing method:</span>
+              <span><i className="chk">{checkMark("15 Processing Method - Dry")}</i> Dry</span>
+              <span><i className="chk">{checkMark("15 Processing Method - Wet")}</i> Wet</span>
+              <span><i className="chk">{checkMark("15 Processing Method - Decaffeinated")}</i> Decaffeinated</span>
+              <span><i className="chk">{checkMark("15 Processing Method - Organic")}</i> Organic</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="ico-grid-row h10 full">
+          <div className="cell">
+            <strong>16</strong> {field("16 Certification Statement")}
+          </div>
+        </div>
+
+        <div className="ico-grid-row h60 two-col">
+          <div className="cell signature">
+            <p className="sig-date">Date: {field("16 Issuing Officer Date")}</p>
+            <p className="sig-place">Place: {field("16 Place")}</p>
+            <p className="sig-caption">Signature of authorized Customs officer and Customs stamp of issuing country</p>
+          </div>
+          <div className="cell signature">
+            <p className="sig-date">Date: {field("16 Certifying Officer Date")}</p>
+            <p className="sig-place">Place: {field("16 Place")}</p>
+            <p className="sig-caption">Signature of authorized Certifying officer and stamp of Certifying Agency</p>
+          </div>
+        </div>
+
+        </section>
+      </section>
+
+      <section className="ico-part-b">
+        <div className="ico-part-b-title">
+          <p>PART B: RESERVED FOR 2-D BAR CODE STICKER</p>
+        </div>
+        <div className="ico-part-b-box">
+          <p className="ico-part-b-no">17</p>
+          <p className="ico-part-b-text">{field("17 Reserved")}</p>
+        </div>
+      </section>
+      <p className="permit-doc-id">Document ID: {documentId}</p>
+    </article>
+  );
+}
+
 function DocumentPrintPageFrame(
   {
     children,
@@ -1127,6 +1365,8 @@ export function DocumentPrintTemplate({
     content = <CertificateOfWeightPrintView output={output} documentId={documentId} input={input} />;
   } else if (output.docType === "way_bill") {
     content = <WayBillPrintView output={output} documentId={documentId} input={input} />;
+  } else if (output.docType === "ico_certificate") {
+    content = <IcoCertificatePrintView output={output} documentId={documentId} input={input} />;
   } else {
     content = <SiPrintView output={output} documentId={documentId} input={input} />;
   }

@@ -1,4 +1,5 @@
 import { buildInvoiceOutput } from "@/domain/documents/invoice";
+import { buildIcoCertificateOutput } from "@/domain/documents/ico";
 import { buildPackingListOutput } from "@/domain/documents/packing";
 import { buildQualityCertificateOutput } from "@/domain/documents/quality";
 import { buildShippingInstructionsOutput } from "@/domain/documents/si";
@@ -32,6 +33,8 @@ export function buildDocumentOutput(
       return buildWeightCertificateOutput(snapshot as DocumentInputSnapshot<"weight_certificate">);
     case "way_bill":
       return buildWayBillOutput(snapshot as DocumentInputSnapshot<"way_bill">);
+    case "ico_certificate":
+      return buildIcoCertificateOutput(snapshot as DocumentInputSnapshot<"ico_certificate">);
     default:
       throw new Error(`Unsupported docType: ${docType}`);
   }

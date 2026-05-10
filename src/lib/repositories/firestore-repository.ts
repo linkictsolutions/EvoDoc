@@ -11,6 +11,7 @@ import type {
   DocumentFamily,
   ExecutionData,
   GeneratedDocument,
+  IcoDocumentOverrides,
   Item,
   Notification,
   AuditLog,
@@ -437,6 +438,33 @@ export async function setContractDocumentRef(
   );
 
   return normalizedRefNo;
+}
+
+export async function setContractIcoOverrides(
+  orgId: string,
+  contractId: string,
+  overrides: IcoDocumentOverrides,
+): Promise<IcoDocumentOverrides> {
+  const ref = adminDb.doc(`${orgPath(orgId)}/contracts/${contractId}`);
+  const existing = await ref.get();
+
+  if (!existing.exists) {
+    throw new Error("Contract not found");
+  }
+
+  const normalized = stripUndefinedDeep(overrides);
+
+  await ref.set(
+    withTimestamps(
+      {
+        icoOverrides: normalized,
+      },
+      existing.data() as { createdAt?: string },
+    ),
+    { merge: true },
+  );
+
+  return normalized;
 }
 
 export async function deleteContractCascade(orgId: string, contractIdOrNumber: string): Promise<{

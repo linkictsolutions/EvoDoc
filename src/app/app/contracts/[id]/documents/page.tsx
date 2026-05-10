@@ -13,14 +13,15 @@ type ContractDetail = {
   shipments: Array<{ id: string }>;
   documents: Array<{
     id: string;
-    docType: "invoice" | "packing_list" | "shipping_instructions" | "quality_certificate" | "weight_certificate" | "way_bill";
+    docType: "invoice" | "packing_list" | "shipping_instructions" | "quality_certificate" | "weight_certificate" | "way_bill" | "ico_certificate";
     documentFamily?:
       | "commercial_invoice"
       | "packing_list"
       | "shipping_instruction"
       | "certificate_of_quality"
       | "certificate_of_weight"
-      | "way_bill";
+      | "way_bill"
+      | "ico_certificate";
     revisionNumber?: number;
     status: string;
     isFinal?: boolean;
@@ -35,7 +36,8 @@ type FamilyCard = {
     | "shipping_instruction"
     | "certificate_of_quality"
     | "certificate_of_weight"
-    | "way_bill";
+    | "way_bill"
+    | "ico_certificate";
   label: string;
   description: string;
 };
@@ -71,6 +73,11 @@ const families: FamilyCard[] = [
     label: "Way Bill",
     description: "Driver-based waybill generated from staffing rows with per-driver tabs including truck, trailer, and seal details.",
   },
+  {
+    family: "ico_certificate",
+    label: "ICO Certificate of Origin",
+    description: "ICO form generated for pre-printed certificate layout with populated shipment and origin entries.",
+  },
 ];
 
 function familyMatches(
@@ -88,7 +95,9 @@ function familyMatches(
             ? "certificate_of_quality"
             : document.docType === "weight_certificate"
               ? "certificate_of_weight"
-              : "way_bill");
+              : document.docType === "way_bill"
+                ? "way_bill"
+                : "ico_certificate");
 
   return storedFamily === family;
 }

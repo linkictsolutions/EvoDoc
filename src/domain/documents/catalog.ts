@@ -44,6 +44,12 @@ export const documentFamilies: DocumentFamilyDefinition[] = [
     docType: "way_bill",
     variants: ["standard"],
   },
+  {
+    family: "ico_certificate",
+    label: "ICO Certificate of Origin",
+    docType: "ico_certificate",
+    variants: ["standard"],
+  },
 ];
 
 export function getDocumentFamilyDefinition(family: DocumentFamily): DocumentFamilyDefinition {
@@ -74,6 +80,10 @@ export function resolveDocumentFamily(docType: DocumentType): DocumentFamily {
 
   if (docType === "way_bill") {
     return "way_bill";
+  }
+
+  if (docType === "ico_certificate") {
+    return "ico_certificate";
   }
 
   return "shipping_instruction";

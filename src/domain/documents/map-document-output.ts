@@ -25,6 +25,36 @@ function sectionRowsFromRecord(values: Record<string, string>) {
   return Object.entries(values).map(([label, value]) => ({ label, value }));
 }
 
+function clean(value: string | undefined | null): string {
+  if (value === undefined || value === null) {
+    return "-";
+  }
+  const normalized = value.trim();
+  return normalized.length > 0 ? normalized : "-";
+}
+
+function formatDateDdMmYyyy(value: string | undefined): string {
+  if (!value) {
+    return "-";
+  }
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return clean(value);
+  }
+  const dd = String(parsed.getUTCDate()).padStart(2, "0");
+  const mm = String(parsed.getUTCMonth() + 1).padStart(2, "0");
+  const yy = String(parsed.getUTCFullYear()).slice(-2);
+  return `${dd}/${mm}/${yy}`;
+}
+
+function isRobusta(quality: string): boolean {
+  return /robusta/i.test(quality);
+}
+
+function isWetProcessed(quality: string): boolean {
+  return /washed|wet/i.test(quality);
+}
+
 export function mapDocumentOutput(
   docType: DocumentType,
   snapshot: DocumentInputSnapshot,
@@ -41,6 +71,7 @@ export function mapDocumentOutput(
       || docType === "quality_certificate"
       || docType === "weight_certificate"
       || docType === "way_bill"
+      || docType === "ico_certificate"
         ? "standard"
         : "final"
     );
@@ -248,27 +279,16 @@ export function mapDocumentOutput(
           return normalized.length > 0 ? normalized : "-";
         };
 
-        const formatDate = (value: string | undefined): string => {
-          if (!value) {
-            return "-";
-          }
-
-          const parsed = new Date(value);
-          if (Number.isNaN(parsed.getTime())) {
-            return clean(value);
-          }
-
-          return parsed.toLocaleDateString("en-GB");
-        };
-
-        const shippingLineOptions = [
-          clean(finalFields.shippingLine),
-          clean(finalFields.alternative1),
-          clean(finalFields.alternative2),
-        ].filter((entry) => entry !== "-");
+        const siCargoDescription = [
+          "ETHIOPIAN COFFEE, UNWASHED ARABICA,",
+          clean(finalFields.origin),
+          `GRADE ${clean(finalFields.grade)}`,
+          `CROP YEAR ${clean(finalFields.cropYear)}`,
+          `AS PER CONTRACT REF.${clean(snapshot.contract.contractNumber)}`,
+        ].join(" ");
 
         const containerRows = staffingRows
-          .filter((row) => [row.containerNumber, row.sealNumber, row.certNumber].some((entry) => Boolean(entry?.trim())))
+          .filter((row) => [row.containerNumber, row.sealNumber].some((entry) => Boolean(entry?.trim())))
           .map((row, index) => ([
             { label: `Container No ${index + 1}`, value: clean(row.containerNumber) },
             { label: `Seal No ${index + 1}`, value: clean(row.sealNumber) },
@@ -282,75 +302,31 @@ export function mapDocumentOutput(
           title: "Shipping Instruction",
           sections: [
             {
-              heading: "SI Header",
+              heading: "SI Sheet Values",
               rows: [
-                { label: "Date", value: formatDate(new Date().toISOString()) },
-                { label: "Ref No", value: clean(snapshot.contract.documentRefs?.shipping_instruction) },
-                {
-                  label: "Shipping Line",
-                  value: clean(finalFields.shippingLine),
-                },
-                {
-                  label: "Shipping Line Options",
-                  value: shippingLineOptions.join(" / ") || "-",
-                },
-                {
-                  label: "Service Contract No",
-                  value: clean(snapshot.contract.shipping.serviceContract),
-                },
-              ],
-            },
-            {
-              heading: "SI Parties",
-              rows: [
-                { label: "Shipper", value: clean(sellerIdentity(snapshot)) },
-                { label: "Consignee", value: clean(finalFields.consignee) },
-                { label: "Notify", value: clean(finalFields.notify) },
-                { label: "Second Notify", value: clean(finalFields.secondNotify) },
-              ],
-            },
-            {
-              heading: "SI Cargo",
-              rows: [
-                { label: "Cargo Description", value: clean(finalFields.description) },
-                { label: "HS Code", value: clean(companyConfiguration.defaultHsCode) },
-                {
-                  label: "Quantity",
-                  value: `${snapshot.contract.terms.quantityBags} BAGS (${parity.containerCount}*20)`,
-                },
-                { label: "Gross Weight", value: `${parity.grossWeightKg.toFixed(3)} KGS` },
-                { label: "Net Weight", value: `${parity.quantityKg.toFixed(3)} KGS` },
-                { label: "Cert Number", value: clean(finalFields.certNo) },
-                { label: "Number Type and Size of Containers", value: `${Math.max(0, parity.containerCount)} FCL` },
-              ],
-            },
-            {
-              heading: "SI Routing",
-              rows: [
-                { label: "Port of Loading", value: clean(finalFields.portOfLoading) },
-                { label: "Place of Discharge", value: clean(finalFields.destination) },
-                { label: "Booking Number", value: clean(bookings?.bookingNumber ?? snapshot.contract.shipping.bookingNumber) },
-                {
-                  label: "Vessel / Voyage",
-                  value: clean([bookings?.vesselName, bookings?.voyageNo].filter(Boolean).join(" ")),
-                },
-                {
-                  label: "Vessel Departure (ETD) / Date",
-                  value: clean(snapshot.contract.shipping.shipmentMonth ?? snapshot.contract.banking.latestShipmentDate),
-                },
-                {
-                  label: "Additional Document / Remark",
-                  value: "14 DAYS FREE TIME AT PORT OF DISCHARGE",
-                },
-                {
-                  label: "Cargo Moved By",
-                  value: "BY TRUCK",
-                },
+                { label: "Shipper (E10)", value: clean(sellerIdentity(snapshot)) },
+                { label: "Consignee (E11)", value: clean(finalFields.consignee) },
+                { label: "Notify (E12)", value: clean(finalFields.notify) },
+                { label: "2nd Notify (E13)", value: finalFields.secondNotify === "-" ? "" : clean(finalFields.secondNotify) },
+                { label: "Shipping Line / Service Contract (E17)", value: clean(snapshot.contract.shipping.serviceContract) },
+                { label: "Cargo Description (E18)", value: siCargoDescription },
+                { label: "HS Code (E19)", value: clean(companyConfiguration.defaultHsCode) },
+                { label: "Quantity (E20)", value: `${snapshot.contract.terms.quantityBags} BAGS (${parity.containerCount}*20)` },
+                { label: "Gross Weight (H21)", value: `${parity.grossWeightKg.toFixed(3)} KGS` },
+                { label: "Net Weight (O21)", value: `${parity.quantityKg.toFixed(3)} KGS` },
+                { label: "Cert Number (E23)", value: clean(finalFields.certNo) },
+                { label: "Number Type and Size of Containers (E27)", value: `${Math.max(0, parity.containerCount)} FCL` },
+                { label: "Port of Loading (E29)", value: clean(finalFields.portOfLoading) },
+                { label: "Place of Discharge (E30)", value: clean(finalFields.destination) },
+                { label: "Booking Number (E31)", value: clean(bookings?.bookingNumber ?? snapshot.contract.shipping.bookingNumber) },
+                { label: "Vessel Departure (ETD) / Date (E32)", value: clean(snapshot.contract.shipping.shipmentMonth ?? snapshot.contract.banking.latestShipmentDate) },
+                { label: "Additional Document / Remark (E33)", value: "14 DAYS FREE TIME AT PORT OF DISCHARGE" },
+                { label: "Cargo Moved By (E34)", value: "BY TRUCK" },
               ],
             },
             ...(containerRows.length > 0
               ? [{
-                heading: "SI Container Table",
+                heading: "SI Container Table (E36/K36/N36 onward)",
                 rows: containerRows,
               }]
               : []),
@@ -550,6 +526,95 @@ export function mapDocumentOutput(
           totals: {
             ...sharedTotals,
             drivers: String(sample.drivers.length),
+          },
+        };
+      }
+
+    case "ico_certificate":
+      {
+        const overrides = snapshot.contract.icoOverrides ?? {};
+        const fromOverride = (value: string | undefined, fallback: string): string => {
+          const normalized = value?.trim();
+          return normalized ? normalized : fallback;
+        };
+        const icoPrefix = clean(companyConfiguration.icoReferencePrefix);
+        const prefixParts = icoPrefix === "-" ? [] : icoPrefix.split("/").map((part) => part.trim()).filter(Boolean);
+        const countryCode = fromOverride(overrides.countryCode, prefixParts[0] ?? "010");
+        const portCode = fromOverride(overrides.portCode, prefixParts[1] ?? "01");
+        const serialNo = fromOverride(overrides.serialNo, clean(finalFields.certNo));
+        const quantityText = `${snapshot.contract.terms.quantityBags} BAGS`;
+        const vesselLine = [
+          clean(bookings?.shippingLine),
+          clean(bookings?.vesselName),
+          clean(bookings?.voyageNo),
+        ].filter((entry) => entry !== "-").join(" ");
+        const exportDate = fromOverride(
+          overrides.dateOfExport,
+          formatDateDdMmYyyy(snapshot.contract.terms.shipmentPeriod || new Date().toISOString()),
+        );
+        const issueDate = fromOverride(overrides.issuingDate, formatDateDdMmYyyy(new Date().toISOString()));
+        const certifyingDate = fromOverride(overrides.certifyingDate, issueDate);
+        const placeOfIssue = fromOverride(overrides.place, clean(companyConfiguration.placeOfIssue));
+        const quality = clean(finalFields.quality);
+        const hasRobusta = isRobusta(quality);
+        const wetProcessed = isWetProcessed(quality);
+
+        return {
+          docType,
+          docVariant: "standard",
+          title: "ICO Certificate of Origin",
+          sections: [
+            {
+              heading: "ICO Certificate",
+              rows: sectionRowsFromRecord({
+                "1 Exporter/Consignor":
+                  fromOverride(
+                    overrides.exporterConsignor,
+                    `${sellerIdentity(snapshot)} Email: ${clean(companyConfiguration.companyEmail)} TEL: ${clean(companyConfiguration.companyPhone)}`,
+                  ),
+                "2 Notify Address": fromOverride(overrides.notifyAddress, clean(finalFields.notify)),
+                "3 Internal Reference No": fromOverride(overrides.internalReferenceNo, clean(snapshot.contract.contractNumber)),
+                "4 Country Code": countryCode,
+                "4 Port Code": portCode,
+                "4 Serial No": serialNo,
+                "5 Producing Country": fromOverride(overrides.producingCountry, clean(finalFields.origin)),
+                "6 Country of Destination": fromOverride(overrides.countryDestination, clean(finalFields.destination)),
+                "7 Date of Export (DD/MM/YY)": exportDate,
+                "8 Country of Trans-shipment": fromOverride(overrides.countryTransShipment, clean(companyConfiguration.transitorLocation)),
+                "9 Name of Carrier": fromOverride(overrides.nameOfCarrier, vesselLine || "-"),
+                "10 ICO Identification Mark": fromOverride(overrides.icoIdentificationMark, `${icoPrefix}/${serialNo}`),
+                "10 Other Marks ICO No": fromOverride(overrides.otherMarksIcoNo, `ICO NO: ${icoPrefix}/${serialNo}`),
+                "10 Other Marks Cert No": fromOverride(overrides.otherMarksCertNo, `CERT NO: ${clean(finalFields.certNo)}`),
+                "11 Shipped in - Bags": "No",
+                "11 Shipped in - Containers": snapshot.contract.terms.packagingUnit.toLowerCase() === "bulk" ? "No" : "Yes",
+                "11 Shipped in - Bulk": snapshot.contract.terms.packagingUnit.toLowerCase() === "bulk" ? "Yes" : "No",
+                "11 Shipped in - Other": "No",
+                "12 Net Weight of Shipment": String(parity.quantityKg),
+                "13 Unit of Weight": "kg",
+                "14 Description - Green Arabica": hasRobusta ? "No" : "Yes",
+                "14 Description - Green Robusta": hasRobusta ? "Yes" : "No",
+                "14 Description - Roasted": "No",
+                "14 Description - Soluble": "No",
+                "14 Description - Other (specify)": fromOverride(overrides.descriptionOtherSpecify, clean(finalFields.description)),
+                "15 Processing Method - Dry": wetProcessed ? "No" : "Yes",
+                "15 Processing Method - Wet": wetProcessed ? "Yes" : "No",
+                "15 Processing Method - Decaffeinated": "No",
+                "15 Processing Method - Organic": "No",
+                "16 Issuing Officer Date": `${issueDate} ${placeOfIssue}`,
+                "16 Certifying Officer Date": `${certifyingDate} ${placeOfIssue}`,
+                "16 Place": placeOfIssue,
+                "16 Certification Statement":
+                  "IT IS HEREBY CERTIFIED THAT THE COFFEE DESCRIBED ABOVE WAS GROWN IN THE COUNTRY NAMED IN BOX 5 AND HAS BEEN EXPORTED ON THE DATE SHOWN BELOW",
+                "17 Reserved": fromOverride(overrides.partBText, ""),
+                "Quantity Expression": quantityText,
+              }),
+            },
+          ],
+          totals: {
+            ...sharedTotals,
+            countryCode,
+            portCode,
+            serialNo,
           },
         };
       }

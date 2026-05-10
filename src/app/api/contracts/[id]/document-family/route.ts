@@ -18,6 +18,7 @@ import {
   listGeneratedDocuments,
   resolveContractId,
   setContractDocumentRef,
+  setContractIcoOverrides,
 } from "@/lib/repositories/firestore-repository";
 import { buildDocumentOutput } from "@/lib/workflow/document-generation";
 import type { DocumentFamily } from "@/types/models";
@@ -30,6 +31,7 @@ const querySchema = z.object({
     "certificate_of_quality",
     "certificate_of_weight",
     "way_bill",
+    "ico_certificate",
   ]),
 });
 
@@ -42,8 +44,30 @@ const bodySchema = z.object({
     "certificate_of_quality",
     "certificate_of_weight",
     "way_bill",
+    "ico_certificate",
   ]),
   refNo: z.string(),
+  icoOverrides: z.object({
+    exporterConsignor: z.string().optional(),
+    notifyAddress: z.string().optional(),
+    internalReferenceNo: z.string().optional(),
+    countryCode: z.string().optional(),
+    portCode: z.string().optional(),
+    serialNo: z.string().optional(),
+    producingCountry: z.string().optional(),
+    countryDestination: z.string().optional(),
+    dateOfExport: z.string().optional(),
+    countryTransShipment: z.string().optional(),
+    nameOfCarrier: z.string().optional(),
+    icoIdentificationMark: z.string().optional(),
+    otherMarksIcoNo: z.string().optional(),
+    otherMarksCertNo: z.string().optional(),
+    descriptionOtherSpecify: z.string().optional(),
+    partBText: z.string().optional(),
+    issuingDate: z.string().optional(),
+    certifyingDate: z.string().optional(),
+    place: z.string().optional(),
+  }).optional(),
 });
 
 export async function GET(
@@ -122,6 +146,7 @@ export async function GET(
       }));
 
     const canPreview = family === "commercial_invoice"
+      || family === "ico_certificate"
       ? true
       : Boolean(latestShipmentId);
 
@@ -151,6 +176,7 @@ export async function GET(
       familyLabel: familyDefinition.label,
       docType: familyDefinition.docType,
       refNo: contract.documentRefs?.[family] ?? "",
+      icoOverrides: contract.icoOverrides ?? null,
       latestShipmentId: latestShipmentId ?? null,
       currentPreview,
       previewWarnings: previewRules?.warnings ?? [],
@@ -179,6 +205,10 @@ export async function POST(
     const { id: contractIdentifier } = await params;
     const contractId = await resolveContractId(parsed.orgId, contractIdentifier);
     const normalizedRefNo = await setContractDocumentRef(parsed.orgId, contractId, parsed.family, parsed.refNo);
+    let savedOverrides = null;
+    if (parsed.family === "ico_certificate" && parsed.icoOverrides) {
+      savedOverrides = await setContractIcoOverrides(parsed.orgId, contractId, parsed.icoOverrides);
+    }
 
     await appendAuditLog(
       parsed.orgId,
@@ -189,6 +219,7 @@ export async function POST(
       {
         family: parsed.family,
         refNo: normalizedRefNo,
+        ...(savedOverrides ? { icoOverrides: savedOverrides } : {}),
       },
       requestId,
     );
@@ -196,6 +227,7 @@ export async function POST(
     return ok(requestId, {
       family: parsed.family,
       refNo: normalizedRefNo,
+      icoOverrides: savedOverrides,
     });
   } catch (error) {
     return fail(requestId, (error as Error).message, 400);

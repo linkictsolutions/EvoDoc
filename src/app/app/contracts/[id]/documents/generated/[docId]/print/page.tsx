@@ -42,6 +42,10 @@ function resolveFamilyFromDocType(docType: DocumentType): DocumentFamily {
     return "way_bill";
   }
 
+  if (docType === "ico_certificate") {
+    return "ico_certificate";
+  }
+
   return "shipping_instruction";
 }
 

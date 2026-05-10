@@ -8,14 +8,16 @@ export type DocumentType =
   | "shipping_instructions"
   | "quality_certificate"
   | "weight_certificate"
-  | "way_bill";
+  | "way_bill"
+  | "ico_certificate";
 export type DocumentFamily =
   | "commercial_invoice"
   | "packing_list"
   | "shipping_instruction"
   | "certificate_of_quality"
   | "certificate_of_weight"
-  | "way_bill";
+  | "way_bill"
+  | "ico_certificate";
 export type DocumentVariant = "permit" | "final" | "standard";
 
 export type DocumentStatus =
@@ -202,6 +204,28 @@ export interface ProcessingInfo {
   moisturePercent: number;
 }
 
+export interface IcoDocumentOverrides {
+  exporterConsignor?: string;
+  notifyAddress?: string;
+  internalReferenceNo?: string;
+  countryCode?: string;
+  portCode?: string;
+  serialNo?: string;
+  producingCountry?: string;
+  countryDestination?: string;
+  dateOfExport?: string;
+  countryTransShipment?: string;
+  nameOfCarrier?: string;
+  icoIdentificationMark?: string;
+  otherMarksIcoNo?: string;
+  otherMarksCertNo?: string;
+  descriptionOtherSpecify?: string;
+  partBText?: string;
+  issuingDate?: string;
+  certifyingDate?: string;
+  place?: string;
+}
+
 export type VehicleKind = "TRUCK" | "TRAILER";
 
 export interface BookingEntry {
@@ -294,6 +318,7 @@ export interface Contract extends Timestamped {
   orgId: string;
   contractNumber: string;
   documentRefs?: Partial<Record<DocumentFamily, string>>;
+  icoOverrides?: IcoDocumentOverrides;
   customerId: string;
   status: ContractStatus;
   terms: ContractTerms;

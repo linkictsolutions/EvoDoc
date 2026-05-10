@@ -3,7 +3,7 @@
 import Link from "next/link";
 import clsx from "clsx";
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
 
 type NavItem = {
@@ -11,6 +11,7 @@ type NavItem = {
   label: string;
   description: string;
   short: string;
+  glyph: string;
   matchPrefix: string;
   exact?: boolean;
 };
@@ -29,6 +30,7 @@ const sections: NavSection[] = [
         label: "Overview",
         description: "Workspace summary and next steps.",
         short: "OV",
+        glyph: "O",
         matchPrefix: "/app",
         exact: true,
       },
@@ -37,6 +39,7 @@ const sections: NavSection[] = [
         label: "Contracts",
         description: "Primary operational records and workspaces.",
         short: "CT",
+        glyph: "C",
         matchPrefix: "/app/contracts",
       },
       {
@@ -44,6 +47,7 @@ const sections: NavSection[] = [
         label: "Reports",
         description: "Preview generated outputs and reports.",
         short: "RP",
+        glyph: "R",
         matchPrefix: "/app/documents",
       },
     ],
@@ -56,6 +60,7 @@ const sections: NavSection[] = [
         label: "Company Config",
         description: "Organization defaults and export constants.",
         short: "CO",
+        glyph: "G",
         matchPrefix: "/app/masters/company-configuration",
       },
       {
@@ -63,6 +68,7 @@ const sections: NavSection[] = [
         label: "Buyers",
         description: "Buyer records reused across contracts.",
         short: "CU",
+        glyph: "B",
         matchPrefix: "/app/masters/customers",
       },
     ],
@@ -79,6 +85,7 @@ function buildContractSections(contractId: string): NavSection[] {
           label: "All Contracts",
           description: "Return to contract registry.",
           short: "LS",
+          glyph: "L",
           matchPrefix: "/app/contracts",
           exact: true,
         },
@@ -87,6 +94,7 @@ function buildContractSections(contractId: string): NavSection[] {
           label: "Overview",
           description: "Snapshot, progress, and next actions.",
           short: "OV",
+          glyph: "O",
           matchPrefix: `/app/contracts/${contractId}`,
           exact: true,
         },
@@ -95,6 +103,7 @@ function buildContractSections(contractId: string): NavSection[] {
           label: "Activity",
           description: "Audit trail and workflow history.",
           short: "AC",
+          glyph: "A",
           matchPrefix: `/app/contracts/${contractId}/activity`,
         },
       ],
@@ -107,6 +116,7 @@ function buildContractSections(contractId: string): NavSection[] {
           label: "Contract",
           description: "Commercial terms and pricing.",
           short: "CT",
+          glyph: "C",
           matchPrefix: `/app/contracts/${contractId}/inputs/contract`,
         },
         {
@@ -114,6 +124,7 @@ function buildContractSections(contractId: string): NavSection[] {
           label: "Shipping",
           description: "Route and party instructions.",
           short: "SI",
+          glyph: "S",
           matchPrefix: `/app/contracts/${contractId}/inputs/shipping-instruction`,
         },
         {
@@ -121,6 +132,7 @@ function buildContractSections(contractId: string): NavSection[] {
           label: "Bank & LC",
           description: "LC and bank details.",
           short: "LC",
+          glyph: "B",
           matchPrefix: `/app/contracts/${contractId}/inputs/bank-lc`,
         },
         {
@@ -128,6 +140,7 @@ function buildContractSections(contractId: string): NavSection[] {
           label: "Resolved",
           description: "Final precedence output.",
           short: "RV",
+          glyph: "F",
           matchPrefix: `/app/contracts/${contractId}/resolved-values`,
         },
       ],
@@ -140,6 +153,7 @@ function buildContractSections(contractId: string): NavSection[] {
           label: "Bookings",
           description: "Containers, seals, and vehicles.",
           short: "BK",
+          glyph: "K",
           matchPrefix: `/app/contracts/${contractId}/execution/bookings`,
         },
         {
@@ -147,6 +161,7 @@ function buildContractSections(contractId: string): NavSection[] {
           label: "Staffing",
           description: "Weights and certificate data.",
           short: "ST",
+          glyph: "T",
           matchPrefix: `/app/contracts/${contractId}/execution/staffing`,
         },
         {
@@ -154,6 +169,7 @@ function buildContractSections(contractId: string): NavSection[] {
           label: "Processing",
           description: "Station and moisture details.",
           short: "PR",
+          glyph: "P",
           matchPrefix: `/app/contracts/${contractId}/execution/processing`,
         },
       ],
@@ -166,6 +182,7 @@ function buildContractSections(contractId: string): NavSection[] {
           label: "Documents",
           description: "Document generation and revisions.",
           short: "DC",
+          glyph: "D",
           matchPrefix: `/app/contracts/${contractId}/documents`,
         },
       ],
@@ -243,6 +260,7 @@ function prettifySegment(segment: string): string {
     "certificate_of_quality": "Certificate of Quality",
     "certificate_of_weight": "Certificate of Weight",
     "way_bill": "Way Bill",
+    "ico_certificate": "ICO Certificate",
   };
 
   return labels[segment] ?? segment.replace(/-/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
@@ -285,6 +303,7 @@ const documentFamilySegments = new Set([
   "certificate_of_quality",
   "certificate_of_weight",
   "way_bill",
+  "ico_certificate",
 ]);
 
 function resolveDocumentFamilySegment(value: string | null): string | null {
@@ -354,6 +373,7 @@ function buildBreadcrumbsWithContext(
 
 export function AppSidebar({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const pathnameSegments = pathname.split("/").filter(Boolean);
   const candidateContractId = pathnameSegments[0] === "app" && pathnameSegments[1] === "contracts" ? pathnameSegments[2] : null;
   const contractId = candidateContractId && candidateContractId !== "new" ? candidateContractId : null;
@@ -372,9 +392,7 @@ export function AppSidebar({ children }: { children: ReactNode }) {
     window.localStorage.setItem("evodoc.sidebar.collapsed", String(collapsed));
   }, [collapsed]);
 
-  const documentFamilyQuery = typeof window === "undefined"
-    ? null
-    : new URLSearchParams(window.location.search).get("family");
+  const documentFamilyQuery = searchParams.get("family");
   const breadcrumbs = buildBreadcrumbsWithContext(pathname, documentFamilyQuery);
 
   return (
@@ -396,7 +414,7 @@ export function AppSidebar({ children }: { children: ReactNode }) {
             onClick={() => setCollapsed((current) => !current)}
             aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
-            {collapsed ? ">>" : "<<"}
+            <span aria-hidden>{collapsed ? ">" : "<"}</span>
           </button>
         </div>
 
@@ -420,10 +438,10 @@ export function AppSidebar({ children }: { children: ReactNode }) {
                     title={collapsed ? item.label : undefined}
                     onClick={() => setMobileOpen(false)}
                   >
-                    <span className="app-sidebar-badge">{item.short}</span>
+                    <span className="app-sidebar-badge" aria-hidden>{item.glyph}</span>
                     {!collapsed ? (
                       <span className="app-sidebar-link-copy">
-                        <strong>{item.label}</strong>
+                        <strong>{item.label} <span className="app-sidebar-link-short">{item.short}</span></strong>
                         <small>{item.description}</small>
                       </span>
                     ) : null}
@@ -443,7 +461,8 @@ export function AppSidebar({ children }: { children: ReactNode }) {
             onClick={() => setMobileOpen((current) => !current)}
             aria-label="Toggle navigation"
           >
-            {mobileOpen ? "Close" : "Menu"}
+            <span className={clsx("mobile-toggle-icon", mobileOpen && "is-open")} aria-hidden />
+            <span>{mobileOpen ? "Close Panel" : "Open Panel"}</span>
           </button>
           <div>
             <p className="app-toolbar-title">{toolbar.title}</p>
