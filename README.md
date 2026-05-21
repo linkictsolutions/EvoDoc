@@ -96,3 +96,5 @@ npm run test:rules
 
 - Next.js app: Vercel
 - Firebase: Auth, Firestore, Functions, Rules
+
+<!-- test: branch evoictsolutions created 2026-05-21 -->
