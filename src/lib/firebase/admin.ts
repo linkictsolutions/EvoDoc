@@ -15,14 +15,25 @@ function getAdminApp() {
   const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
   const privateKey = parsePrivateKey(process.env.FIREBASE_PRIVATE_KEY);
 
+  // Prefer explicit service-account credentials when provided, but never hard-fail
+  // local/dev flows when the private key is missing or malformed.
   if (projectId && clientEmail && privateKey) {
-    return initializeApp({
-      credential: cert({
-        projectId,
-        clientEmail,
-        privateKey,
-      }),
-    });
+    try {
+      return initializeApp({
+        credential: cert({
+          projectId,
+          clientEmail,
+          privateKey,
+        }),
+      });
+    } catch {
+      // Fall back to non-cert initialization (works with emulators or ADC).
+    }
+  }
+
+  // If a projectId is available, pass it explicitly to make emulator/local usage easier.
+  if (projectId) {
+    return initializeApp({ projectId });
   }
 
   return initializeApp();

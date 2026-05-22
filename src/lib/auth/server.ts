@@ -1,5 +1,4 @@
 import { headers } from "next/headers";
-import { adminAuth, adminDb } from "@/lib/firebase/admin";
 import type { Actor, UserRole } from "@/types/models";
 
 function isAllowedRole(role: UserRole, allowed?: UserRole[]): boolean {
@@ -12,7 +11,8 @@ function isAllowedRole(role: UserRole, allowed?: UserRole[]): boolean {
 
 export async function getActor(orgId: string): Promise<Actor> {
   const headerBag = await headers();
-  const devAuthEnabled = process.env.ENABLE_DEV_AUTH === "true";
+  const devAuthEnabled =
+    process.env.ENABLE_DEV_AUTH === "true" || process.env.NEXT_PUBLIC_ENABLE_DEV_AUTH === "true";
 
   if (devAuthEnabled) {
     const uid = headerBag.get("x-dev-uid") ?? "dev-admin";
@@ -32,6 +32,8 @@ export async function getActor(orgId: string): Promise<Actor> {
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     throw new Error("Missing Authorization header");
   }
+
+  const { adminAuth, adminDb } = await import("@/lib/firebase/admin");
 
   const idToken = authHeader.slice("Bearer ".length);
   const decoded = await adminAuth.verifyIdToken(idToken);
