@@ -10,6 +10,7 @@ import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
 import type { CompanyConfiguration, Customer } from "@/types/models";
 import { CenteredLoader } from "@/components/ui/centered-loader";
+import { useToast } from "@/components/ui/toast";
 
 const schema = z.object({
   customerName: z.string().min(1),
@@ -117,6 +118,7 @@ export function ContractCoreForm({
   autoLoadExisting = false,
   continueHref,
 }: ContractCoreFormProps) {
+  const toast = useToast();
   const [buyers, setBuyers] = useState<Customer[]>([]);
   const [selectedBuyerId, setSelectedBuyerId] = useState<string>("");
   const [apiError, setApiError] = useState<string | null>(null);
@@ -228,12 +230,14 @@ export function ContractCoreForm({
       setSavedContractId(result.contractId);
       setActiveContractId(result.contractId);
       setSavedNotice("Contract draft saved.");
+      toast.success("Contract saved.");
       if (typeof window !== "undefined") {
         window.localStorage.setItem("evodoc.contractId", result.contractId);
       }
       setWarnings(result.warnings ?? []);
     } catch (error) {
       setApiError((error as Error).message);
+      toast.error("Unable to save contract.");
     } finally {
       setSaving(false);
     }

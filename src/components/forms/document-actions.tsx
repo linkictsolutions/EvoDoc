@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { DocumentFamily, DocumentType, DocumentVariant } from "@/types/models";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
+import { useToast } from "@/components/ui/toast";
 
 export function GenerateDocumentButton({
   contractId,
@@ -21,6 +22,7 @@ export function GenerateDocumentButton({
   family?: DocumentFamily;
   buttonLabel?: string;
 }) {
+  const toast = useToast();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -42,9 +44,11 @@ export function GenerateDocumentButton({
       });
 
       const familyQuery = family ? `?family=${encodeURIComponent(family)}` : "";
+      toast.success("Document generated.");
       router.push(`/app/contracts/${encodeURIComponent(contractId)}/documents/generated/${data.docId}/review${familyQuery}`);
     } catch (generateError) {
       setError((generateError as Error).message);
+      toast.error("Unable to generate document.");
     } finally {
       setLoading(false);
     }
@@ -73,6 +77,7 @@ export function ReviewActions({
   isFinal?: boolean;
   onMarkedFinal?: () => void;
 }) {
+  const toast = useToast();
   const [comment, setComment] = useState("Looks good");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<"submit" | "approve" | "reject" | "markFinal" | null>(null);
@@ -89,9 +94,11 @@ export function ReviewActions({
           contractId,
         }),
       });
+      toast.success("Submitted for review.");
       router.refresh();
     } catch (submitError) {
       setError((submitError as Error).message);
+      toast.error("Unable to submit for review.");
     } finally {
       setBusy(null);
     }
@@ -110,9 +117,11 @@ export function ReviewActions({
           comment,
         }),
       });
+      toast.success(decision === "approve" ? "Approved." : "Rejected.");
       router.refresh();
     } catch (decisionError) {
       setError((decisionError as Error).message);
+      toast.error("Unable to record decision.");
     } finally {
       setBusy(null);
     }
@@ -130,9 +139,11 @@ export function ReviewActions({
         }),
       });
       onMarkedFinal?.();
+      toast.success("Marked as final.");
       router.refresh();
     } catch (markError) {
       setError((markError as Error).message);
+      toast.error("Unable to mark final.");
     } finally {
       setBusy(null);
     }

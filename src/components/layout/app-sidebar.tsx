@@ -5,6 +5,7 @@ import clsx from "clsx";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
+import { ToastProvider } from "@/components/ui/toast";
 
 type NavItem = {
   href: string;
@@ -378,19 +379,23 @@ export function AppSidebar({ children }: { children: ReactNode }) {
   const contractId = candidateContractId && candidateContractId !== "new" ? candidateContractId : null;
   const navSections = contractId ? buildContractSections(contractId) : sections;
   const toolbar = toolbarCopy(pathname);
-  const [collapsed, setCollapsed] = useState(() => {
-    if (typeof window === "undefined") {
-      return false;
-    }
-
-    return window.localStorage.getItem("evodoc.sidebar.collapsed") === "true";
-  });
+  const [collapsed, setCollapsed] = useState(false);
+  const [hasHydrated, setHasHydrated] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [documentFamilyQuery, setDocumentFamilyQuery] = useState<string | null>(null);
 
   useEffect(() => {
+    setCollapsed(window.localStorage.getItem("evodoc.sidebar.collapsed") === "true");
+    setHasHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hasHydrated) {
+      return;
+    }
+
     window.localStorage.setItem("evodoc.sidebar.collapsed", String(collapsed));
-  }, [collapsed]);
+  }, [collapsed, hasHydrated]);
 
   useEffect(() => {
     function updateDocumentFamilyQuery() {
@@ -413,101 +418,105 @@ export function AppSidebar({ children }: { children: ReactNode }) {
   const breadcrumbs = buildBreadcrumbsWithContext(pathname, documentFamilyQuery);
 
   return (
-    <div className={clsx("app-shell", collapsed && "is-collapsed", mobileOpen && "is-mobile-open")}>
-      <aside className="app-sidebar">
-        <div className="sidebar-brand">
-          <Link href="/app" className="sidebar-brand-link">
-            <span className="sidebar-brand-mark">EV</span>
-            {!collapsed ? (
-              <span>
-                <strong>EvoDoc</strong>
-                <small>coffee export ops</small>
-              </span>
-            ) : null}
-          </Link>
-          <button
-            type="button"
-            className="sidebar-toggle desktop-toggle"
-            onClick={() => setCollapsed((current) => !current)}
-            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          >
-            <span aria-hidden>{collapsed ? ">" : "<"}</span>
-          </button>
+    <ToastProvider>
+      <div className={clsx("app-shell", collapsed && "is-collapsed", mobileOpen && "is-mobile-open")}>
+        <aside className="app-sidebar">
+          <div className="sidebar-brand">
+            <Link href="/app" className="sidebar-brand-link">
+              <span className="sidebar-brand-mark">EV</span>
+              {!collapsed ? (
+                <span>
+                  <strong>EvoDoc</strong>
+                  <small>coffee export ops</small>
+                </span>
+              ) : null}
+            </Link>
+            <button
+              type="button"
+              className="sidebar-toggle desktop-toggle"
+              onClick={() => setCollapsed((current) => !current)}
+              aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            >
+              <span aria-hidden>{collapsed ? ">" : "<"}</span>
+            </button>
+          </div>
+
+          {contractId && !collapsed ? (
+            <div className="contract-context-pill">
+              <strong>Contract {contractId.slice(0, 10)}</strong>
+              <small>Contextual workspace navigation is active.</small>
+            </div>
+          ) : null}
+
+          <nav className="app-sidebar-nav">
+            {navSections.map((section) => (
+              <section key={section.title} className="app-sidebar-section">
+                {!collapsed ? <p className="app-sidebar-heading">{section.title}</p> : null}
+                <div className="app-sidebar-links">
+                  {section.items.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={clsx("app-sidebar-link", isActive(pathname, item) && "active")}
+                      title={collapsed ? item.label : undefined}
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      <span className="app-sidebar-badge" aria-hidden>{item.glyph}</span>
+                      {!collapsed ? (
+                        <span className="app-sidebar-link-copy">
+                          <strong>{item.label} <span className="app-sidebar-link-short">{item.short}</span></strong>
+                          <small>{item.description}</small>
+                        </span>
+                      ) : null}
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            ))}
+          </nav>
+        </aside>
+
+        <div className="app-content-shell">
+          <header className="app-toolbar">
+            <button
+              type="button"
+              className="sidebar-toggle mobile-toggle"
+              onClick={() => setMobileOpen((current) => !current)}
+              aria-label="Toggle navigation"
+            >
+              <span className={clsx("mobile-toggle-icon", mobileOpen && "is-open")} aria-hidden />
+              <span>{mobileOpen ? "Close Panel" : "Open Panel"}</span>
+            </button>
+            <div>
+              <p className="app-toolbar-title">{toolbar.title}</p>
+              <p className="app-toolbar-subtitle">{toolbar.subtitle}</p>
+              <nav className="app-breadcrumbs" aria-label="Breadcrumb">
+                {breadcrumbs.map((crumb, index) => {
+                  const isLast = index === breadcrumbs.length - 1;
+
+                  return (
+                    <span key={crumb.href} className="app-breadcrumb-item">
+                      {index > 0 ? <span className="app-breadcrumb-sep">/</span> : null}
+                      {isLast ? (
+                        <span className="app-breadcrumb-current">{crumb.label}</span>
+                      ) : (
+                        <Link href={crumb.href} className="app-breadcrumb-link">
+                          {crumb.label}
+                        </Link>
+                      )}
+                    </span>
+                  );
+                })}
+              </nav>
+            </div>
+          </header>
+          <div className="app-body">{children}</div>
         </div>
 
-        {contractId && !collapsed ? (
-          <div className="contract-context-pill">
-            <strong>Contract {contractId.slice(0, 10)}</strong>
-            <small>Contextual workspace navigation is active.</small>
-          </div>
+        {mobileOpen ? (
+          <button type="button" className="sidebar-backdrop" onClick={() => setMobileOpen(false)} />
         ) : null}
-
-        <nav className="app-sidebar-nav">
-          {navSections.map((section) => (
-            <section key={section.title} className="app-sidebar-section">
-              {!collapsed ? <p className="app-sidebar-heading">{section.title}</p> : null}
-              <div className="app-sidebar-links">
-                {section.items.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={clsx("app-sidebar-link", isActive(pathname, item) && "active")}
-                    title={collapsed ? item.label : undefined}
-                    onClick={() => setMobileOpen(false)}
-                  >
-                    <span className="app-sidebar-badge" aria-hidden>{item.glyph}</span>
-                    {!collapsed ? (
-                      <span className="app-sidebar-link-copy">
-                        <strong>{item.label} <span className="app-sidebar-link-short">{item.short}</span></strong>
-                        <small>{item.description}</small>
-                      </span>
-                    ) : null}
-                  </Link>
-                ))}
-              </div>
-            </section>
-          ))}
-        </nav>
-      </aside>
-
-      <div className="app-content-shell">
-        <header className="app-toolbar">
-          <button
-            type="button"
-            className="sidebar-toggle mobile-toggle"
-            onClick={() => setMobileOpen((current) => !current)}
-            aria-label="Toggle navigation"
-          >
-            <span className={clsx("mobile-toggle-icon", mobileOpen && "is-open")} aria-hidden />
-            <span>{mobileOpen ? "Close Panel" : "Open Panel"}</span>
-          </button>
-          <div>
-            <p className="app-toolbar-title">{toolbar.title}</p>
-            <p className="app-toolbar-subtitle">{toolbar.subtitle}</p>
-            <nav className="app-breadcrumbs" aria-label="Breadcrumb">
-              {breadcrumbs.map((crumb, index) => {
-                const isLast = index === breadcrumbs.length - 1;
-
-                return (
-                  <span key={crumb.href} className="app-breadcrumb-item">
-                    {index > 0 ? <span className="app-breadcrumb-sep">/</span> : null}
-                    {isLast ? (
-                      <span className="app-breadcrumb-current">{crumb.label}</span>
-                    ) : (
-                      <Link href={crumb.href} className="app-breadcrumb-link">
-                        {crumb.label}
-                      </Link>
-                    )}
-                  </span>
-                );
-              })}
-            </nav>
-          </div>
-        </header>
-        <div className="app-body">{children}</div>
       </div>
-
-      {mobileOpen ? <button type="button" className="sidebar-backdrop" onClick={() => setMobileOpen(false)} /> : null}
-    </div>
+    </ToastProvider>
   );
 }

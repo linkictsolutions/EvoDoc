@@ -9,6 +9,7 @@ import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
 import type { Contract } from "@/types/models";
 import { CenteredLoader } from "@/components/ui/centered-loader";
+import { useToast } from "@/components/ui/toast";
 
 const schema = z.object({
   contractId: z.string().min(1, "Contract number is required"),
@@ -51,6 +52,7 @@ export function BankLcForm({
   autoLoadExisting = false,
   continueHref,
 }: BankLcFormProps) {
+  const toast = useToast();
   const [apiError, setApiError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [savedContractId, setSavedContractId] = useState<string | null>(null);
@@ -206,11 +208,13 @@ export function BankLcForm({
       });
 
       setSavedContractId(result.contractId);
+      toast.success("Bank & LC saved.");
       if (typeof window !== "undefined") {
         window.localStorage.setItem("evodoc.contractId", result.contractId);
       }
     } catch (error) {
       setApiError((error as Error).message);
+      toast.error("Unable to save Bank & LC.");
     } finally {
       setSaving(false);
     }

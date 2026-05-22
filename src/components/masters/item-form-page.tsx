@@ -7,6 +7,7 @@ import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
 import type { CompanyConfiguration, Item } from "@/types/models";
 import { CenteredLoader } from "@/components/ui/centered-loader";
+import { useToast } from "@/components/ui/toast";
 
 type ItemFormState = {
   itemCode: string;
@@ -33,6 +34,7 @@ const initialForm: ItemFormState = {
 };
 
 export function ItemFormPage({ itemId }: { itemId?: string }) {
+  const toast = useToast();
   const router = useRouter();
   const [form, setForm] = useState<ItemFormState>(initialForm);
   const [companyConfiguration, setCompanyConfiguration] = useState<CompanyConfiguration | null>(null);
@@ -119,10 +121,12 @@ export function ItemFormPage({ itemId }: { itemId?: string }) {
         }),
       });
 
+      toast.success("Item saved.");
       router.push("/app/masters/items");
       router.refresh();
     } catch (submitError) {
       setError((submitError as Error).message);
+      toast.error("Unable to save item.");
     } finally {
       setSaving(false);
     }

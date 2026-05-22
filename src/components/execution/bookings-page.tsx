@@ -6,6 +6,7 @@ import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
 import type { BookingsSheet } from "@/types/models";
 import { CenteredLoader } from "@/components/ui/centered-loader";
+import { useToast } from "@/components/ui/toast";
 
 type ContractShippingOptionsResponse = {
   contract: {
@@ -34,6 +35,7 @@ function buildShippingLineOptions(
 }
 
 export function BookingsPage({ contractId }: { contractId: string }) {
+  const toast = useToast();
   const [form, setForm] = useState<BookingsSheet | null>(null);
   const [shippingLineOptions, setShippingLineOptions] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -124,8 +126,10 @@ export function BookingsPage({ contractId }: { contractId: string }) {
         }),
       });
       await load();
+      toast.success("Bookings saved.");
     } catch (saveError) {
       setError((saveError as Error).message);
+      toast.error("Unable to save bookings.");
     } finally {
       setSaving(false);
     }

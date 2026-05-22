@@ -7,6 +7,7 @@ import { computeContractExcelParity } from "@/domain/excel-parity";
 import { collectSealOptions, deriveFinalStaffingRows } from "@/domain/execution";
 import type { BookingsSheet, Contract, StaffingFinalRow, StaffingSheet } from "@/types/models";
 import { CenteredLoader } from "@/components/ui/centered-loader";
+import { useToast } from "@/components/ui/toast";
 
 type StaffingPayload = StaffingSheet & { finalRows: StaffingFinalRow[] };
 type ContractDetailResponse = {
@@ -14,6 +15,7 @@ type ContractDetailResponse = {
 };
 
 export function StaffingPage({ contractId }: { contractId: string }) {
+  const toast = useToast();
   const [bookings, setBookings] = useState<BookingsSheet | null>(null);
   const [form, setForm] = useState<StaffingPayload | null>(null);
   const [contract, setContract] = useState<ContractDetailResponse["contract"] | null>(null);
@@ -120,8 +122,10 @@ export function StaffingPage({ contractId }: { contractId: string }) {
         }),
       });
       await load();
+      toast.success("Staffing saved.");
     } catch (saveError) {
       setError((saveError as Error).message);
+      toast.error("Unable to save staffing.");
     } finally {
       setSaving(false);
     }

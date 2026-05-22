@@ -7,6 +7,7 @@ import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
 import type { Customer } from "@/types/models";
 import { CenteredLoader } from "@/components/ui/centered-loader";
+import { useToast } from "@/components/ui/toast";
 
 type BuyerFormState = {
   name: string;
@@ -27,6 +28,7 @@ const initialForm: BuyerFormState = {
 };
 
 export function BuyerFormPage({ buyerId }: { buyerId?: string }) {
+  const toast = useToast();
   const router = useRouter();
   const [form, setForm] = useState<BuyerFormState>(initialForm);
   const [error, setError] = useState<string | null>(null);
@@ -90,10 +92,12 @@ export function BuyerFormPage({ buyerId }: { buyerId?: string }) {
         }),
       });
 
+      toast.success("Buyer saved.");
       router.push("/app/masters/customers");
       router.refresh();
     } catch (submitError) {
       setError((submitError as Error).message);
+      toast.error("Unable to save buyer.");
     } finally {
       setSaving(false);
     }

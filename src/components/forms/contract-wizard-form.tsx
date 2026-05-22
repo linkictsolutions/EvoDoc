@@ -8,6 +8,7 @@ import { z } from "zod";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
 import type { CompanyConfiguration } from "@/types/models";
+import { useToast } from "@/components/ui/toast";
 
 const formSchema = z.object({
   customerName: z.string().min(1),
@@ -73,6 +74,7 @@ const stepFields: Array<Array<keyof FormData>> = [
 ];
 
 export function ContractWizardForm() {
+  const toast = useToast();
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [apiError, setApiError] = useState<string | null>(null);
@@ -211,9 +213,11 @@ export function ContractWizardForm() {
         }),
       });
 
+      toast.success("Contract saved.");
       router.push(`/app/contracts/${encodeURIComponent(data.contractId)}`);
     } catch (error) {
       setApiError((error as Error).message);
+      toast.error("Unable to save contract.");
     } finally {
       setIsSaving(false);
     }

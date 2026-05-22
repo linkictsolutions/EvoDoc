@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
 import { CenteredLoader } from "@/components/ui/centered-loader";
+import { useToast } from "@/components/ui/toast";
 import type {
   CompanyConfiguration,
   DocumentBrandingSettings,
@@ -98,6 +99,7 @@ async function toOptimizedDataUrl(file: File): Promise<string> {
 }
 
 export function CompanyConfigurationPage() {
+  const toast = useToast();
   const [form, setForm] = useState<CompanyConfigurationFormState | null>(null);
   const [activeTab, setActiveTab] = useState<"general" | "branding">("general");
   const [loading, setLoading] = useState(true);
@@ -385,8 +387,10 @@ export function CompanyConfigurationPage() {
       });
 
       await loadConfiguration();
+      toast.success("Company configuration saved.");
     } catch (submitError) {
       setError((submitError as Error).message);
+      toast.error("Unable to save company configuration.");
     } finally {
       setSaving(false);
     }

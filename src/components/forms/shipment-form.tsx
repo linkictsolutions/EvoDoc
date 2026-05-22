@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
+import { useToast } from "@/components/ui/toast";
 
 const shipmentSchema = z.object({
   vessel: z.string().optional(),
@@ -22,6 +23,7 @@ const shipmentSchema = z.object({
 type ShipmentFormData = z.infer<typeof shipmentSchema>;
 
 export function ShipmentForm({ contractId }: { contractId: string }) {
+  const toast = useToast();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -58,9 +60,11 @@ export function ShipmentForm({ contractId }: { contractId: string }) {
         }),
       });
 
+      toast.success("Shipment saved.");
       router.push(`/app/contracts/${contractId}/shipments/${data.shipmentId}`);
     } catch (submitError) {
       setError((submitError as Error).message);
+      toast.error("Unable to save shipment.");
     } finally {
       setSaving(false);
     }
