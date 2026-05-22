@@ -485,7 +485,7 @@ tbody tr:hover {
 .page-shell {
   display: grid;
   gap: 0.95rem;
-  width: min(1220px, 100%);
+  width: 100%;
   min-width: 0;
 }
 
