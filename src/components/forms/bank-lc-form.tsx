@@ -341,16 +341,21 @@ export function BankLcForm({
         </label>
         <label>
           Beneficiary Bank
-          <input
+          <select
             {...beneficiaryBankRegister}
-            list="beneficiary-bank-options"
-            placeholder="Select or type beneficiary bank"
-          />
-          <datalist id="beneficiary-bank-options">
+            onChange={(event) => {
+              beneficiaryBankRegister.onChange(event);
+              setValue("beneficiaryAccountNumber", "");
+            }}
+            disabled={beneficiaryBankOptions.length === 0}
+          >
+            <option value="">
+              {beneficiaryBankOptions.length === 0 ? "No beneficiary banks configured" : "Select beneficiary bank"}
+            </option>
             {beneficiaryBankOptions.map((bank) => (
-              <option key={bank} value={bank} />
+              <option key={bank} value={bank}>{bank}</option>
             ))}
-          </datalist>
+          </select>
           {beneficiaryBankOptions.length === 0 ? (
             <small className="muted-text">Configure beneficiary banks in Company Config to enable dropdowns.</small>
           ) : null}
@@ -361,17 +366,24 @@ export function BankLcForm({
         </label>
         <label>
           Beneficiary Account No
-          <input
+          <select
             {...beneficiaryAccountRegister}
-            list="beneficiary-account-options"
-            placeholder={selectedBeneficiaryBank ? "Select beneficiary account" : "Select beneficiary bank first"}
-            disabled={!selectedBeneficiaryBank}
-          />
-          <datalist id="beneficiary-account-options">
+            disabled={!selectedBeneficiaryBank || selectedBeneficiaryAccounts.length === 0}
+          >
+            <option value="">
+              {!selectedBeneficiaryBank
+                ? "Select beneficiary bank first"
+                : selectedBeneficiaryAccounts.length === 0
+                  ? "No accounts for this bank"
+                  : "Select beneficiary account"}
+            </option>
             {selectedBeneficiaryAccounts.map((account) => (
-              <option key={account} value={account} />
+              <option key={account} value={account}>{account}</option>
             ))}
-          </datalist>
+          </select>
+          {selectedBeneficiaryBank && selectedBeneficiaryAccounts.length === 0 ? (
+            <small className="muted-text">No beneficiary account numbers configured for this bank.</small>
+          ) : null}
         </label>
         <label>
           Correspondent Bank
