@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
-import type { Contract } from "@/types/models";
+import type { CompanyConfiguration, Contract } from "@/types/models";
 import { CenteredLoader } from "@/components/ui/centered-loader";
 import { useToast } from "@/components/ui/toast";
 
@@ -57,6 +57,7 @@ export function BankLcForm({
   const [saving, setSaving] = useState(false);
   const [savedContractId, setSavedContractId] = useState<string | null>(null);
   const [loadingExisting, setLoadingExisting] = useState(false);
+  const [companyConfiguration, setCompanyConfiguration] = useState<CompanyConfiguration | null>(null);
 
   const {
     register,
@@ -91,7 +92,12 @@ export function BankLcForm({
     },
   });
 
+  const beneficiaryBankRegister = register("beneficiaryBank");
+  const beneficiaryAccountRegister = register("beneficiaryAccountNumber");
+
   const contractIdInput = watch("contractId");
+  const selectedBeneficiaryBank = watch("beneficiaryBank");
+  const selectedBeneficiaryAccount = watch("beneficiaryAccountNumber");
   const reportHref = useMemo(() => {
     if (continueHref) {
       return continueHref;
@@ -99,6 +105,23 @@ export function BankLcForm({
     const id = savedContractId ?? contractIdInput;
     return id ? `/app/contracts/${encodeURIComponent(id)}/resolved-values` : "/app/contracts";
   }, [contractIdInput, continueHref, savedContractId]);
+
+  const beneficiaryBanks = companyConfiguration?.beneficiaryBanks ?? [];
+  const beneficiaryBankOptions = beneficiaryBanks.map((entry) => entry.beneficiaryBank);
+  const selectedBeneficiaryAccounts = useMemo(() => {
+    const selected = selectedBeneficiaryBank?.trim();
+    if (!selected) {
+      return [];
+    }
+    const match = beneficiaryBanks.find(
+      (entry) => entry.beneficiaryBank.trim().toLowerCase() === selected.toLowerCase(),
+    );
+    return match?.beneficiaryAccountNumbers ?? [];
+  }, [beneficiaryBanks, selectedBeneficiaryBank]);
+
+  useEffect(() => {
+    setValue("beneficiaryAccountNumber", "");
+  }, [selectedBeneficiaryBank, setValue]);
 
   useEffect(() => {
     const queryContractId = initialContractId ?? (typeof window !== "undefined"
@@ -114,6 +137,25 @@ export function BankLcForm({
 
     setValue("contractId", resolvedContractId, { shouldValidate: true });
   }, [initialContractId, setValue]);
+
+  useEffect(() => {
+    let mounted = true;
+    apiClient<CompanyConfiguration>(`/api/company-configuration?orgId=${DEFAULT_ORG_ID}`)
+      .then((data) => {
+        if (mounted) {
+          setCompanyConfiguration(data);
+        }
+      })
+      .catch(() => {
+        if (mounted) {
+          setCompanyConfiguration(null);
+        }
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [DEFAULT_ORG_ID]);
 
   useEffect(() => {
     const targetContractId = initialContractId ?? contractIdInput;
@@ -299,7 +341,19 @@ export function BankLcForm({
         </label>
         <label>
           Beneficiary Bank
-          <input {...register("beneficiaryBank")} />
+          <input
+            {...beneficiaryBankRegister}
+            list="beneficiary-bank-options"
+            placeholder="Select or type beneficiary bank"
+          />
+          <datalist id="beneficiary-bank-options">
+            {beneficiaryBankOptions.map((bank) => (
+              <option key={bank} value={bank} />
+            ))}
+          </datalist>
+          {beneficiaryBankOptions.length === 0 ? (
+            <small className="muted-text">Configure beneficiary banks in Company Config to enable dropdowns.</small>
+          ) : null}
         </label>
         <label>
           Address of Bank
@@ -307,7 +361,17 @@ export function BankLcForm({
         </label>
         <label>
           Beneficiary Account No
-          <input {...register("beneficiaryAccountNumber")} />
+          <input
+            {...beneficiaryAccountRegister}
+            list="beneficiary-account-options"
+            placeholder={selectedBeneficiaryBank ? "Select beneficiary account" : "Select beneficiary bank first"}
+            disabled={!selectedBeneficiaryBank}
+          />
+          <datalist id="beneficiary-account-options">
+            {selectedBeneficiaryAccounts.map((account) => (
+              <option key={account} value={account} />
+            ))}
+          </datalist>
         </label>
         <label>
           Correspondent Bank

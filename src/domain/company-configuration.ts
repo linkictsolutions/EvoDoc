@@ -1,5 +1,6 @@
 import { companyConfigurationInputSchema } from "@/domain/schemas";
 import type {
+  BeneficiaryBankProfile,
   CompanyConfiguration,
   DocumentBrandingSettings,
   DocumentBrandingSlotSettings,
@@ -39,6 +40,8 @@ const DEFAULT_PAYMENT_TERMS = ["CAD", "LC", "Advance & CAD", "Advance"];
 const DEFAULT_DELIVERY_TERMS = ["F.O.B"];
 const DEFAULT_PRICE_UOMS = ["Lbs", "Bag of 60Kg", "Bag of 50Kg", "Bag of 30Kg", "Kg", "Metric Ton"];
 const MAX_BRANDING_IMAGE_DATA_URL_LENGTH = 950_000;
+const MAX_BENEFICIARY_BANKS = 50;
+const MAX_BENEFICIARY_ACCOUNTS_PER_BANK = 20;
 
 const DEFAULT_DOCUMENT_BRANDING: DocumentBrandingSettings = {
   header: {
@@ -138,6 +141,56 @@ function resolvePriceUoms(configuration?: Partial<CompanyConfiguration> | null):
   }
 
   return DEFAULT_PRICE_UOMS;
+}
+
+function normalizeBeneficiaryBanks(value?: BeneficiaryBankProfile[] | null): BeneficiaryBankProfile[] {
+  const banks: BeneficiaryBankProfile[] = [];
+  const seenBanks = new Set<string>();
+
+  for (const entry of value ?? []) {
+    const bankName = entry.beneficiaryBank.trim();
+    if (!bankName) {
+      continue;
+    }
+
+    const bankKey = bankName.toLowerCase();
+    if (seenBanks.has(bankKey)) {
+      continue;
+    }
+    seenBanks.add(bankKey);
+
+    const seenAccounts = new Set<string>();
+    const accounts: string[] = [];
+
+    for (const account of entry.beneficiaryAccountNumbers ?? []) {
+      const normalized = account.trim();
+      if (!normalized) {
+        continue;
+      }
+
+      const accountKey = normalized.toLowerCase();
+      if (seenAccounts.has(accountKey)) {
+        continue;
+      }
+      seenAccounts.add(accountKey);
+      accounts.push(normalized);
+
+      if (accounts.length >= MAX_BENEFICIARY_ACCOUNTS_PER_BANK) {
+        break;
+      }
+    }
+
+    if (accounts.length === 0) {
+      continue;
+    }
+
+    banks.push({ beneficiaryBank: bankName, beneficiaryAccountNumbers: accounts });
+    if (banks.length >= MAX_BENEFICIARY_BANKS) {
+      break;
+    }
+  }
+
+  return banks;
 }
 
 function normalizePackagingDefinition(
@@ -252,6 +305,7 @@ export function defaultCompanyConfiguration(orgId: string): CompanyConfiguration
     documentBranding: DEFAULT_DOCUMENT_BRANDING,
     bulkReferenceKg: 19200,
     packagingDefinitions: DEFAULT_PACKAGING_DEFINITIONS,
+    beneficiaryBanks: [],
     createdAt: new Date(0).toISOString(),
     updatedAt: new Date(0).toISOString(),
   };
@@ -286,6 +340,7 @@ export function resolveCompanyConfiguration(
     priceUoms: resolvePriceUoms(configuration),
     documentBranding: resolveDocumentBranding(configuration),
     bulkReferenceKg: configuration?.bulkReferenceKg ?? defaults.bulkReferenceKg,
+    beneficiaryBanks: normalizeBeneficiaryBanks(configuration?.beneficiaryBanks),
     packagingDefinitions:
       configuration?.packagingDefinitions?.map(normalizePackagingDefinition) ??
       defaults.packagingDefinitions,
@@ -324,6 +379,7 @@ export function validateAndNormalizeCompanyConfigurationPayload(
       priceUoms: normalizePaymentTerms(normalized.priceUoms),
       documentBranding: resolveDocumentBranding(normalized),
       bulkReferenceKg: normalized.bulkReferenceKg,
+      beneficiaryBanks: normalizeBeneficiaryBanks(normalized.beneficiaryBanks),
       packagingDefinitions: normalized.packagingDefinitions.map(normalizePackagingDefinition),
     },
   };

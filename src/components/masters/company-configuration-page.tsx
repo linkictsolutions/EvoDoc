@@ -6,6 +6,7 @@ import { DEFAULT_ORG_ID } from "@/lib/config";
 import { CenteredLoader } from "@/components/ui/centered-loader";
 import { useToast } from "@/components/ui/toast";
 import type {
+  BeneficiaryBankProfile,
   CompanyConfiguration,
   DocumentBrandingSettings,
   DocumentType,
@@ -31,6 +32,7 @@ type CompanyConfigurationFormState = {
   documentBranding: DocumentBrandingSettings;
   bulkReferenceKg: string;
   packagingDefinitions: PackagingDefinition[];
+  beneficiaryBanks: BeneficiaryBankProfile[];
 };
 
 const documentTypeLabels: Record<DocumentType, string> = {
@@ -63,6 +65,7 @@ function toFormState(configuration: CompanyConfiguration): CompanyConfigurationF
     documentBranding: configuration.documentBranding,
     bulkReferenceKg: String(configuration.bulkReferenceKg),
     packagingDefinitions: configuration.packagingDefinitions,
+    beneficiaryBanks: configuration.beneficiaryBanks ?? [],
   };
 }
 
@@ -101,7 +104,7 @@ async function toOptimizedDataUrl(file: File): Promise<string> {
 export function CompanyConfigurationPage() {
   const toast = useToast();
   const [form, setForm] = useState<CompanyConfigurationFormState | null>(null);
-  const [activeTab, setActiveTab] = useState<"general" | "branding">("general");
+  const [activeTab, setActiveTab] = useState<"general" | "banking" | "branding">("general");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -293,6 +296,132 @@ export function CompanyConfigurationPage() {
     });
   }
 
+  function addBeneficiaryBank() {
+    setForm((current) => {
+      if (!current) {
+        return current;
+      }
+
+      return {
+        ...current,
+        beneficiaryBanks: [
+          ...current.beneficiaryBanks,
+          { beneficiaryBank: "", beneficiaryAccountNumbers: [""] },
+        ],
+      };
+    });
+  }
+
+  function updateBeneficiaryBankName(index: number, value: string) {
+    setForm((current) => {
+      if (!current) {
+        return current;
+      }
+
+      const nextBanks = current.beneficiaryBanks.map((bank, bankIndex) => (
+        bankIndex === index ? { ...bank, beneficiaryBank: value } : bank
+      ));
+
+      return {
+        ...current,
+        beneficiaryBanks: nextBanks,
+      };
+    });
+  }
+
+  function removeBeneficiaryBank(index: number) {
+    setForm((current) => {
+      if (!current) {
+        return current;
+      }
+
+      return {
+        ...current,
+        beneficiaryBanks: current.beneficiaryBanks.filter((_, bankIndex) => bankIndex !== index),
+      };
+    });
+  }
+
+  function addBeneficiaryAccount(bankIndex: number) {
+    setForm((current) => {
+      if (!current) {
+        return current;
+      }
+
+      const nextBanks = current.beneficiaryBanks.map((bank, index) => {
+        if (index !== bankIndex) {
+          return bank;
+        }
+
+        return {
+          ...bank,
+          beneficiaryAccountNumbers: [...bank.beneficiaryAccountNumbers, ""],
+        };
+      });
+
+      return {
+        ...current,
+        beneficiaryBanks: nextBanks,
+      };
+    });
+  }
+
+  function updateBeneficiaryAccount(bankIndex: number, accountIndex: number, value: string) {
+    setForm((current) => {
+      if (!current) {
+        return current;
+      }
+
+      const nextBanks = current.beneficiaryBanks.map((bank, index) => {
+        if (index !== bankIndex) {
+          return bank;
+        }
+
+        const nextAccounts = bank.beneficiaryAccountNumbers.map((account, idx) => (
+          idx === accountIndex ? value : account
+        ));
+
+        return {
+          ...bank,
+          beneficiaryAccountNumbers: nextAccounts,
+        };
+      });
+
+      return {
+        ...current,
+        beneficiaryBanks: nextBanks,
+      };
+    });
+  }
+
+  function removeBeneficiaryAccount(bankIndex: number, accountIndex: number) {
+    setForm((current) => {
+      if (!current) {
+        return current;
+      }
+
+      const nextBanks = current.beneficiaryBanks.map((bank, index) => {
+        if (index !== bankIndex) {
+          return bank;
+        }
+
+        if (bank.beneficiaryAccountNumbers.length <= 1) {
+          return bank;
+        }
+
+        return {
+          ...bank,
+          beneficiaryAccountNumbers: bank.beneficiaryAccountNumbers.filter((_, idx) => idx !== accountIndex),
+        };
+      });
+
+      return {
+        ...current,
+        beneficiaryBanks: nextBanks,
+      };
+    });
+  }
+
   function removePriceUom(index: number) {
     setForm((current) => {
       if (!current || current.priceUoms.length <= 1) {
@@ -428,11 +557,19 @@ export function CompanyConfigurationPage() {
       <form className="card form-grid" onSubmit={handleSubmit}>
         <div className="section-heading span-all">
           <div>
-            <h3>{activeTab === "general" ? "General Configuration" : "Document Branding"}</h3>
+            <h3>
+              {activeTab === "general"
+                ? "General Configuration"
+                : activeTab === "banking"
+                  ? "Banking Configuration"
+                  : "Document Branding"}
+            </h3>
             <p className="sidebar-subtitle">
               {activeTab === "general"
                 ? "Master company constants used throughout contract and document generation."
-                : "A4-safe header and footer graphics for generated documents."}
+                : activeTab === "banking"
+                  ? "Default beneficiary bank + account options used in contract Bank & LC forms."
+                  : "A4-safe header and footer graphics for generated documents."}
             </p>
           </div>
           <div className="row-actions">
@@ -459,6 +596,13 @@ export function CompanyConfigurationPage() {
             onClick={() => setActiveTab("branding")}
           >
             Document Branding
+          </button>
+          <button
+            type="button"
+            className={activeTab === "banking" ? "" : "button-secondary"}
+            onClick={() => setActiveTab("banking")}
+          >
+            Banking
           </button>
         </div>
 
@@ -731,6 +875,88 @@ export function CompanyConfigurationPage() {
                 </tbody>
               </table>
             </div>
+          </>
+        ) : activeTab === "banking" ? (
+          <>
+            <div className="section-heading span-all">
+              <div>
+                <h3>Beneficiary Banks</h3>
+                <p className="sidebar-subtitle">
+                  Add the beneficiary banks and account numbers you reuse across contracts.
+                </p>
+              </div>
+              <div className="row-actions">
+                <button type="button" className="button-secondary" onClick={addBeneficiaryBank}>
+                  Add Bank
+                </button>
+              </div>
+            </div>
+
+            {form.beneficiaryBanks.length === 0 ? (
+              <p className="span-all muted-text">No beneficiary banks configured yet.</p>
+            ) : null}
+
+            {form.beneficiaryBanks.map((bank, bankIndex) => (
+              <section key={bankIndex} className="card span-all">
+                <div className="row-actions" style={{ justifyContent: "space-between" }}>
+                  <strong>Bank {bankIndex + 1}</strong>
+                  <button
+                    type="button"
+                    className="button-secondary"
+                    onClick={() => removeBeneficiaryBank(bankIndex)}
+                  >
+                    Remove Bank
+                  </button>
+                </div>
+
+                <div className="form-grid mt-sm">
+                  <label className="span-all">
+                    Beneficiary Bank
+                    <input
+                      value={bank.beneficiaryBank}
+                      onChange={(event) => updateBeneficiaryBankName(bankIndex, event.target.value)}
+                      placeholder="e.g. Commercial Bank of Ethiopia"
+                    />
+                  </label>
+
+                  <div className="span-all section-heading mt-sm">
+                    <div>
+                      <h3>Beneficiary Account Numbers</h3>
+                      <p className="sidebar-subtitle">Shown after selecting this bank in Bank &amp; LC forms.</p>
+                    </div>
+                    <div className="row-actions">
+                      <button
+                        type="button"
+                        className="button-secondary"
+                        onClick={() => addBeneficiaryAccount(bankIndex)}
+                      >
+                        Add Account
+                      </button>
+                    </div>
+                  </div>
+
+                  {bank.beneficiaryAccountNumbers.map((account, accountIndex) => (
+                    <label key={`${bankIndex}-${accountIndex}`}>
+                      Account No {accountIndex + 1}
+                      <input
+                        value={account}
+                        onChange={(event) => updateBeneficiaryAccount(bankIndex, accountIndex, event.target.value)}
+                        placeholder="e.g. 1000123456789"
+                      />
+                      {bank.beneficiaryAccountNumbers.length > 1 ? (
+                        <button
+                          type="button"
+                          className="button-secondary mt-sm"
+                          onClick={() => removeBeneficiaryAccount(bankIndex, accountIndex)}
+                        >
+                          Remove
+                        </button>
+                      ) : null}
+                    </label>
+                  ))}
+                </div>
+              </section>
+            ))}
           </>
         ) : (
           <>

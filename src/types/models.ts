@@ -104,6 +104,11 @@ export interface DocumentBrandingSettings {
   applyByDocType: Record<DocumentType, DocumentBrandingToggle>;
 }
 
+export interface BeneficiaryBankProfile {
+  beneficiaryBank: string;
+  beneficiaryAccountNumbers: string[];
+}
+
 export interface CompanyConfiguration extends Timestamped {
   orgId: string;
   sellerName: string;
@@ -124,6 +129,7 @@ export interface CompanyConfiguration extends Timestamped {
   documentBranding: DocumentBrandingSettings;
   bulkReferenceKg: number;
   packagingDefinitions: PackagingDefinition[];
+  beneficiaryBanks: BeneficiaryBankProfile[];
 }
 
 export interface ContractTerms {

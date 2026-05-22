@@ -231,6 +231,10 @@ export const companyConfigurationInputSchema = z.object({
       }),
     }),
     bulkReferenceKg: z.number().positive(),
+    beneficiaryBanks: z.array(z.object({
+      beneficiaryBank: z.string().min(1),
+      beneficiaryAccountNumbers: z.array(z.string().min(1)).min(1),
+    })).optional(),
     packagingDefinitions: z.array(z.object({
       label: z.string().min(1),
       uom: z.string().min(1),
