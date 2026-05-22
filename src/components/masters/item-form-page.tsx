@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
 import type { CompanyConfiguration, Item } from "@/types/models";
 import { CenteredLoader } from "@/components/ui/centered-loader";
 import { useToast } from "@/components/ui/toast";
+import { useUnsavedChangesGuard } from "@/components/ui/use-unsaved-changes-guard";
 
 type ItemFormState = {
   itemCode: string;
@@ -41,8 +42,17 @@ export function ItemFormPage({ itemId }: { itemId?: string }) {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+  const initialSnapshot = useRef(JSON.stringify(initialForm));
 
   const isEdit = Boolean(itemId);
+  const isDirty = useMemo(() => JSON.stringify(form) !== initialSnapshot.current, [form]);
+
+  useUnsavedChangesGuard({ enabled: isDirty && !saving });
+
+  function requiredLabelClass(isMissing: boolean) {
+    return isMissing ? "is-required field-error" : "is-required";
+  }
 
   useEffect(() => {
     let mounted = true;
@@ -61,7 +71,7 @@ export function ItemFormPage({ itemId }: { itemId?: string }) {
         setCompanyConfiguration(config);
 
         if (item) {
-          setForm({
+          const nextForm: ItemFormState = {
             itemCode: item.itemCode,
             name: item.name,
             description: item.description ?? "",
@@ -71,13 +81,17 @@ export function ItemFormPage({ itemId }: { itemId?: string }) {
             defaultPackagingUnit: item.defaultPackagingUnit ?? "Bag of 60Kg",
             defaultBagWeightKg: item.defaultBagWeightKg == null ? "" : String(item.defaultBagWeightKg),
             active: item.active,
-          });
+          };
+          setForm(nextForm);
+          initialSnapshot.current = JSON.stringify(nextForm);
         } else {
-          setForm({
+          const nextForm: ItemFormState = {
             ...initialForm,
             hsCode: config?.defaultHsCode ?? "",
             origin: config?.defaultOrigin ?? "",
-          });
+          };
+          setForm(nextForm);
+          initialSnapshot.current = JSON.stringify(nextForm);
         }
       })
       .catch((loadError: Error) => {
@@ -98,6 +112,15 @@ export function ItemFormPage({ itemId }: { itemId?: string }) {
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setAttemptedSubmit(true);
+
+    const missingCode = form.itemCode.trim().length === 0;
+    const missingName = form.name.trim().length === 0;
+    if (missingCode || missingName) {
+      toast.error("Fill in the required fields.");
+      return;
+    }
+
     setSaving(true);
     setError(null);
 
@@ -122,6 +145,7 @@ export function ItemFormPage({ itemId }: { itemId?: string }) {
       });
 
       toast.success("Item saved.");
+      initialSnapshot.current = JSON.stringify(form);
       router.push("/app/masters/items");
       router.refresh();
     } catch (submitError) {
@@ -156,13 +180,13 @@ export function ItemFormPage({ itemId }: { itemId?: string }) {
         <p>{isEdit ? "Update item definition and save changes." : "Create a reusable item record for contracts."}</p>
       </header>
 
-      <form className="card form-grid" onSubmit={handleSubmit}>
-        <label>
-          Item Code
+      <form className="card form-grid" onSubmit={handleSubmit} noValidate>
+        <label className={requiredLabelClass(attemptedSubmit && form.itemCode.trim().length === 0)}>
+          <span className="label-text">Item Code</span>
           <input value={form.itemCode} onChange={(event) => updateField("itemCode", event.target.value)} required />
         </label>
-        <label>
-          Item Name
+        <label className={requiredLabelClass(attemptedSubmit && form.name.trim().length === 0)}>
+          <span className="label-text">Item Name</span>
           <input value={form.name} onChange={(event) => updateField("name", event.target.value)} required />
         </label>
         <label className="span-all">

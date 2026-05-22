@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
 import type { Customer } from "@/types/models";
 import { CenteredLoader } from "@/components/ui/centered-loader";
 import { useToast } from "@/components/ui/toast";
+import { useUnsavedChangesGuard } from "@/components/ui/use-unsaved-changes-guard";
 
 type BuyerFormState = {
   name: string;
@@ -34,8 +35,17 @@ export function BuyerFormPage({ buyerId }: { buyerId?: string }) {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(Boolean(buyerId));
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+  const initialSnapshot = useRef(JSON.stringify(initialForm));
 
   const isEdit = Boolean(buyerId);
+  const isDirty = useMemo(() => JSON.stringify(form) !== initialSnapshot.current, [form]);
+
+  useUnsavedChangesGuard({ enabled: isDirty && !saving });
+
+  function requiredLabelClass(isMissing: boolean) {
+    return isMissing ? "is-required field-error" : "is-required";
+  }
 
   useEffect(() => {
     if (!buyerId) {
@@ -52,14 +62,16 @@ export function BuyerFormPage({ buyerId }: { buyerId?: string }) {
           return;
         }
 
-        setForm({
+        const nextForm: BuyerFormState = {
           name: buyer.name,
           address: buyer.address,
           country: buyer.country,
           contactName: buyer.contactName ?? "",
           contactEmail: buyer.contactEmail ?? "",
           taxId: buyer.taxId ?? "",
-        });
+        };
+        setForm(nextForm);
+        initialSnapshot.current = JSON.stringify(nextForm);
       })
       .catch((loadError: Error) => {
         if (mounted) {
@@ -79,6 +91,16 @@ export function BuyerFormPage({ buyerId }: { buyerId?: string }) {
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setAttemptedSubmit(true);
+
+    const missingName = form.name.trim().length === 0;
+    const missingAddress = form.address.trim().length === 0;
+    const missingCountry = form.country.trim().length === 0;
+    if (missingName || missingAddress || missingCountry) {
+      toast.error("Fill in the required fields.");
+      return;
+    }
+
     setSaving(true);
     setError(null);
 
@@ -93,6 +115,7 @@ export function BuyerFormPage({ buyerId }: { buyerId?: string }) {
       });
 
       toast.success("Buyer saved.");
+      initialSnapshot.current = JSON.stringify(form);
       router.push("/app/masters/customers");
       router.refresh();
     } catch (submitError) {
@@ -127,17 +150,17 @@ export function BuyerFormPage({ buyerId }: { buyerId?: string }) {
         <p>{isEdit ? "Update buyer details and save changes." : "Create a buyer record for contract reuse."}</p>
       </header>
 
-      <form className="card form-grid" onSubmit={handleSubmit}>
-        <label>
-          Legal Name
+      <form className="card form-grid" onSubmit={handleSubmit} noValidate>
+        <label className={requiredLabelClass(attemptedSubmit && form.name.trim().length === 0)}>
+          <span className="label-text">Legal Name</span>
           <input value={form.name} onChange={(event) => updateField("name", event.target.value)} required />
         </label>
-        <label className="span-all">
-          Address
+        <label className={`span-all ${requiredLabelClass(attemptedSubmit && form.address.trim().length === 0)}`}>
+          <span className="label-text">Address</span>
           <textarea rows={4} value={form.address} onChange={(event) => updateField("address", event.target.value)} required />
         </label>
-        <label>
-          Country
+        <label className={requiredLabelClass(attemptedSubmit && form.country.trim().length === 0)}>
+          <span className="label-text">Country</span>
           <input value={form.country} onChange={(event) => updateField("country", event.target.value)} required />
         </label>
         <label>

@@ -11,8 +11,10 @@ import { DEFAULT_ORG_ID } from "@/lib/config";
 import type { CompanyConfiguration, Customer } from "@/types/models";
 import { CenteredLoader } from "@/components/ui/centered-loader";
 import { useToast } from "@/components/ui/toast";
+import { useUnsavedChangesGuard } from "@/components/ui/use-unsaved-changes-guard";
 
 const schema = z.object({
+  buyerId: z.string().min(1, "Buyer is required"),
   customerName: z.string().min(1),
   customerAddress: z.string().min(1),
   customerCountry: z.string().min(1),
@@ -40,6 +42,7 @@ const packagingOptions = ["Bag of 60Kg", "Bag of 50Kg", "Bag of 30Kg", "Kg", "Lb
 const fallbackPaymentTerms = ["CAD", "LC", "Advance & CAD", "Advance"];
 const fallbackDeliveryTerms = ["F.O.B"];
 const fallbackPriceUoms = ["Lbs", "Bag of 60Kg", "Bag of 50Kg", "Bag of 30Kg", "Kg", "Metric Ton"];
+const fallbackCurrencies = ["USD"];
 
 function resolveBagWeightFromPackagingUnit(unit: string): number {
   const normalized = unit.trim().toLowerCase();
@@ -131,10 +134,12 @@ export function ContractCoreForm({
   const [paymentTermOptions, setPaymentTermOptions] = useState<string[]>(fallbackPaymentTerms);
   const [deliveryTermOptions, setDeliveryTermOptions] = useState<string[]>(fallbackDeliveryTerms);
   const [priceUomOptions, setPriceUomOptions] = useState<string[]>(fallbackPriceUoms);
+  const [currencyOptions, setCurrencyOptions] = useState<string[]>(fallbackCurrencies);
 
-  const { register, watch, handleSubmit, setValue, formState: { errors } } = useForm<FormData>({
+  const { register, watch, handleSubmit, setValue, reset, formState: { errors, isDirty } } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
+      buyerId: "",
       customerName: "",
       customerAddress: "",
       customerCountry: "",
@@ -153,8 +158,14 @@ export function ContractCoreForm({
     },
   });
 
+  useUnsavedChangesGuard({ enabled: isDirty && !saving });
+
   const values = watch();
   const packagingRegister = register("packagingUnit");
+
+  function requiredLabelClass(hasError: boolean) {
+    return hasError ? "is-required field-error" : "is-required";
+  }
 
   const computed = useMemo(() => {
     try {
@@ -181,11 +192,6 @@ export function ContractCoreForm({
   }, [values]);
 
   async function onSubmit(form: FormData) {
-    if (!selectedBuyerId) {
-      setApiError("Select a buyer from Buyer Master before saving the contract.");
-      return;
-    }
-
     setSaving(true);
     setApiError(null);
     setWarnings([]);
@@ -198,7 +204,7 @@ export function ContractCoreForm({
           orgId: DEFAULT_ORG_ID,
           contractId: activeContractId ?? undefined,
           customer: {
-            id: selectedBuyerId,
+            id: form.buyerId,
             name: form.customerName,
             address: form.customerAddress,
             country: form.customerCountry,
@@ -279,6 +285,7 @@ export function ContractCoreForm({
         const terms = configuration.paymentTerms?.filter((term) => term.trim().length > 0) ?? [];
         const deliveryTerms = configuration.deliveryTerms?.filter((term) => term.trim().length > 0) ?? [];
         const priceUoms = configuration.priceUoms?.filter((uom) => uom.trim().length > 0) ?? [];
+        const currencies = configuration.currencies?.filter((currency) => currency.trim().length > 0) ?? [];
         if (terms.length === 0) {
           setPaymentTermOptions(fallbackPaymentTerms);
         } else {
@@ -294,12 +301,18 @@ export function ContractCoreForm({
         } else {
           setPriceUomOptions(priceUoms);
         }
+        if (currencies.length === 0) {
+          setCurrencyOptions(fallbackCurrencies);
+        } else {
+          setCurrencyOptions(currencies);
+        }
       })
       .catch(() => {
         if (mounted) {
           setPaymentTermOptions(fallbackPaymentTerms);
           setDeliveryTermOptions(fallbackDeliveryTerms);
           setPriceUomOptions(fallbackPriceUoms);
+          setCurrencyOptions(fallbackCurrencies);
         }
       });
 
@@ -342,26 +355,36 @@ export function ContractCoreForm({
 
         setActiveContractId(contractIdentifier);
         setSavedContractId(contractIdentifier);
-        setSelectedBuyerId(customer?.id ?? "");
-        setValue("contractNumber", data.contract.contractNumber);
-        setValue("customerName", customer?.name ?? "");
-        setValue("customerAddress", customer?.address ?? "");
-        setValue("customerCountry", customer?.country ?? "");
-        setValue("quality", terms.quality);
-        setValue("origin", terms.origin);
-        setValue("grade", terms.grade);
-        setValue("quantityBags", terms.quantityBags);
-        setValue("bagWeightKg", terms.bagWeightKg);
-        setValue("unitPrice", terms.unitPrice);
-        setValue("priceUnitForPrice", terms.priceUnitForPrice ?? 100);
-        setValue("priceUom", terms.priceUom ?? "Lbs");
-        setValue("packagingUnit", terms.packagingUnit);
-        setValue("currency", terms.currency);
-        setValue("shipmentPeriod", toMonthInputValue(terms.shipmentPeriod));
-        setValue("paymentTerm", terms.paymentTerm ?? paymentTermOptions[0] ?? "CAD");
-        setValue("deliveryTerm", terms.deliveryTerm ?? deliveryTermOptions[0] ?? fallbackDeliveryTerms[0]);
-        setValue("cropYear", terms.cropYear ?? "");
-        setValue("lastCertNo", terms.lastCertNo ?? 0);
+        const buyerId = customer?.id ?? "";
+        setSelectedBuyerId(buyerId);
+        reset(
+          {
+            buyerId,
+            contractNumber: data.contract.contractNumber,
+            customerName: customer?.name ?? "",
+            customerAddress: customer?.address ?? "",
+            customerCountry: customer?.country ?? "",
+            quality: terms.quality,
+            origin: terms.origin,
+            grade: terms.grade,
+            quantityBags: terms.quantityBags,
+            bagWeightKg: terms.bagWeightKg,
+            unitPrice: terms.unitPrice,
+            priceUnitForPrice: terms.priceUnitForPrice ?? 100,
+            priceUom: terms.priceUom ?? "Lbs",
+            packagingUnit: terms.packagingUnit,
+            currency: terms.currency,
+            shipmentPeriod: toMonthInputValue(terms.shipmentPeriod),
+            paymentTerm: terms.paymentTerm ?? paymentTermOptions[0] ?? "CAD",
+            deliveryTerm: terms.deliveryTerm ?? deliveryTermOptions[0] ?? fallbackDeliveryTerms[0],
+            cropYear: terms.cropYear ?? "",
+            lastCertNo: terms.lastCertNo ?? 0,
+          },
+          {
+            keepDirty: false,
+            keepTouched: false,
+          },
+        );
       })
       .catch((error: Error) => {
         if (mounted) {
@@ -377,7 +400,7 @@ export function ContractCoreForm({
     return () => {
       mounted = false;
     };
-  }, [autoLoadExisting, deliveryTermOptions, initialContractId, paymentTermOptions, setValue]);
+  }, [autoLoadExisting, deliveryTermOptions, initialContractId, paymentTermOptions, reset]);
 
   useEffect(() => {
     if (!selectedBuyerId) {
@@ -406,15 +429,26 @@ export function ContractCoreForm({
         {loadingExisting ? <CenteredLoader label="Loading existing contract data..." scope="inline" /> : null}
       </header>
 
-      <form className="card form-grid" onSubmit={handleSubmit(onSubmit)}>
-        <label>
-          Contract Number
+      <form
+        className="card form-grid"
+        onSubmit={handleSubmit(onSubmit, () => toast.error("Fill in the required fields."))}
+      >
+        <label className={requiredLabelClass(Boolean(errors.contractNumber))}>
+          <span className="label-text">Contract Number</span>
           <input {...register("contractNumber")} />
           <small>{errors.contractNumber?.message}</small>
         </label>
-        <label>
-          Buyer
-          <select value={selectedBuyerId} onChange={(event) => setSelectedBuyerId(event.target.value)} required>
+        <label className={requiredLabelClass(Boolean(errors.buyerId))}>
+          <span className="label-text">Buyer</span>
+          <input type="hidden" {...register("buyerId")} />
+          <select
+            value={selectedBuyerId}
+            onChange={(event) => {
+              const buyerId = event.target.value;
+              setSelectedBuyerId(buyerId);
+              setValue("buyerId", buyerId, { shouldValidate: true, shouldDirty: true });
+            }}
+          >
             <option value="">Select saved buyer</option>
             {buyers.map((buyer) => (
               <option key={buyer.id} value={buyer.id}>
@@ -422,38 +456,38 @@ export function ContractCoreForm({
               </option>
             ))}
           </select>
-          <small>{buyers.length === 0 ? "No buyers found. Create one in Master Data > Buyers." : ""}</small>
+          <small>{errors.buyerId?.message ?? (buyers.length === 0 ? "No buyers found. Create one in Master Data > Buyers." : "")}</small>
         </label>
-        <label>
-          Buyer Name
+        <label className={requiredLabelClass(Boolean(errors.customerName))}>
+          <span className="label-text">Buyer Name</span>
           <input {...register("customerName")} readOnly />
           <small>{errors.customerName?.message}</small>
         </label>
-        <label>
-          Buyer Address
+        <label className={requiredLabelClass(Boolean(errors.customerAddress))}>
+          <span className="label-text">Buyer Address</span>
           <input {...register("customerAddress")} readOnly />
           <small>{errors.customerAddress?.message}</small>
         </label>
-        <label>
-          Buyer Country
+        <label className={requiredLabelClass(Boolean(errors.customerCountry))}>
+          <span className="label-text">Buyer Country</span>
           <input {...register("customerCountry")} readOnly />
           <small>{errors.customerCountry?.message}</small>
         </label>
 
-        <label>
-          Quality
+        <label className={requiredLabelClass(Boolean(errors.quality))}>
+          <span className="label-text">Quality</span>
           <textarea rows={3} {...register("quality")} />
         </label>
-        <label>
-          Origin
+        <label className={requiredLabelClass(Boolean(errors.origin))}>
+          <span className="label-text">Origin</span>
           <input {...register("origin")} />
         </label>
-        <label>
-          Grade
+        <label className={requiredLabelClass(Boolean(errors.grade))}>
+          <span className="label-text">Grade</span>
           <input {...register("grade")} />
         </label>
-        <label>
-          Packaging Unit
+        <label className={requiredLabelClass(Boolean(errors.packagingUnit))}>
+          <span className="label-text">Packaging Unit</span>
           <select
             {...packagingRegister}
             onChange={(event) => {
@@ -468,20 +502,20 @@ export function ContractCoreForm({
           </select>
         </label>
 
-        <label>
-          Quantity (Main Unit)
+        <label className={requiredLabelClass(Boolean(errors.quantityBags))}>
+          <span className="label-text">Quantity (Main Unit)</span>
           <input type="number" step="0.001" {...register("quantityBags", { valueAsNumber: true })} />
         </label>
-        <label>
-          Unit Price
+        <label className={requiredLabelClass(Boolean(errors.unitPrice))}>
+          <span className="label-text">Unit Price</span>
           <input type="number" step="0.01" {...register("unitPrice", { valueAsNumber: true })} />
         </label>
-        <label>
-          Price Unit Base
+        <label className={requiredLabelClass(Boolean(errors.priceUnitForPrice))}>
+          <span className="label-text">Price Unit Base</span>
           <input type="number" step="1" {...register("priceUnitForPrice", { valueAsNumber: true })} />
         </label>
-        <label>
-          Price UoM
+        <label className={requiredLabelClass(Boolean(errors.priceUom))}>
+          <span className="label-text">Price UoM</span>
           <select {...register("priceUom")}>
             <option value="">Select price UoM</option>
             {priceUomOptions.map((uom) => (
@@ -489,9 +523,17 @@ export function ContractCoreForm({
             ))}
           </select>
         </label>
-        <label>
-          Currency
-          <input {...register("currency")} />
+        <label className={requiredLabelClass(Boolean(errors.currency))}>
+          <span className="label-text">Currency</span>
+          <select {...register("currency")}>
+            <option value="">Select currency</option>
+            {values.currency && !currencyOptions.includes(values.currency) ? (
+              <option value={values.currency}>{values.currency}</option>
+            ) : null}
+            {currencyOptions.map((currency) => (
+              <option key={currency} value={currency}>{currency}</option>
+            ))}
+          </select>
         </label>
         <input type="hidden" {...register("bagWeightKg", { valueAsNumber: true })} />
 
@@ -499,8 +541,8 @@ export function ContractCoreForm({
           Shipment Period
           <input type="month" {...register("shipmentPeriod")} />
         </label>
-        <label>
-          Payment Term
+        <label className={requiredLabelClass(Boolean(errors.paymentTerm))}>
+          <span className="label-text">Payment Term</span>
           <select {...register("paymentTerm")}>
             <option value="">Select payment term</option>
             {paymentTermOptions.map((term) => (
@@ -508,8 +550,8 @@ export function ContractCoreForm({
             ))}
           </select>
         </label>
-        <label>
-          Delivery Term
+        <label className={requiredLabelClass(Boolean(errors.deliveryTerm))}>
+          <span className="label-text">Delivery Term</span>
           <select {...register("deliveryTerm")}>
             <option value="">Select delivery term</option>
             {deliveryTermOptions.map((term) => (

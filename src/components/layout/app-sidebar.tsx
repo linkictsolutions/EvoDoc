@@ -385,6 +385,8 @@ export function AppSidebar({ children }: { children: ReactNode }) {
   const [documentFamilyQuery, setDocumentFamilyQuery] = useState<string | null>(null);
 
   useEffect(() => {
+    // This runs only on the client after hydration to avoid SSR/client mismatches.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCollapsed(window.localStorage.getItem("evodoc.sidebar.collapsed") === "true");
     setHasHydrated(true);
   }, []);

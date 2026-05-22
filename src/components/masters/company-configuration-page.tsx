@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
 import { CenteredLoader } from "@/components/ui/centered-loader";
 import { useToast } from "@/components/ui/toast";
+import { useUnsavedChangesGuard } from "@/components/ui/use-unsaved-changes-guard";
 import type {
   BeneficiaryBankProfile,
   CompanyConfiguration,
@@ -26,9 +27,11 @@ type CompanyConfigurationFormState = {
   transitorCompanyName: string;
   transitorPhoneNumber: string;
   transitorLocation: string;
+  currencies: string[];
   paymentTerms: string[];
   deliveryTerms: string[];
   priceUoms: string[];
+  packagingUnits: string[];
   documentBranding: DocumentBrandingSettings;
   bulkReferenceKg: string;
   packagingDefinitions: PackagingDefinition[];
@@ -46,6 +49,9 @@ const documentTypeLabels: Record<DocumentType, string> = {
 };
 
 function toFormState(configuration: CompanyConfiguration): CompanyConfigurationFormState {
+  const currencies = (configuration.currencies ?? []).filter((entry) => entry.trim().length > 0);
+  const packagingUnits = (configuration.packagingUnits ?? []).filter((entry) => entry.trim().length > 0);
+
   return {
     sellerName: configuration.sellerName,
     sellerAddress: configuration.sellerAddress,
@@ -59,9 +65,11 @@ function toFormState(configuration: CompanyConfiguration): CompanyConfigurationF
     transitorCompanyName: configuration.transitorCompanyName ?? "",
     transitorPhoneNumber: configuration.transitorPhoneNumber ?? "",
     transitorLocation: configuration.transitorLocation ?? "",
+    currencies: currencies.length > 0 ? currencies : ["USD"],
     paymentTerms: configuration.paymentTerms,
     deliveryTerms: configuration.deliveryTerms,
     priceUoms: configuration.priceUoms,
+    packagingUnits: packagingUnits.length > 0 ? packagingUnits : ["Bag of 60Kg"],
     documentBranding: configuration.documentBranding,
     bulkReferenceKg: String(configuration.bulkReferenceKg),
     packagingDefinitions: configuration.packagingDefinitions,
@@ -109,6 +117,21 @@ export function CompanyConfigurationPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState<string | null>(null);
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+  const initialSnapshot = useRef<string>("");
+
+  const isDirty = useMemo(() => {
+    if (!form) {
+      return false;
+    }
+    return JSON.stringify(form) !== initialSnapshot.current;
+  }, [form]);
+
+  useUnsavedChangesGuard({ enabled: isDirty && !saving });
+
+  function requiredLabelClass(isMissing: boolean) {
+    return isMissing ? "is-required field-error" : "is-required";
+  }
 
   async function loadConfiguration() {
     setLoading(true);
@@ -116,7 +139,10 @@ export function CompanyConfigurationPage() {
 
     try {
       const data = await apiClient<CompanyConfiguration>(`/api/company-configuration?orgId=${DEFAULT_ORG_ID}`);
-      setForm(toFormState(data));
+      const nextForm = toFormState(data);
+      setForm(nextForm);
+      initialSnapshot.current = JSON.stringify(nextForm);
+      setAttemptedSubmit(false);
       setSavedAt(data.updatedAt.startsWith("1970-01-01") ? null : data.updatedAt);
     } catch (loadError) {
       setError((loadError as Error).message);
@@ -435,6 +461,92 @@ export function CompanyConfigurationPage() {
     });
   }
 
+  function updateCurrency(index: number, value: string) {
+    setForm((current) => {
+      if (!current) {
+        return current;
+      }
+
+      const nextCurrencies = current.currencies.map((currency, currencyIndex) => (
+        currencyIndex === index ? value : currency
+      ));
+
+      return {
+        ...current,
+        currencies: nextCurrencies,
+      };
+    });
+  }
+
+  function addCurrency() {
+    setForm((current) => {
+      if (!current) {
+        return current;
+      }
+
+      return {
+        ...current,
+        currencies: [...current.currencies, ""],
+      };
+    });
+  }
+
+  function removeCurrency(index: number) {
+    setForm((current) => {
+      if (!current || current.currencies.length <= 1) {
+        return current;
+      }
+
+      return {
+        ...current,
+        currencies: current.currencies.filter((_, currencyIndex) => currencyIndex !== index),
+      };
+    });
+  }
+
+  function updatePackagingUnit(index: number, value: string) {
+    setForm((current) => {
+      if (!current) {
+        return current;
+      }
+
+      const nextUnits = current.packagingUnits.map((unit, unitIndex) => (
+        unitIndex === index ? value : unit
+      ));
+
+      return {
+        ...current,
+        packagingUnits: nextUnits,
+      };
+    });
+  }
+
+  function addPackagingUnit() {
+    setForm((current) => {
+      if (!current) {
+        return current;
+      }
+
+      return {
+        ...current,
+        packagingUnits: [...current.packagingUnits, ""],
+      };
+    });
+  }
+
+  function removePackagingUnit(index: number) {
+    setForm((current) => {
+      if (!current || current.packagingUnits.length <= 1) {
+        return current;
+      }
+
+      return {
+        ...current,
+        packagingUnits: current.packagingUnits.filter((_, unitIndex) => unitIndex !== index),
+      };
+    });
+  }
+
   function updateBrandingSlot(
     slot: "header" | "footer",
     key: "heightMm" | "fit" | "positionXPercent" | "positionYPercent" | "imageDataUrl",
@@ -500,6 +612,33 @@ export function CompanyConfigurationPage() {
       return;
     }
 
+    setAttemptedSubmit(true);
+    const bulkReferenceKg = Number(form.bulkReferenceKg);
+    const missingRequired =
+      form.sellerName.trim().length === 0
+      || form.sellerAddress.trim().length === 0
+      || form.defaultOrigin.trim().length === 0
+      || form.defaultHsCode.trim().length === 0
+      || form.icoReferencePrefix.trim().length === 0
+      || form.placeOfIssue.trim().length === 0
+      || !Number.isFinite(bulkReferenceKg)
+      || bulkReferenceKg <= 0
+      || form.packagingDefinitions.some((definition) => (
+        definition.label.trim().length === 0
+        || definition.uom.trim().length === 0
+        || !Number.isFinite(definition.netWeightKg)
+        || definition.netWeightKg <= 0
+        || !Number.isFinite(definition.tareWeightKg)
+        || definition.tareWeightKg <= 0
+        || !Number.isFinite(definition.grossWeightKg)
+        || definition.grossWeightKg <= 0
+      ));
+
+    if (missingRequired) {
+      toast.error("Fill in the required fields.");
+      return;
+    }
+
     setSaving(true);
     setError(null);
 
@@ -510,7 +649,7 @@ export function CompanyConfigurationPage() {
           orgId: DEFAULT_ORG_ID,
           companyConfiguration: {
             ...form,
-            bulkReferenceKg: Number(form.bulkReferenceKg),
+            bulkReferenceKg,
           },
         }),
       });
@@ -554,7 +693,7 @@ export function CompanyConfigurationPage() {
         </p>
       </header>
 
-      <form className="card form-grid" onSubmit={handleSubmit}>
+      <form className="card form-grid" onSubmit={handleSubmit} noValidate>
         <div className="section-heading span-all">
           <div>
             <h3>
@@ -608,16 +747,16 @@ export function CompanyConfigurationPage() {
 
         {activeTab === "general" ? (
           <>
-            <label>
-              Seller Name
+            <label className={requiredLabelClass(attemptedSubmit && form.sellerName.trim().length === 0)}>
+              <span className="label-text">Seller Name</span>
               <input value={form.sellerName} onChange={(event) => updateField("sellerName", event.target.value)} required />
             </label>
             <label>
               Company Email
               <input type="email" value={form.companyEmail} onChange={(event) => updateField("companyEmail", event.target.value)} />
             </label>
-            <label className="span-all">
-              Seller Address
+            <label className={`span-all ${requiredLabelClass(attemptedSubmit && form.sellerAddress.trim().length === 0)}`}>
+              <span className="label-text">Seller Address</span>
               <textarea rows={3} value={form.sellerAddress} onChange={(event) => updateField("sellerAddress", event.target.value)} required />
             </label>
             <label className="span-all">
@@ -636,24 +775,26 @@ export function CompanyConfigurationPage() {
               </div>
             </div>
 
-            <label>
-              Default Origin
+            <label className={requiredLabelClass(attemptedSubmit && form.defaultOrigin.trim().length === 0)}>
+              <span className="label-text">Default Origin</span>
               <input value={form.defaultOrigin} onChange={(event) => updateField("defaultOrigin", event.target.value)} required />
             </label>
-            <label>
-              Default HS Code
+            <label className={requiredLabelClass(attemptedSubmit && form.defaultHsCode.trim().length === 0)}>
+              <span className="label-text">Default HS Code</span>
               <input value={form.defaultHsCode} onChange={(event) => updateField("defaultHsCode", event.target.value)} required />
             </label>
-            <label>
-              ICO Reference Prefix
+            <label className={requiredLabelClass(attemptedSubmit && form.icoReferencePrefix.trim().length === 0)}>
+              <span className="label-text">ICO Reference Prefix</span>
               <input value={form.icoReferencePrefix} onChange={(event) => updateField("icoReferencePrefix", event.target.value)} required />
             </label>
-            <label>
-              Place of Issue
+            <label className={requiredLabelClass(attemptedSubmit && form.placeOfIssue.trim().length === 0)}>
+              <span className="label-text">Place of Issue</span>
               <input value={form.placeOfIssue} onChange={(event) => updateField("placeOfIssue", event.target.value)} required />
             </label>
-            <label>
-              Bulk Reference Kg
+            <label
+              className={requiredLabelClass(attemptedSubmit && (!Number.isFinite(Number(form.bulkReferenceKg)) || Number(form.bulkReferenceKg) <= 0))}
+            >
+              <span className="label-text">Bulk Reference Kg</span>
               <input
                 type="number"
                 min="0.001"
@@ -794,6 +935,88 @@ export function CompanyConfigurationPage() {
               </div>
             </div>
 
+            <div className="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th style={{ width: "72px" }}>#</th>
+                    <th>Currency</th>
+                    <th style={{ width: "130px" }}>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {form.currencies.map((currency, index) => (
+                    <tr key={`currency-${index + 1}`}>
+                      <td>{index + 1}</td>
+                      <td>
+                        <input
+                          value={currency}
+                          onChange={(event) => updateCurrency(index, event.target.value)}
+                          required
+                        />
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          className="button-secondary"
+                          onClick={() => removeCurrency(index)}
+                          disabled={form.currencies.length <= 1}
+                        >
+                          Remove
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="row-actions mt-sm">
+                <button type="button" className="button-secondary" onClick={addCurrency}>
+                  Add Currency
+                </button>
+              </div>
+            </div>
+
+            <div className="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th style={{ width: "72px" }}>#</th>
+                    <th>Packaging</th>
+                    <th style={{ width: "130px" }}>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {form.packagingUnits.map((unit, index) => (
+                    <tr key={`packaging-${index + 1}`}>
+                      <td>{index + 1}</td>
+                      <td>
+                        <input
+                          value={unit}
+                          onChange={(event) => updatePackagingUnit(index, event.target.value)}
+                          required
+                        />
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          className="button-secondary"
+                          onClick={() => removePackagingUnit(index)}
+                          disabled={form.packagingUnits.length <= 1}
+                        >
+                          Remove
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="row-actions mt-sm">
+                <button type="button" className="button-secondary" onClick={addPackagingUnit}>
+                  Add Packaging
+                </button>
+              </div>
+            </div>
+
             <div className="section-heading span-all mt-sm">
               <div>
                 <h3>Transitor</h3>
@@ -833,15 +1056,17 @@ export function CompanyConfigurationPage() {
                 </thead>
                 <tbody>
                   {form.packagingDefinitions.map((definition, index) => (
-                    <tr key={definition.label}>
+                    <tr key={index}>
                       <td>
                         <input
+                          className={attemptedSubmit && definition.label.trim().length === 0 ? "field-error-control" : undefined}
                           value={definition.label}
                           onChange={(event) => updatePackagingDefinition(index, "label", event.target.value)}
                         />
                       </td>
                       <td>
                         <input
+                          className={attemptedSubmit && definition.uom.trim().length === 0 ? "field-error-control" : undefined}
                           value={definition.uom}
                           onChange={(event) => updatePackagingDefinition(index, "uom", event.target.value)}
                         />
@@ -850,6 +1075,9 @@ export function CompanyConfigurationPage() {
                         <input
                           type="number"
                           step="0.001"
+                          className={attemptedSubmit && (!Number.isFinite(definition.netWeightKg) || definition.netWeightKg <= 0)
+                            ? "field-error-control"
+                            : undefined}
                           value={definition.netWeightKg}
                           onChange={(event) => updatePackagingDefinition(index, "netWeightKg", event.target.value)}
                         />
@@ -858,6 +1086,9 @@ export function CompanyConfigurationPage() {
                         <input
                           type="number"
                           step="0.001"
+                          className={attemptedSubmit && (!Number.isFinite(definition.tareWeightKg) || definition.tareWeightKg <= 0)
+                            ? "field-error-control"
+                            : undefined}
                           value={definition.tareWeightKg}
                           onChange={(event) => updatePackagingDefinition(index, "tareWeightKg", event.target.value)}
                         />
@@ -866,6 +1097,9 @@ export function CompanyConfigurationPage() {
                         <input
                           type="number"
                           step="0.001"
+                          className={attemptedSubmit && (!Number.isFinite(definition.grossWeightKg) || definition.grossWeightKg <= 0)
+                            ? "field-error-control"
+                            : undefined}
                           value={definition.grossWeightKg}
                           onChange={(event) => updatePackagingDefinition(index, "grossWeightKg", event.target.value)}
                         />

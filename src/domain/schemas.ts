@@ -181,9 +181,11 @@ export const companyConfigurationInputSchema = z.object({
     transitorCompanyName: z.string().optional(),
     transitorPhoneNumber: z.string().optional(),
     transitorLocation: z.string().optional(),
+    currencies: z.array(z.string().min(1)).min(1).optional(),
     paymentTerms: z.array(z.string().min(1)).min(1),
     deliveryTerms: z.array(z.string().min(1)).min(1),
     priceUoms: z.array(z.string().min(1)).min(1),
+    packagingUnits: z.array(z.string().min(1)).min(1).optional(),
     documentBranding: z.object({
       header: z.object({
         imageDataUrl: z.string().optional(),

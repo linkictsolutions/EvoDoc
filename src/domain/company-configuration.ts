@@ -39,6 +39,8 @@ function cleanOptional(value?: string): string | undefined {
 const DEFAULT_PAYMENT_TERMS = ["CAD", "LC", "Advance & CAD", "Advance"];
 const DEFAULT_DELIVERY_TERMS = ["F.O.B"];
 const DEFAULT_PRICE_UOMS = ["Lbs", "Bag of 60Kg", "Bag of 50Kg", "Bag of 30Kg", "Kg", "Metric Ton"];
+const DEFAULT_CURRENCIES = ["USD"];
+const DEFAULT_PACKAGING_UNITS = ["Bag of 60Kg", "Bag of 50Kg", "Bag of 30Kg", "Kg", "Lbs", "Metric Ton", "Bulk"];
 const MAX_BRANDING_IMAGE_DATA_URL_LENGTH = 950_000;
 const MAX_BENEFICIARY_BANKS = 50;
 const MAX_BENEFICIARY_ACCOUNTS_PER_BANK = 20;
@@ -141,6 +143,24 @@ function resolvePriceUoms(configuration?: Partial<CompanyConfiguration> | null):
   }
 
   return DEFAULT_PRICE_UOMS;
+}
+
+function resolveCurrencies(configuration?: Partial<CompanyConfiguration> | null): string[] {
+  const fromList = normalizePaymentTerms(configuration?.currencies);
+  if (fromList.length > 0) {
+    return fromList;
+  }
+
+  return DEFAULT_CURRENCIES;
+}
+
+function resolvePackagingUnits(configuration?: Partial<CompanyConfiguration> | null): string[] {
+  const fromList = normalizePaymentTerms(configuration?.packagingUnits);
+  if (fromList.length > 0) {
+    return fromList;
+  }
+
+  return DEFAULT_PACKAGING_UNITS;
 }
 
 function normalizeBeneficiaryBanks(value?: BeneficiaryBankProfile[] | null): BeneficiaryBankProfile[] {
@@ -299,9 +319,11 @@ export function defaultCompanyConfiguration(orgId: string): CompanyConfiguration
     transitorCompanyName: "ETHIOPIAN SHIPPING AND LOGISTICS SERVICES ENTERPRISE (ESLSE)",
     transitorPhoneNumber: "+25377384845/+253 77031882/+253 21380802",
     transitorLocation: "DJIBOUTI",
+    currencies: DEFAULT_CURRENCIES,
     paymentTerms: DEFAULT_PAYMENT_TERMS,
     deliveryTerms: DEFAULT_DELIVERY_TERMS,
     priceUoms: DEFAULT_PRICE_UOMS,
+    packagingUnits: DEFAULT_PACKAGING_UNITS,
     documentBranding: DEFAULT_DOCUMENT_BRANDING,
     bulkReferenceKg: 19200,
     packagingDefinitions: DEFAULT_PACKAGING_DEFINITIONS,
@@ -335,9 +357,11 @@ export function resolveCompanyConfiguration(
     transitorCompanyName: cleanOptional(configuration?.transitorCompanyName) ?? defaults.transitorCompanyName,
     transitorPhoneNumber: cleanOptional(configuration?.transitorPhoneNumber) ?? defaults.transitorPhoneNumber,
     transitorLocation: cleanOptional(configuration?.transitorLocation) ?? defaults.transitorLocation,
+    currencies: resolveCurrencies(configuration),
     paymentTerms: resolvePaymentTerms(configuration),
     deliveryTerms: resolveDeliveryTerms(configuration),
     priceUoms: resolvePriceUoms(configuration),
+    packagingUnits: resolvePackagingUnits(configuration),
     documentBranding: resolveDocumentBranding(configuration),
     bulkReferenceKg: configuration?.bulkReferenceKg ?? defaults.bulkReferenceKg,
     beneficiaryBanks: normalizeBeneficiaryBanks(configuration?.beneficiaryBanks),
@@ -374,9 +398,11 @@ export function validateAndNormalizeCompanyConfigurationPayload(
       transitorCompanyName: cleanOptional(normalized.transitorCompanyName),
       transitorPhoneNumber: cleanOptional(normalized.transitorPhoneNumber),
       transitorLocation: cleanOptional(normalized.transitorLocation),
+      currencies: normalizePaymentTerms(normalized.currencies),
       paymentTerms: normalizePaymentTerms(normalized.paymentTerms),
       deliveryTerms: normalizePaymentTerms(normalized.deliveryTerms),
       priceUoms: normalizePaymentTerms(normalized.priceUoms),
+      packagingUnits: normalizePaymentTerms(normalized.packagingUnits),
       documentBranding: resolveDocumentBranding(normalized),
       bulkReferenceKg: normalized.bulkReferenceKg,
       beneficiaryBanks: normalizeBeneficiaryBanks(normalized.beneficiaryBanks),

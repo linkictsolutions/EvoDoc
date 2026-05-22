@@ -9,6 +9,7 @@ import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
 import type { CompanyConfiguration } from "@/types/models";
 import { useToast } from "@/components/ui/toast";
+import { useUnsavedChangesGuard } from "@/components/ui/use-unsaved-changes-guard";
 
 const formSchema = z.object({
   customerName: z.string().min(1),
@@ -50,6 +51,7 @@ const formSchema = z.object({
 type FormData = z.infer<typeof formSchema>;
 const fallbackPaymentTerms = ["CAD", "LC", "Advance & CAD", "Advance"];
 const fallbackDeliveryTerms = ["F.O.B"];
+const fallbackCurrencies = ["USD"];
 
 const stepFields: Array<Array<keyof FormData>> = [
   ["contractNumber", "customerName", "customerAddress", "customerCountry"],
@@ -81,6 +83,7 @@ export function ContractWizardForm() {
   const [isSaving, setIsSaving] = useState(false);
   const [paymentTermOptions, setPaymentTermOptions] = useState<string[]>(fallbackPaymentTerms);
   const [deliveryTermOptions, setDeliveryTermOptions] = useState<string[]>(fallbackDeliveryTerms);
+  const [currencyOptions, setCurrencyOptions] = useState<string[]>(fallbackCurrencies);
 
   const {
     register,
@@ -88,7 +91,7 @@ export function ContractWizardForm() {
     getValues,
     trigger,
     setValue,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -105,6 +108,12 @@ export function ContractWizardForm() {
     },
   });
 
+  useUnsavedChangesGuard({ enabled: isDirty && !isSaving });
+
+  function requiredLabelClass(hasError: boolean) {
+    return hasError ? "is-required field-error" : "is-required";
+  }
+
   useEffect(() => {
     let mounted = true;
 
@@ -116,11 +125,14 @@ export function ContractWizardForm() {
 
         const paymentTerms = configuration.paymentTerms?.filter((term) => term.trim().length > 0) ?? [];
         const deliveryTerms = configuration.deliveryTerms?.filter((term) => term.trim().length > 0) ?? [];
+        const currencies = configuration.currencies?.filter((currency) => currency.trim().length > 0) ?? [];
         const effectivePaymentTerms = paymentTerms.length > 0 ? paymentTerms : fallbackPaymentTerms;
         const effectiveDeliveryTerms = deliveryTerms.length > 0 ? deliveryTerms : fallbackDeliveryTerms;
+        const effectiveCurrencies = currencies.length > 0 ? currencies : fallbackCurrencies;
 
         setPaymentTermOptions(effectivePaymentTerms);
         setDeliveryTermOptions(effectiveDeliveryTerms);
+        setCurrencyOptions(effectiveCurrencies);
 
         const currentPaymentTerm = (getValues("paymentTerm") ?? "").trim();
         if (!currentPaymentTerm || !effectivePaymentTerms.includes(currentPaymentTerm)) {
@@ -131,11 +143,17 @@ export function ContractWizardForm() {
         if (!currentDeliveryTerm || !effectiveDeliveryTerms.includes(currentDeliveryTerm)) {
           setValue("deliveryTerm", effectiveDeliveryTerms[0]);
         }
+
+        const currentCurrency = (getValues("currency") ?? "").trim();
+        if (!currentCurrency || !effectiveCurrencies.includes(currentCurrency)) {
+          setValue("currency", effectiveCurrencies[0]);
+        }
       })
       .catch(() => {
         if (mounted) {
           setPaymentTermOptions(fallbackPaymentTerms);
           setDeliveryTermOptions(fallbackDeliveryTerms);
+          setCurrencyOptions(fallbackCurrencies);
         }
       });
 
@@ -149,9 +167,11 @@ export function ContractWizardForm() {
   async function nextStep() {
     const currentFields = stepFields[step];
     const valid = await trigger(currentFields, { shouldFocus: true });
-    if (valid) {
-      setStep((current) => Math.min(current + 1, stepFields.length));
+    if (!valid) {
+      toast.error("Fill in the required fields.");
+      return;
     }
+    setStep((current) => Math.min(current + 1, stepFields.length));
   }
 
   async function save(values: FormData) {
@@ -225,23 +245,23 @@ export function ContractWizardForm() {
 
   const common = (
     <>
-      <label>
-        Contract Number
+      <label className={requiredLabelClass(Boolean(errors.contractNumber))}>
+        <span className="label-text">Contract Number</span>
         <input {...register("contractNumber")} />
         <small>{errors.contractNumber?.message}</small>
       </label>
-      <label>
-        Buyer Name
+      <label className={requiredLabelClass(Boolean(errors.customerName))}>
+        <span className="label-text">Buyer Name</span>
         <input {...register("customerName")} />
         <small>{errors.customerName?.message}</small>
       </label>
-      <label>
-        Buyer Address
+      <label className={requiredLabelClass(Boolean(errors.customerAddress))}>
+        <span className="label-text">Buyer Address</span>
         <input {...register("customerAddress")} />
         <small>{errors.customerAddress?.message}</small>
       </label>
-      <label>
-        Buyer Country
+      <label className={requiredLabelClass(Boolean(errors.customerCountry))}>
+        <span className="label-text">Buyer Country</span>
         <input {...register("customerCountry")} />
         <small>{errors.customerCountry?.message}</small>
       </label>
@@ -249,7 +269,10 @@ export function ContractWizardForm() {
   );
 
   return (
-    <form className="card form-grid" onSubmit={handleSubmit(save)}>
+    <form
+      className="card form-grid"
+      onSubmit={handleSubmit(save, () => toast.error("Fill in the required fields."))}
+    >
       <div className="progress-wrap">
         <div className="progress-label">Step {step + 1} of {stepFields.length + 1}</div>
         <progress max={100} value={progress} />
@@ -259,69 +282,86 @@ export function ContractWizardForm() {
 
       {step === 1 && (
         <>
-          <label>
-            Quality
+          <label className={requiredLabelClass(Boolean(errors.quality))}>
+            <span className="label-text">Quality</span>
             <input {...register("quality")} />
+            <small>{errors.quality?.message}</small>
           </label>
-          <label>
-            Origin
+          <label className={requiredLabelClass(Boolean(errors.origin))}>
+            <span className="label-text">Origin</span>
             <input {...register("origin")} />
+            <small>{errors.origin?.message}</small>
           </label>
-          <label>
-            Grade
+          <label className={requiredLabelClass(Boolean(errors.grade))}>
+            <span className="label-text">Grade</span>
             <input {...register("grade")} />
+            <small>{errors.grade?.message}</small>
           </label>
-          <label>
-            Quantity (Bags)
+          <label className={requiredLabelClass(Boolean(errors.quantityBags))}>
+            <span className="label-text">Quantity (Bags)</span>
             <input type="number" {...register("quantityBags", { valueAsNumber: true })} />
+            <small>{errors.quantityBags?.message}</small>
           </label>
-          <label>
-            Bag Weight (kg)
+          <label className={requiredLabelClass(Boolean(errors.bagWeightKg))}>
+            <span className="label-text">Bag Weight (kg)</span>
             <input
               type="number"
               step="0.001"
               {...register("bagWeightKg", { valueAsNumber: true })}
             />
+            <small>{errors.bagWeightKg?.message}</small>
           </label>
-          <label>
-            Unit Price
+          <label className={requiredLabelClass(Boolean(errors.unitPrice))}>
+            <span className="label-text">Unit Price</span>
             <input type="number" step="0.01" {...register("unitPrice", { valueAsNumber: true })} />
+            <small>{errors.unitPrice?.message}</small>
           </label>
-          <label>
-            Price Unit Base
+          <label className={requiredLabelClass(Boolean(errors.priceUnitForPrice))}>
+            <span className="label-text">Price Unit Base</span>
             <input
               type="number"
               step="1"
               {...register("priceUnitForPrice", { valueAsNumber: true })}
             />
+            <small>{errors.priceUnitForPrice?.message}</small>
           </label>
-          <label>
-            Price UoM
+          <label className={requiredLabelClass(Boolean(errors.priceUom))}>
+            <span className="label-text">Price UoM</span>
             <input {...register("priceUom")} />
+            <small>{errors.priceUom?.message}</small>
           </label>
-          <label>
-            Currency
-            <input {...register("currency")} />
+          <label className={requiredLabelClass(Boolean(errors.currency))}>
+            <span className="label-text">Currency</span>
+            <select {...register("currency")}>
+              <option value="">Select currency</option>
+              {currencyOptions.map((currency) => (
+                <option key={currency} value={currency}>{currency}</option>
+              ))}
+            </select>
+            <small>{errors.currency?.message}</small>
           </label>
-          <label>
-            Packaging Unit
+          <label className={requiredLabelClass(Boolean(errors.packagingUnit))}>
+            <span className="label-text">Packaging Unit</span>
             <input {...register("packagingUnit")} />
+            <small>{errors.packagingUnit?.message}</small>
           </label>
-          <label>
-            Payment Term
+          <label className={requiredLabelClass(Boolean(errors.paymentTerm))}>
+            <span className="label-text">Payment Term</span>
             <select {...register("paymentTerm")}>
               {paymentTermOptions.map((term) => (
                 <option key={term} value={term}>{term}</option>
               ))}
             </select>
+            <small>{errors.paymentTerm?.message}</small>
           </label>
-          <label>
-            Delivery Term
+          <label className={requiredLabelClass(Boolean(errors.deliveryTerm))}>
+            <span className="label-text">Delivery Term</span>
             <select {...register("deliveryTerm")}>
               {deliveryTermOptions.map((term) => (
                 <option key={term} value={term}>{term}</option>
               ))}
             </select>
+            <small>{errors.deliveryTerm?.message}</small>
           </label>
           <label>
             Shipment Period
@@ -331,26 +371,30 @@ export function ContractWizardForm() {
             Crop Year
             <input {...register("cropYear")} />
           </label>
-          <label>
-            Last Cert No
+          <label className={requiredLabelClass(Boolean(errors.lastCertNo))}>
+            <span className="label-text">Last Cert No</span>
             <input type="number" step="1" {...register("lastCertNo", { valueAsNumber: true })} />
+            <small>{errors.lastCertNo?.message}</small>
           </label>
         </>
       )}
 
       {step === 2 && (
         <>
-          <label>
-            Destination Port
+          <label className={requiredLabelClass(Boolean(errors.destinationPort))}>
+            <span className="label-text">Destination Port</span>
             <input {...register("destinationPort")} />
+            <small>{errors.destinationPort?.message}</small>
           </label>
-          <label>
-            Shipping Line
+          <label className={requiredLabelClass(Boolean(errors.shippingLine))}>
+            <span className="label-text">Shipping Line</span>
             <input {...register("shippingLine")} />
+            <small>{errors.shippingLine?.message}</small>
           </label>
-          <label>
-            Port of Loading
+          <label className={requiredLabelClass(Boolean(errors.portOfLoading))}>
+            <span className="label-text">Port of Loading</span>
             <input {...register("portOfLoading")} />
+            <small>{errors.portOfLoading?.message}</small>
           </label>
           <label>
             Bag Markings
@@ -385,34 +429,39 @@ export function ContractWizardForm() {
 
       {step === 3 && (
         <>
-          <label>
-            Beneficiary Bank
+          <label className={requiredLabelClass(Boolean(errors.beneficiaryBank))}>
+            <span className="label-text">Beneficiary Bank</span>
             <input {...register("beneficiaryBank")} />
+            <small>{errors.beneficiaryBank?.message}</small>
           </label>
-          <label>
-            Account Number
+          <label className={requiredLabelClass(Boolean(errors.accountNumber))}>
+            <span className="label-text">Account Number</span>
             <input {...register("accountNumber")} />
+            <small>{errors.accountNumber?.message}</small>
           </label>
         </>
       )}
 
       {step === 4 && (
         <>
-          <label>
-            Station Name
+          <label className={requiredLabelClass(Boolean(errors.stationName))}>
+            <span className="label-text">Station Name</span>
             <input {...register("stationName")} />
+            <small>{errors.stationName?.message}</small>
           </label>
-          <label>
-            Station Address
+          <label className={requiredLabelClass(Boolean(errors.stationAddress))}>
+            <span className="label-text">Station Address</span>
             <input {...register("stationAddress")} />
+            <small>{errors.stationAddress?.message}</small>
           </label>
-          <label>
-            Moisture (%)
+          <label className={requiredLabelClass(Boolean(errors.moisturePercent))}>
+            <span className="label-text">Moisture (%)</span>
             <input
               type="number"
               step="0.01"
               {...register("moisturePercent", { valueAsNumber: true })}
             />
+            <small>{errors.moisturePercent?.message}</small>
           </label>
         </>
       )}

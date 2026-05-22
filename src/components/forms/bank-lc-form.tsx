@@ -10,6 +10,7 @@ import { DEFAULT_ORG_ID } from "@/lib/config";
 import type { CompanyConfiguration, Contract } from "@/types/models";
 import { CenteredLoader } from "@/components/ui/centered-loader";
 import { useToast } from "@/components/ui/toast";
+import { useUnsavedChangesGuard } from "@/components/ui/use-unsaved-changes-guard";
 
 const schema = z.object({
   contractId: z.string().min(1, "Contract number is required"),
@@ -63,8 +64,9 @@ export function BankLcForm({
     register,
     watch,
     setValue,
+    reset,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -95,9 +97,14 @@ export function BankLcForm({
   const beneficiaryBankRegister = register("beneficiaryBank");
   const beneficiaryAccountRegister = register("beneficiaryAccountNumber");
 
+  useUnsavedChangesGuard({ enabled: isDirty && !saving });
+
+  function requiredLabelClass(hasError: boolean) {
+    return hasError ? "is-required field-error" : "is-required";
+  }
+
   const contractIdInput = watch("contractId");
   const selectedBeneficiaryBank = watch("beneficiaryBank");
-  const selectedBeneficiaryAccount = watch("beneficiaryAccountNumber");
   const reportHref = useMemo(() => {
     if (continueHref) {
       return continueHref;
@@ -176,27 +183,35 @@ export function BankLcForm({
         const banking = data.contract.banking;
         const contractIdentifier = data.contract.contractNumber;
         setSavedContractId(contractIdentifier);
-        setValue("contractId", contractIdentifier, { shouldValidate: true });
-        setValue("lcNumber", banking.lcNumber ?? "");
-        setValue("permitNumber", banking.permitNumber ?? "");
-        setValue("sender", banking.sender ?? "");
-        setValue("receiver", banking.receiver ?? "");
-        setValue("applicant", banking.applicant ?? "");
-        setValue("portOfLoading", banking.portOfLoading ?? "");
-        setValue("portOfDischarge", banking.portOfDischarge ?? "");
-        setValue("latestShipmentDate", banking.latestShipmentDate ?? "");
-        setValue("goodsDescription", banking.goodsDescription ?? "");
-        setValue("noOfBags", banking.noOfBags ?? "");
-        setValue("consignee", banking.consignee ?? "");
-        setValue("notify", banking.notify ?? "");
-        setValue("secondNotify", banking.secondNotify ?? "");
-        setValue("currencyAmount", banking.currencyAmount ?? "");
-        setValue("beneficiaryBank", banking.beneficiaryBank ?? "");
-        setValue("bankAddress", banking.bankAddress ?? "");
-        setValue("correspondentBank", banking.correspondentBank ?? "");
-        setValue("swiftCode", banking.swiftCode ?? "");
-        setValue("beneficiaryAccountNumber", banking.beneficiaryAccountNumber ?? "");
-        setValue("accountNumber", banking.accountNumber ?? "");
+        reset(
+          {
+            contractId: contractIdentifier,
+            lcNumber: banking.lcNumber ?? "",
+            permitNumber: banking.permitNumber ?? "",
+            sender: banking.sender ?? "",
+            receiver: banking.receiver ?? "",
+            applicant: banking.applicant ?? "",
+            portOfLoading: banking.portOfLoading ?? "",
+            portOfDischarge: banking.portOfDischarge ?? "",
+            latestShipmentDate: banking.latestShipmentDate ?? "",
+            goodsDescription: banking.goodsDescription ?? "",
+            noOfBags: banking.noOfBags ?? "",
+            consignee: banking.consignee ?? "",
+            notify: banking.notify ?? "",
+            secondNotify: banking.secondNotify ?? "",
+            currencyAmount: banking.currencyAmount ?? "",
+            beneficiaryBank: banking.beneficiaryBank ?? "",
+            bankAddress: banking.bankAddress ?? "",
+            correspondentBank: banking.correspondentBank ?? "",
+            swiftCode: banking.swiftCode ?? "",
+            beneficiaryAccountNumber: banking.beneficiaryAccountNumber ?? "",
+            accountNumber: banking.accountNumber ?? "",
+          },
+          {
+            keepDirty: false,
+            keepTouched: false,
+          },
+        );
       })
       .catch((error: Error) => {
         if (mounted) {
@@ -212,7 +227,7 @@ export function BankLcForm({
     return () => {
       mounted = false;
     };
-  }, [autoLoadExisting, contractIdInput, initialContractId, setValue]);
+  }, [autoLoadExisting, contractIdInput, initialContractId, reset]);
 
   async function onSubmit(form: FormData) {
     setSaving(true);
@@ -270,10 +285,13 @@ export function BankLcForm({
         {loadingExisting ? <CenteredLoader label="Loading existing Bank & LC data..." scope="inline" /> : null}
       </header>
 
-      <form className="card form-grid" onSubmit={handleSubmit(onSubmit)}>
+      <form
+        className="card form-grid"
+        onSubmit={handleSubmit(onSubmit, () => toast.error("Fill in the required fields."))}
+      >
         <h3 className="span-all">Contract Link</h3>
-        <label>
-          Contract Number (link only)
+        <label className={requiredLabelClass(Boolean(errors.contractId))}>
+          <span className="label-text">Contract Number (link only)</span>
           <input {...register("contractId")} readOnly={Boolean(initialContractId)} />
           <small>{errors.contractId?.message}</small>
         </label>

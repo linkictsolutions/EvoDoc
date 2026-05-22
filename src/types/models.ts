@@ -123,9 +123,11 @@ export interface CompanyConfiguration extends Timestamped {
   transitorCompanyName?: string;
   transitorPhoneNumber?: string;
   transitorLocation?: string;
+  currencies: string[];
   paymentTerms: string[];
   deliveryTerms: string[];
   priceUoms: string[];
+  packagingUnits: string[];
   documentBranding: DocumentBrandingSettings;
   bulkReferenceKg: number;
   packagingDefinitions: PackagingDefinition[];

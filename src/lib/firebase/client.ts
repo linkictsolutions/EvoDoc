@@ -11,7 +11,7 @@ const config = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-function useEmulators(): boolean {
+function shouldUseEmulators(): boolean {
   return process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATORS === "true";
 }
 
@@ -32,7 +32,7 @@ export function getFirebaseClientApp() {
     return getApps()[0];
   }
 
-  if (useEmulators()) {
+  if (shouldUseEmulators()) {
     return initializeApp({
       ...config,
       // Provide safe defaults so the client can boot without real Firebase credentials.
@@ -48,7 +48,7 @@ export function getFirebaseClientApp() {
 
 export function getFirebaseAuthClient(): Auth {
   const auth = getAuth(getFirebaseClientApp());
-  if (useEmulators() && typeof window !== "undefined") {
+  if (shouldUseEmulators() && typeof window !== "undefined") {
     // Avoid duplicate connections during HMR.
     const alreadyConnected = (auth as unknown as { __evodocEmulatorConnected?: boolean })
       .__evodocEmulatorConnected;
@@ -64,7 +64,7 @@ export function getFirebaseAuthClient(): Auth {
 
 export function getFirebaseFirestoreClient(): Firestore {
   const db = getFirestore(getFirebaseClientApp());
-  if (useEmulators() && typeof window !== "undefined") {
+  if (shouldUseEmulators() && typeof window !== "undefined") {
     const alreadyConnected = (db as unknown as { __evodocEmulatorConnected?: boolean })
       .__evodocEmulatorConnected;
     if (!alreadyConnected) {

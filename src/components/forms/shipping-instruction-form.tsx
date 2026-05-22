@@ -7,9 +7,10 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
-import type { Contract } from "@/types/models";
+import type { CompanyConfiguration, Contract } from "@/types/models";
 import { CenteredLoader } from "@/components/ui/centered-loader";
 import { useToast } from "@/components/ui/toast";
+import { useUnsavedChangesGuard } from "@/components/ui/use-unsaved-changes-guard";
 
 const schema = z.object({
   contractId: z.string().min(1, "Contract number is required"),
@@ -75,13 +76,15 @@ export function ShippingInstructionForm({
   const [saving, setSaving] = useState(false);
   const [savedContractId, setSavedContractId] = useState<string | null>(null);
   const [loadingExisting, setLoadingExisting] = useState(false);
+  const [packagingOptions, setPackagingOptions] = useState<string[]>([]);
 
   const {
     register,
     setValue,
     watch,
+    reset,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -109,6 +112,13 @@ export function ShippingInstructionForm({
   });
 
   const contractIdInput = watch("contractId");
+  const selectedPackagingValue = watch("packagingValue");
+
+  useUnsavedChangesGuard({ enabled: isDirty && !saving });
+
+  function requiredLabelClass(hasError: boolean) {
+    return hasError ? "is-required field-error" : "is-required";
+  }
 
   const bankLcHref = useMemo(() => {
     if (continueHref) {
@@ -152,26 +162,34 @@ export function ShippingInstructionForm({
         const shipping = data.contract.shipping;
         const contractIdentifier = data.contract.contractNumber;
         setSavedContractId(contractIdentifier);
-        setValue("contractId", contractIdentifier, { shouldValidate: true });
-        setValue("destinationPort", shipping.destinationPort ?? "");
-        setValue("shippingLine", shipping.shippingLine ?? "");
-        setValue("serviceContract", shipping.serviceContract ?? "");
-        setValue("alternative1", shipping.alternative1 ?? "");
-        setValue("alternative1ServiceContract", shipping.alternative1ServiceContract ?? "");
-        setValue("alternative2", shipping.alternative2 ?? "");
-        setValue("alternative2ServiceContract", shipping.alternative2ServiceContract ?? "");
-        setValue("portOfLoading", shipping.portOfLoading ?? "");
-        setValue("quantityValue", shipping.quantityValue ?? "");
-        setValue("qualityValue", shipping.qualityValue ?? "");
-        setValue("packagingValue", shipping.packagingValue ?? "");
-        setValue("noOfBagsValue", shipping.noOfBagsValue ?? "");
-        setValue("containerCountValue", shipping.containerCountValue ?? "");
-        setValue("shipmentMonth", toMonthInputValue(shipping.shipmentMonth));
-        setValue("bagMarkings", shipping.bagMarkings ?? "");
-        setValue("description", shipping.description ?? "");
-        setValue("consignee", shipping.consignee ?? "");
-        setValue("notifyParty", shipping.notifyParty ?? "");
-        setValue("secondNotify", shipping.secondNotify ?? "");
+        reset(
+          {
+            contractId: contractIdentifier,
+            destinationPort: shipping.destinationPort ?? "",
+            shippingLine: shipping.shippingLine ?? "",
+            serviceContract: shipping.serviceContract ?? "",
+            alternative1: shipping.alternative1 ?? "",
+            alternative1ServiceContract: shipping.alternative1ServiceContract ?? "",
+            alternative2: shipping.alternative2 ?? "",
+            alternative2ServiceContract: shipping.alternative2ServiceContract ?? "",
+            portOfLoading: shipping.portOfLoading ?? "",
+            quantityValue: shipping.quantityValue ?? "",
+            qualityValue: shipping.qualityValue ?? "",
+            packagingValue: shipping.packagingValue ?? "",
+            noOfBagsValue: shipping.noOfBagsValue ?? "",
+            containerCountValue: shipping.containerCountValue ?? "",
+            shipmentMonth: toMonthInputValue(shipping.shipmentMonth),
+            bagMarkings: shipping.bagMarkings ?? "",
+            description: shipping.description ?? "",
+            consignee: shipping.consignee ?? "",
+            notifyParty: shipping.notifyParty ?? "",
+            secondNotify: shipping.secondNotify ?? "",
+          },
+          {
+            keepDirty: false,
+            keepTouched: false,
+          },
+        );
       })
       .catch((error: Error) => {
         if (mounted) {
@@ -187,7 +205,28 @@ export function ShippingInstructionForm({
     return () => {
       mounted = false;
     };
-  }, [autoLoadExisting, contractIdInput, initialContractId, setValue]);
+  }, [autoLoadExisting, contractIdInput, initialContractId, reset]);
+
+  useEffect(() => {
+    let mounted = true;
+    apiClient<CompanyConfiguration>(`/api/company-configuration?orgId=${DEFAULT_ORG_ID}`)
+      .then((configuration) => {
+        if (!mounted) {
+          return;
+        }
+        const units = configuration.packagingUnits?.filter((unit) => unit.trim().length > 0) ?? [];
+        setPackagingOptions(units);
+      })
+      .catch(() => {
+        if (mounted) {
+          setPackagingOptions([]);
+        }
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   async function onSubmit(form: FormData) {
     setSaving(true);
@@ -248,27 +287,30 @@ export function ShippingInstructionForm({
         {loadingExisting ? <CenteredLoader label="Loading existing shipping data..." scope="inline" /> : null}
       </header>
 
-      <form className="card form-grid" onSubmit={handleSubmit(onSubmit)}>
+      <form
+        className="card form-grid"
+        onSubmit={handleSubmit(onSubmit, () => toast.error("Fill in the required fields."))}
+      >
         <h3 className="span-all">Contract Link</h3>
-        <label>
-          Contract Number (link only, no auto-fill)
+        <label className={requiredLabelClass(Boolean(errors.contractId))}>
+          <span className="label-text">Contract Number (link only, no auto-fill)</span>
           <input {...register("contractId")} readOnly={Boolean(initialContractId)} />
           <small>{errors.contractId?.message}</small>
         </label>
 
         <h3 className="span-all">Route and Carrier</h3>
-        <label>
-          Destination (Port, Country)
+        <label className={requiredLabelClass(Boolean(errors.destinationPort))}>
+          <span className="label-text">Destination (Port, Country)</span>
           <input {...register("destinationPort")} />
           <small>{errors.destinationPort?.message}</small>
         </label>
-        <label>
-          Port of Loading
+        <label className={requiredLabelClass(Boolean(errors.portOfLoading))}>
+          <span className="label-text">Port of Loading</span>
           <input {...register("portOfLoading")} />
           <small>{errors.portOfLoading?.message}</small>
         </label>
-        <label>
-          Shipping Line
+        <label className={requiredLabelClass(Boolean(errors.shippingLine))}>
+          <span className="label-text">Shipping Line</span>
           <input {...register("shippingLine")} />
           <small>{errors.shippingLine?.message}</small>
         </label>
@@ -294,28 +336,36 @@ export function ShippingInstructionForm({
         </label>
 
         <h3 className="span-all">Cargo Details</h3>
-        <label>
-          Quantity
+        <label className={requiredLabelClass(Boolean(errors.quantityValue))}>
+          <span className="label-text">Quantity</span>
           <input {...register("quantityValue")} />
           <small>{errors.quantityValue?.message}</small>
         </label>
-        <label>
-          Quality
+        <label className={requiredLabelClass(Boolean(errors.qualityValue))}>
+          <span className="label-text">Quality</span>
           <textarea rows={3} {...register("qualityValue")} />
           <small>{errors.qualityValue?.message}</small>
         </label>
-        <label>
-          Packaging
-          <input {...register("packagingValue")} />
+        <label className={requiredLabelClass(Boolean(errors.packagingValue))}>
+          <span className="label-text">Packaging</span>
+          <select {...register("packagingValue")}>
+            <option value="">Select packaging</option>
+            {selectedPackagingValue && !packagingOptions.includes(selectedPackagingValue) ? (
+              <option value={selectedPackagingValue}>{selectedPackagingValue}</option>
+            ) : null}
+            {packagingOptions.map((unit) => (
+              <option key={unit} value={unit}>{unit}</option>
+            ))}
+          </select>
           <small>{errors.packagingValue?.message}</small>
         </label>
-        <label>
-          Number of Bags
+        <label className={requiredLabelClass(Boolean(errors.noOfBagsValue))}>
+          <span className="label-text">Number of Bags</span>
           <input {...register("noOfBagsValue")} />
           <small>{errors.noOfBagsValue?.message}</small>
         </label>
-        <label>
-          Containers
+        <label className={requiredLabelClass(Boolean(errors.containerCountValue))}>
+          <span className="label-text">Containers</span>
           <input {...register("containerCountValue")} />
           <small>{errors.containerCountValue?.message}</small>
         </label>
