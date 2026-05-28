@@ -100,6 +100,7 @@ export async function POST(request: NextRequest) {
       docType: parsed.docType,
       docVariant,
       templateVersion: parsed.templateVersion,
+      templateLayout: parsed.templateLayout,
       inputSnapshot,
       outputSnapshot,
       shipmentId: parsed.shipmentId === "execution-derived" ? undefined : parsed.shipmentId,

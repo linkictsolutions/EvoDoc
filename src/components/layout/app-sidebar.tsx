@@ -72,6 +72,14 @@ const sections: NavSection[] = [
         glyph: "B",
         matchPrefix: "/app/masters/customers",
       },
+      {
+        href: "/app/masters/templates",
+        label: "Templates",
+        description: "Document layout templates per organization.",
+        short: "TP",
+        glyph: "T",
+        matchPrefix: "/app/masters/templates",
+      },
     ],
   },
 ];
@@ -218,7 +226,7 @@ function toolbarCopy(pathname: string): { title: string; subtitle: string } {
   if (pathname.startsWith("/app/masters")) {
     return {
       title: "Master Data",
-      subtitle: "Maintain reusable company and buyer records.",
+      subtitle: "Maintain reusable company records, buyers, and document templates.",
     };
   }
 
@@ -237,6 +245,7 @@ function prettifySegment(segment: string): string {
     "company-configuration": "Company Configuration",
     customers: "Buyers",
     items: "Items",
+    templates: "Templates",
     inputs: "Source Documents",
     "resolved-values": "Resolved Values",
     execution: "Execution",
@@ -497,7 +506,7 @@ export function AppSidebar({ children }: { children: ReactNode }) {
                   const isLast = index === breadcrumbs.length - 1;
 
                   return (
-                    <span key={crumb.href} className="app-breadcrumb-item">
+                    <span key={`${crumb.href}-${index}`} className="app-breadcrumb-item">
                       {index > 0 ? <span className="app-breadcrumb-sep">/</span> : null}
                       {isLast ? (
                         <span className="app-breadcrumb-current">{crumb.label}</span>

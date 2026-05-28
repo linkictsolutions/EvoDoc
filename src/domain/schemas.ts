@@ -354,6 +354,7 @@ export const generateDocumentSchema = z.object({
   ]),
   docVariant: z.enum(["permit", "final", "standard"]).optional(),
   templateVersion: z.string().default("v1"),
+  templateLayout: z.string().optional(),
 });
 
 export const submitReviewSchema = z.object({

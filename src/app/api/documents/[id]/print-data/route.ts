@@ -32,6 +32,7 @@ export async function GET(
       snapshotHash: document.snapshotHash,
       approvedSnapshotHash: document.approvedSnapshotHash,
       validationWarnings: document.validationWarnings ?? [],
+      templateLayout: document.templateLayout,
       outputSnapshot: document.outputSnapshot,
       inputSnapshot: document.inputSnapshot,
     });

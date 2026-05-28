@@ -17,6 +17,7 @@ import type {
 type PrintPayload = {
   id: string;
   isFinal?: boolean;
+  templateLayout?: string;
   outputSnapshot: DocumentOutputSnapshot;
   inputSnapshot: DocumentInputSnapshot;
 };
@@ -152,6 +153,7 @@ export default function DocumentPrintPage({
           output={payload.outputSnapshot}
           input={payload.inputSnapshot}
           documentId={payload.id}
+          templateLayout={payload.templateLayout}
           isFinal={payload.isFinal ?? false}
         />
       </section>

@@ -44,6 +44,7 @@ export function makeGeneratedDocumentPayload(args: {
   docType: DocumentType;
   docVariant?: DocumentVariant;
   templateVersion: string;
+  templateLayout?: string;
   inputSnapshot: DocumentInputSnapshot;
   outputSnapshot: DocumentOutputSnapshot;
   shipmentId?: string;
@@ -59,6 +60,7 @@ export function makeGeneratedDocumentPayload(args: {
       JSON.stringify({
         docVariant,
         templateVersion: args.templateVersion,
+        templateLayout: args.templateLayout ?? null,
         logicVersion: getLogicVersion(),
         inputSnapshot: args.inputSnapshot,
         outputSnapshot: args.outputSnapshot,
@@ -75,6 +77,7 @@ export function makeGeneratedDocumentPayload(args: {
     status: "draft",
     isFinal: false,
     templateVersion: args.templateVersion,
+    ...(args.templateLayout ? { templateLayout: args.templateLayout } : {}),
     logicVersion: getLogicVersion(),
     snapshotHash,
     inputSnapshot: args.inputSnapshot,

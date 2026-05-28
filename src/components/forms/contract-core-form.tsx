@@ -236,6 +236,7 @@ export function ContractCoreForm({
       setSavedContractId(result.contractId);
       setActiveContractId(result.contractId);
       setSavedNotice("Contract draft saved.");
+      reset(form, { keepDirty: false, keepTouched: false });
       toast.success("Contract saved.");
       if (typeof window !== "undefined") {
         window.localStorage.setItem("evodoc.contractId", result.contractId);

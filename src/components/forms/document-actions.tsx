@@ -7,6 +7,8 @@ import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
 import { useToast } from "@/components/ui/toast";
 
+const ICC_TEMPLATE_STORAGE_KEY = "evodoc.templates.commercial_invoice_icc.v1";
+
 export function GenerateDocumentButton({
   contractId,
   shipmentId,
@@ -31,6 +33,11 @@ export function GenerateDocumentButton({
     setLoading(true);
     setError(null);
     try {
+      const templateLayout =
+        typeof window !== "undefined" && docType === "invoice"
+          ? window.localStorage.getItem(ICC_TEMPLATE_STORAGE_KEY) ?? undefined
+          : undefined;
+
       const data = await apiClient<{ docId: string }>("/api/documents/generate", {
         method: "POST",
         body: JSON.stringify({
@@ -40,6 +47,7 @@ export function GenerateDocumentButton({
           docType,
           docVariant,
           templateVersion: "v1",
+          ...(templateLayout ? { templateLayout } : {}),
         }),
       });
 

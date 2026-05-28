@@ -263,6 +263,7 @@ export function ShippingInstructionForm({
       });
 
       setSavedContractId(result.contractId);
+      reset(form, { keepDirty: false, keepTouched: false });
       toast.success("Shipping instruction saved.");
       if (typeof window !== "undefined") {
         window.localStorage.setItem("evodoc.contractId", result.contractId);

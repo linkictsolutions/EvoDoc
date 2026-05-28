@@ -1496,7 +1496,7 @@ tbody tr:hover {
   font-size: 0.8rem;
   min-height: calc(297mm - var(--brand-header-height, 0mm) - var(--brand-footer-height, 0mm));
   display: grid;
-  grid-template-rows: auto auto auto 1fr auto;
+  grid-auto-rows: auto;
   gap: 0.3rem;
 }
 
@@ -2412,6 +2412,8 @@ tbody tr:hover {
     min-height: 297mm;
     height: 297mm;
     background: #fff;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 
   body {
@@ -2634,6 +2636,8 @@ tbody tr:hover {
   }
 
   .print-table th {
-    background: #fff;
+    background: #f6f6f6 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 }

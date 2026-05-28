@@ -417,6 +417,7 @@ export interface GeneratedDocument extends Timestamped {
   revisionNumber: number;
   status: DocumentStatus;
   templateVersion: string;
+  templateLayout?: string;
   logicVersion: string;
   snapshotHash: string;
   approvedSnapshotHash?: string;
