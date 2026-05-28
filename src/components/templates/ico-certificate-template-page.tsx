@@ -1,0 +1,60 @@
+"use client";
+
+import { TemplateEditorPage, type TemplateSection } from "@/components/templates/template-editor-page";
+
+// Note: ICO certificate is a pre-printed form in the current system. This default template focuses on the
+// mapped data fields (text blocks) as a starting point; checkbox rendering remains in the static print view.
+
+const DEFAULT_SECTIONS: TemplateSection[] = [
+  {
+    id: "ico_meta",
+    label: "ICO Certificate (Fields)",
+    description: "Key ICO certificate text fields (starting point for template-driven rendering).",
+    x: 0,
+    y: 0,
+    w: 12,
+    h: 28,
+    minH: 28,
+    cells: [
+      { id: "ico_title", label: "ICO CERTIFICATE OF ORIGIN", x: 0, y: 0, w: 12, h: 2 },
+      { id: "ico_exporter", label: "1 Exporter/Consignor", x: 0, y: 2, w: 6, h: 4 },
+      { id: "ico_notify_address", label: "2 Notify Address", x: 6, y: 2, w: 6, h: 4 },
+      { id: "ico_internal_ref", label: "3 Internal Reference No", x: 0, y: 6, w: 6, h: 2 },
+      { id: "ico_country_code", label: "4 Country Code", x: 6, y: 6, w: 2, h: 2 },
+      { id: "ico_port_code", label: "4 Port Code", x: 8, y: 6, w: 2, h: 2 },
+      { id: "ico_serial_no", label: "4 Serial No", x: 10, y: 6, w: 2, h: 2 },
+      { id: "ico_producing_country", label: "5 Producing Country", x: 0, y: 8, w: 6, h: 2 },
+      { id: "ico_destination_country", label: "6 Country of Destination", x: 6, y: 8, w: 6, h: 2 },
+      { id: "ico_export_date", label: "7 Date of Export (DD/MM/YY)", x: 0, y: 10, w: 6, h: 2 },
+      { id: "ico_transshipment_country", label: "8 Country of Trans-shipment", x: 6, y: 10, w: 6, h: 2 },
+      { id: "ico_carrier", label: "9 Name of Carrier", x: 0, y: 12, w: 12, h: 2 },
+      { id: "ico_ident_mark", label: "10 ICO Identification Mark", x: 0, y: 14, w: 12, h: 2 },
+      { id: "ico_net_weight", label: "12 Net Weight of Shipment", x: 0, y: 16, w: 6, h: 2 },
+      { id: "ico_unit_weight", label: "13 Unit of Weight", x: 6, y: 16, w: 6, h: 2 },
+      { id: "ico_coffee_desc", label: "14 Description of coffee", x: 0, y: 18, w: 12, h: 4 },
+    ],
+  },
+  {
+    id: "document_id",
+    label: "Document ID",
+    description: "Footer document ID line.",
+    x: 0,
+    y: 0,
+    w: 12,
+    h: 4,
+    minH: 4,
+    cells: [],
+  },
+];
+
+export function IcoCertificateTemplatePage() {
+  return (
+    <TemplateEditorPage
+      storageKey="evodoc.templates.ico_certificate.v1"
+      title="ICO Certificate of Origin Template"
+      subtitle="Template editor for mapped ICO certificate fields (initially limited to text blocks)."
+      defaultSections12Col={DEFAULT_SECTIONS}
+    />
+  );
+}
+

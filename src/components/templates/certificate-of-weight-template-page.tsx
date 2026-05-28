@@ -1,0 +1,99 @@
+"use client";
+
+import { TemplateEditorPage, type TemplateSection } from "@/components/templates/template-editor-page";
+
+const DEFAULT_SECTIONS: TemplateSection[] = [
+  {
+    id: "header_meta",
+    label: "Header + Meta",
+    description: "Certificate header, date and reference number.",
+    x: 0,
+    y: 0,
+    w: 12,
+    h: 8,
+    minH: 8,
+    cells: [
+      { id: "wc_title", label: "CERTIFICATE OF WEIGHT", x: 0, y: 0, w: 8, h: 2 },
+      { id: "wc_date", label: "Date", x: 0, y: 2, w: 6, h: 2 },
+      { id: "wc_ref", label: "Ref No", x: 6, y: 2, w: 6, h: 2 },
+    ],
+  },
+  {
+    id: "details",
+    label: "Details",
+    description: "Parties, description, and totals.",
+    x: 0,
+    y: 0,
+    w: 12,
+    h: 18,
+    minH: 18,
+    cells: [
+      { id: "wc_shipper", label: "Shipper", x: 0, y: 0, w: 12, h: 2 },
+      { id: "wc_notify", label: "Notify", x: 0, y: 2, w: 12, h: 2 },
+      { id: "wc_notify2", label: "Second Notify", x: 0, y: 4, w: 12, h: 2 },
+      { id: "wc_desc", label: "Description of Goods", x: 0, y: 6, w: 12, h: 2 },
+      { id: "wc_origin", label: "Origin", x: 0, y: 8, w: 6, h: 2 },
+      { id: "wc_quality", label: "Quality", x: 6, y: 8, w: 6, h: 2 },
+      { id: "wc_net_weight", label: "Net Weight", x: 0, y: 10, w: 6, h: 2 },
+      { id: "wc_gross_weight", label: "Gross Weight", x: 6, y: 10, w: 6, h: 2 },
+      { id: "wc_qty_lb", label: "Quantity in LB", x: 0, y: 12, w: 6, h: 2 },
+      { id: "wc_cert_no", label: "Cert No", x: 6, y: 12, w: 6, h: 2 },
+    ],
+  },
+  {
+    id: "container_table",
+    label: "Containers Table",
+    description: "Container weights per prepared container.",
+    x: 0,
+    y: 0,
+    w: 12,
+    h: 18,
+    minH: 18,
+    cells: [
+      { id: "wc_ct_container", label: "Container No", x: 0, y: 0, w: 3, h: 2 },
+      { id: "wc_ct_seal", label: "Seal No", x: 3, y: 0, w: 2, h: 2 },
+      { id: "wc_ct_bags", label: "Bags per Container", x: 5, y: 0, w: 2, h: 2 },
+      { id: "wc_ct_bag_net", label: "Bag Weight Net", x: 7, y: 0, w: 1, h: 2 },
+      { id: "wc_ct_bag_gross", label: "Bag Weight Gross", x: 8, y: 0, w: 1, h: 2 },
+      { id: "wc_ct_cont_net", label: "Container Net Weight", x: 9, y: 0, w: 1, h: 2 },
+      { id: "wc_ct_cont_gross", label: "Container Gross Weight", x: 10, y: 0, w: 2, h: 2 },
+      { id: "wc_ct_row", label: "Row values…", x: 0, y: 2, w: 12, h: 4 },
+    ],
+  },
+  {
+    id: "footer",
+    label: "Footer",
+    description: "Signatory company line.",
+    x: 0,
+    y: 0,
+    w: 12,
+    h: 6,
+    minH: 6,
+    cells: [
+      { id: "wc_signatory", label: "Signatory Company", x: 0, y: 0, w: 12, h: 2 },
+    ],
+  },
+  {
+    id: "document_id",
+    label: "Document ID",
+    description: "Footer document ID line.",
+    x: 0,
+    y: 0,
+    w: 12,
+    h: 4,
+    minH: 4,
+    cells: [],
+  },
+];
+
+export function CertificateOfWeightTemplatePage() {
+  return (
+    <TemplateEditorPage
+      storageKey="evodoc.templates.weight_certificate.v1"
+      title="Certificate of Weight Template"
+      subtitle="Template-driven layout for the certificate of weight."
+      defaultSections12Col={DEFAULT_SECTIONS}
+    />
+  );
+}
+

@@ -146,6 +146,7 @@ export async function GET(
       }));
 
     const canPreview = family === "commercial_invoice"
+      || family === "packing_list"
       || family === "ico_certificate"
       ? true
       : Boolean(latestShipmentId);

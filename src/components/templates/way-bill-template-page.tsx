@@ -1,0 +1,99 @@
+"use client";
+
+import { TemplateEditorPage, type TemplateSection } from "@/components/templates/template-editor-page";
+
+const DEFAULT_SECTIONS: TemplateSection[] = [
+  {
+    id: "header_meta",
+    label: "Header + Meta",
+    description: "Way bill header, date and reference number.",
+    x: 0,
+    y: 0,
+    w: 12,
+    h: 8,
+    minH: 8,
+    cells: [
+      { id: "wb_title", label: "WAY BILL", x: 0, y: 0, w: 8, h: 2 },
+      { id: "wb_date", label: "Date", x: 0, y: 2, w: 6, h: 2 },
+      { id: "wb_ref", label: "Ref No", x: 6, y: 2, w: 6, h: 2 },
+    ],
+  },
+  {
+    id: "transport",
+    label: "Transport Details",
+    description: "Destination, truck/trailer, driver details.",
+    x: 0,
+    y: 0,
+    w: 12,
+    h: 20,
+    minH: 20,
+    cells: [
+      { id: "wb_to", label: "To", x: 0, y: 0, w: 12, h: 2 },
+      { id: "wb_to_contact", label: "To Contact", x: 0, y: 2, w: 12, h: 2 },
+      { id: "wb_truck", label: "Truck No", x: 0, y: 4, w: 6, h: 2 },
+      { id: "wb_trailer", label: "Trailer No", x: 6, y: 4, w: 6, h: 2 },
+      { id: "wb_driver", label: "Driver Name", x: 0, y: 6, w: 6, h: 2 },
+      { id: "wb_driver_phone", label: "Driver Phone No", x: 6, y: 6, w: 6, h: 2 },
+      { id: "wb_license", label: "License No", x: 0, y: 8, w: 6, h: 2 },
+      { id: "wb_destination", label: "Final Destination", x: 6, y: 8, w: 6, h: 2 },
+      { id: "wb_driver_decl", label: "Driver Declaration", x: 0, y: 10, w: 12, h: 6 },
+    ],
+  },
+  {
+    id: "goods",
+    label: "Goods",
+    description: "Detail of goods and weights.",
+    x: 0,
+    y: 0,
+    w: 12,
+    h: 18,
+    minH: 18,
+    cells: [
+      { id: "wb_goods_desc", label: "Detail of Goods", x: 0, y: 0, w: 12, h: 4 },
+      { id: "wb_ico", label: "ICO No", x: 0, y: 4, w: 6, h: 2 },
+      { id: "wb_cert", label: "Cert No", x: 6, y: 4, w: 6, h: 2 },
+      { id: "wb_bags", label: "No of Bag", x: 0, y: 6, w: 6, h: 2 },
+      { id: "wb_gross", label: "Gross Weight", x: 6, y: 6, w: 6, h: 2 },
+      { id: "wb_net", label: "Net Weight", x: 0, y: 8, w: 6, h: 2 },
+    ],
+  },
+  {
+    id: "containers",
+    label: "Containers",
+    description: "Container and seal numbers.",
+    x: 0,
+    y: 0,
+    w: 12,
+    h: 12,
+    minH: 12,
+    cells: [
+      { id: "wb_container_1", label: "Container No 1", x: 0, y: 0, w: 6, h: 2 },
+      { id: "wb_seal_1", label: "Seal No 1", x: 6, y: 0, w: 6, h: 2 },
+      { id: "wb_container_2", label: "Container No 2", x: 0, y: 2, w: 6, h: 2 },
+      { id: "wb_seal_2", label: "Seal No 2", x: 6, y: 2, w: 6, h: 2 },
+    ],
+  },
+  {
+    id: "document_id",
+    label: "Document ID",
+    description: "Footer document ID line.",
+    x: 0,
+    y: 0,
+    w: 12,
+    h: 4,
+    minH: 4,
+    cells: [],
+  },
+];
+
+export function WayBillTemplatePage() {
+  return (
+    <TemplateEditorPage
+      storageKey="evodoc.templates.way_bill.v1"
+      title="Way Bill Template"
+      subtitle="Template-driven layout for Way Bills (per driver tab)."
+      defaultSections12Col={DEFAULT_SECTIONS}
+    />
+  );
+}
+

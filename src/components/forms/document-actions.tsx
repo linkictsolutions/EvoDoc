@@ -7,7 +7,13 @@ import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
 import { useToast } from "@/components/ui/toast";
 
-const ICC_TEMPLATE_STORAGE_KEY = "evodoc.templates.commercial_invoice_icc.v1";
+const ICC_INVOICE_TEMPLATE_STORAGE_KEY = "evodoc.templates.commercial_invoice_icc.v1";
+const ICC_PACKING_TEMPLATE_STORAGE_KEY = "evodoc.templates.packing_list_icc.v1";
+const SHIPPING_INSTRUCTIONS_TEMPLATE_STORAGE_KEY = "evodoc.templates.shipping_instructions.v1";
+const QUALITY_CERT_TEMPLATE_STORAGE_KEY = "evodoc.templates.quality_certificate.v1";
+const WEIGHT_CERT_TEMPLATE_STORAGE_KEY = "evodoc.templates.weight_certificate.v1";
+const WAY_BILL_TEMPLATE_STORAGE_KEY = "evodoc.templates.way_bill.v1";
+const ICO_CERT_TEMPLATE_STORAGE_KEY = "evodoc.templates.ico_certificate.v1";
 
 export function GenerateDocumentButton({
   contractId,
@@ -31,12 +37,35 @@ export function GenerateDocumentButton({
 
   async function generate() {
     setLoading(true);
-    setError(null);
+      setError(null);
     try {
-      const templateLayout =
-        typeof window !== "undefined" && docType === "invoice"
-          ? window.localStorage.getItem(ICC_TEMPLATE_STORAGE_KEY) ?? undefined
-          : undefined;
+      const templateLayout = (() => {
+        if (typeof window === "undefined") {
+          return undefined;
+        }
+        if (docType === "invoice") {
+          return window.localStorage.getItem(ICC_INVOICE_TEMPLATE_STORAGE_KEY) ?? undefined;
+        }
+        if (docType === "packing_list" && docVariant !== "permit") {
+          return window.localStorage.getItem(ICC_PACKING_TEMPLATE_STORAGE_KEY) ?? undefined;
+        }
+        if (docType === "shipping_instructions") {
+          return window.localStorage.getItem(SHIPPING_INSTRUCTIONS_TEMPLATE_STORAGE_KEY) ?? undefined;
+        }
+        if (docType === "quality_certificate") {
+          return window.localStorage.getItem(QUALITY_CERT_TEMPLATE_STORAGE_KEY) ?? undefined;
+        }
+        if (docType === "weight_certificate") {
+          return window.localStorage.getItem(WEIGHT_CERT_TEMPLATE_STORAGE_KEY) ?? undefined;
+        }
+        if (docType === "way_bill") {
+          return window.localStorage.getItem(WAY_BILL_TEMPLATE_STORAGE_KEY) ?? undefined;
+        }
+        if (docType === "ico_certificate") {
+          return window.localStorage.getItem(ICO_CERT_TEMPLATE_STORAGE_KEY) ?? undefined;
+        }
+        return undefined;
+      })();
 
       const data = await apiClient<{ docId: string }>("/api/documents/generate", {
         method: "POST",

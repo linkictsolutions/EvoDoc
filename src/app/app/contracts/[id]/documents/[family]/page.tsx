@@ -8,6 +8,9 @@ import { DEFAULT_ORG_ID } from "@/lib/config";
 import type { DocumentFamily, DocumentOutputSnapshot, DocumentType } from "@/types/models";
 import { CenteredLoader } from "@/components/ui/centered-loader";
 
+const ICC_INVOICE_TEMPLATE_STORAGE_KEY = "evodoc.templates.commercial_invoice_icc.v1";
+const ICC_PACKING_TEMPLATE_STORAGE_KEY = "evodoc.templates.packing_list_icc.v1";
+
 type FamilyPayload = {
   family: DocumentFamily;
   familyLabel: string;
@@ -200,6 +203,19 @@ export default function ContractDocumentFamilyPage({
     setGenerateError(null);
 
     try {
+      const templateLayout = (() => {
+        if (typeof window === "undefined") {
+          return undefined;
+        }
+        if (payload.docType === "invoice") {
+          return window.localStorage.getItem(ICC_INVOICE_TEMPLATE_STORAGE_KEY) ?? undefined;
+        }
+        if (payload.docType === "packing_list") {
+          return window.localStorage.getItem(ICC_PACKING_TEMPLATE_STORAGE_KEY) ?? undefined;
+        }
+        return undefined;
+      })();
+
       const data = await apiClient<{ docId: string }>("/api/documents/generate", {
         method: "POST",
         body: JSON.stringify({
@@ -208,6 +224,7 @@ export default function ContractDocumentFamilyPage({
           shipmentId: payload.latestShipmentId ?? undefined,
           docType: payload.docType,
           templateVersion: "v1",
+          ...(templateLayout ? { templateLayout } : {}),
         }),
       });
 

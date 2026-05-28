@@ -4,7 +4,13 @@ import { useMemo, useState, type CSSProperties, type ReactNode } from "react";
 import { resolveCompanyConfiguration } from "@/domain/company-configuration";
 import type { DocumentInputSnapshot, DocumentOutputSnapshot, DocumentType } from "@/types/models";
 
-const ICC_TEMPLATE_STORAGE_KEY = "evodoc.templates.commercial_invoice_icc.v1";
+const ICC_INVOICE_TEMPLATE_STORAGE_KEY = "evodoc.templates.commercial_invoice_icc.v1";
+const ICC_PACKING_TEMPLATE_STORAGE_KEY = "evodoc.templates.packing_list_icc.v1";
+const SHIPPING_INSTRUCTIONS_TEMPLATE_STORAGE_KEY = "evodoc.templates.shipping_instructions.v1";
+const QUALITY_CERT_TEMPLATE_STORAGE_KEY = "evodoc.templates.quality_certificate.v1";
+const WEIGHT_CERT_TEMPLATE_STORAGE_KEY = "evodoc.templates.weight_certificate.v1";
+const WAY_BILL_TEMPLATE_STORAGE_KEY = "evodoc.templates.way_bill.v1";
+const ICO_CERT_TEMPLATE_STORAGE_KEY = "evodoc.templates.ico_certificate.v1";
 const ICC_PRINT_GRID_ROW_MM = 4;
 
 type Props = {
@@ -62,6 +68,25 @@ type PersistedIccTemplate = {
   version: 1;
   sections: TemplateSection[];
 };
+
+function readTemplateFromStorage(storageKey: string): PersistedIccTemplate | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+  try {
+    const raw = window.localStorage.getItem(storageKey);
+    if (!raw) {
+      return null;
+    }
+    const parsed = JSON.parse(raw) as PersistedIccTemplate;
+    if (!parsed || parsed.version !== 1 || !Array.isArray(parsed.sections)) {
+      return null;
+    }
+    return parsed;
+  } catch {
+    return null;
+  }
+}
 
 const ICC_CELL_LABEL_MAP: Record<string, string> = {
   inv_date: "Date",
@@ -126,23 +151,28 @@ const ICC_GOODS_COLUMN_IDS = new Set([
   "gt_total",
 ]);
 
-function readIccTemplateFromStorage(): PersistedIccTemplate | null {
-  if (typeof window === "undefined") {
-    return null;
-  }
-  try {
-    const raw = window.localStorage.getItem(ICC_TEMPLATE_STORAGE_KEY);
-    if (!raw) {
-      return null;
-    }
-    const parsed = JSON.parse(raw) as PersistedIccTemplate;
-    if (!parsed || parsed.version !== 1 || !Array.isArray(parsed.sections)) {
-      return null;
-    }
-    return parsed;
-  } catch {
-    return null;
-  }
+const QC_CONTAINER_COLUMN_IDS = new Set([
+  "qc_ct_container",
+  "qc_ct_seal",
+  "qc_ct_bags",
+]);
+
+const WC_CONTAINER_COLUMN_IDS = new Set([
+  "wc_ct_container",
+  "wc_ct_seal",
+  "wc_ct_bags",
+  "wc_ct_bag_net",
+  "wc_ct_bag_gross",
+  "wc_ct_cont_net",
+  "wc_ct_cont_gross",
+]);
+
+function readIccInvoiceTemplateFromStorage(): PersistedIccTemplate | null {
+  return readTemplateFromStorage(ICC_INVOICE_TEMPLATE_STORAGE_KEY);
+}
+
+function readPackingListTemplateFromStorage(): PersistedIccTemplate | null {
+  return readTemplateFromStorage(ICC_PACKING_TEMPLATE_STORAGE_KEY);
 }
 
 function parseIccTemplate(raw: string | undefined): PersistedIccTemplate | null {
@@ -230,10 +260,10 @@ function buildTemplateTableRows(section: TemplateSection, cols: number) {
   return { rows, maxRow };
 }
 
-function maybeScaleSectionRowsForPrint(section: TemplateSection): TemplateSection {
+function scaleSectionRowsForPrint(section: TemplateSection): { section: TemplateSection; rowScale: number } {
   const cells = [...(section.cells ?? [])].filter(Boolean);
   if (cells.length === 0) {
-    return section;
+    return { section, rowScale: 1 };
   }
 
   const valuesToCheck = [
@@ -244,18 +274,21 @@ function maybeScaleSectionRowsForPrint(section: TemplateSection): TemplateSectio
 
   const canHalve = valuesToCheck.every((value) => Number.isFinite(value) && value >= 0 && value % 2 === 0);
   if (!canHalve) {
-    return section;
+    return { section, rowScale: 1 };
   }
 
   return {
-    ...section,
-    h: section.h / 2,
-    minH: section.minH / 2,
-    cells: cells.map((cell) => ({
-      ...cell,
-      y: cell.y / 2,
-      h: Math.max(1, cell.h / 2),
-    })),
+    rowScale: 2,
+    section: {
+      ...section,
+      h: section.h / 2,
+      minH: section.minH / 2,
+      cells: cells.map((cell) => ({
+        ...cell,
+        y: cell.y / 2,
+        h: Math.max(1, cell.h / 2),
+      })),
+    },
   };
 }
 
@@ -268,7 +301,7 @@ function IccInvoiceTemplatePrintView({ output, documentId, isFinal, template }: 
 
   return (
     <article className="print-sheet icc-sheet">
-      {sections.map((section) => {
+	      {sections.map((section) => {
         if (section.id === "document_id") {
           return (
             <p key={section.id} className="permit-doc-id">
@@ -278,6 +311,7 @@ function IccInvoiceTemplatePrintView({ output, documentId, isFinal, template }: 
         }
 
         let normalizedSection: TemplateSection = section;
+        let spacerRowScale = 1;
         let goodsHeaderY: number | null = null;
         let goodsRowY: number | null = null;
 
@@ -300,7 +334,9 @@ function IccInvoiceTemplatePrintView({ output, documentId, isFinal, template }: 
         }
 
         if (section.id !== "goods_table") {
-          normalizedSection = maybeScaleSectionRowsForPrint(normalizedSection);
+          const scaled = scaleSectionRowsForPrint(normalizedSection);
+          normalizedSection = scaled.section;
+          spacerRowScale = scaled.rowScale;
         }
 
         if (cols > colCountForPrint) {
@@ -409,26 +445,201 @@ function IccInvoiceTemplatePrintView({ output, documentId, isFinal, template }: 
                       );
                     })();
 
-	                    return (
-	                      <td
-	                        key={key}
-	                        colSpan={Math.max(1, cell.w)}
-	                        rowSpan={Math.max(1, cell.h)}
-	                        style={{
-	                          background: isHeaderLike || isGoodsHeader ? "#f6f6f6" : "white",
-	                          fontWeight: 500,
-	                          whiteSpace: "pre-wrap",
-	                          wordBreak: "break-word",
-	                          verticalAlign: "top",
-	                          height: isSpacer ? `${Math.max(1, cell.h) * ICC_PRINT_GRID_ROW_MM}mm` : undefined,
-	                          textAlign: (
-	                            cell.id === "inv_page"
-	                            || cell.id === "gt_total_label"
-	                          ) ? "right" : undefined,
-	                        }}
-	                      >
-	                        {content}
-	                      </td>
+                    return (
+                      <td
+                        key={key}
+                        colSpan={Math.max(1, cell.w)}
+                        rowSpan={Math.max(1, cell.h)}
+                        style={{
+                          background: isHeaderLike || isGoodsHeader ? "#f6f6f6" : "white",
+                          fontWeight: 500,
+                          whiteSpace: "pre-wrap",
+                          wordBreak: "break-word",
+                          verticalAlign: "top",
+                          height: isSpacer ? `${Math.max(1, cell.h) * ICC_PRINT_GRID_ROW_MM * spacerRowScale}mm` : undefined,
+                          textAlign: (
+                            cell.id === "inv_page"
+                            || cell.id === "gt_total_label"
+                          ) ? "right" : undefined,
+                        }}
+                      >
+                        {content}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        );
+      })}
+    </article>
+  );
+}
+
+function GenericTemplatePrintView({
+  rows,
+  documentId,
+  template,
+  isFinal,
+  cellValueFor,
+  tableSectionConfig,
+}: {
+  rows: Row[];
+  documentId: string;
+  template: PersistedIccTemplate;
+  isFinal?: boolean;
+  cellValueFor: (rows: Row[], cell: TemplateCell) => string;
+  tableSectionConfig?: Record<string, { columnIds: Set<string>; rowPlaceholderId: string }>;
+}) {
+  const sections = normalizeTemplateSections(template.sections);
+  const cols = templateColumnCount(sections);
+  const colCountForPrint = Math.min(12, cols);
+  const scaleX = cols / colCountForPrint;
+
+  return (
+    <article className="print-sheet icc-sheet">
+      {sections.map((section) => {
+        if (section.id === "document_id") {
+          return (
+            <p key={section.id} className="permit-doc-id">
+              Document ID: {documentId}
+            </p>
+          );
+        }
+
+        let normalizedSection: TemplateSection = section;
+        let spacerRowScale = 1;
+        let tableHeaderY: number | null = null;
+        let tableValueY: number | null = null;
+
+        const tableConfig = tableSectionConfig?.[section.id];
+        if (tableConfig) {
+          const cells = [...(section.cells ?? [])];
+          const headerCells = cells.filter((cell) => tableConfig.columnIds.has(cell.id));
+          const headerY = headerCells.reduce((acc, cell) => Math.min(acc, cell.y), Number.POSITIVE_INFINITY);
+          tableHeaderY = Number.isFinite(headerY) ? headerY : 0;
+          const rowPlaceholder = cells.find((cell) => cell.id === tableConfig.rowPlaceholderId) ?? null;
+          const rowY = rowPlaceholder ? rowPlaceholder.y : (tableHeaderY + 1);
+          const rowH = rowPlaceholder ? rowPlaceholder.h : 2;
+          tableValueY = rowY;
+          const virtualValueCells = headerCells.map((cell) => ({ ...cell, y: rowY, h: rowH }));
+          normalizedSection = {
+            ...section,
+            cells: [...cells.filter((cell) => cell.id !== tableConfig.rowPlaceholderId), ...virtualValueCells],
+          };
+        } else {
+          const scaled = scaleSectionRowsForPrint(normalizedSection);
+          normalizedSection = scaled.section;
+          spacerRowScale = scaled.rowScale;
+        }
+
+        if (cols > colCountForPrint) {
+          normalizedSection = {
+            ...normalizedSection,
+            x: Math.floor(normalizedSection.x / scaleX),
+            w: Math.max(1, Math.round(normalizedSection.w / scaleX)),
+            cells: (normalizedSection.cells ?? []).map((cell) => ({
+              ...cell,
+              x: Math.floor(cell.x / scaleX),
+              w: Math.max(1, Math.round(cell.w / scaleX)),
+            })),
+          };
+        }
+
+        const { rows: tableRows } = buildTemplateTableRows(normalizedSection, colCountForPrint);
+
+        return (
+          <table
+            key={section.id}
+            className="print-table icc-table mt-sm"
+            style={{ tableLayout: "fixed", borderCollapse: "collapse" }}
+          >
+            <colgroup>
+              {Array.from({ length: colCountForPrint }).map((_, index) => (
+                <col key={index} style={{ width: `${100 / colCountForPrint}%` }} />
+              ))}
+            </colgroup>
+            <tbody>
+              {tableRows.map((rowCells, rowIndex) => (
+                <tr key={rowIndex}>
+                  {rowCells.map(({ key, cell, isEmpty }) => {
+                    if (isEmpty) {
+                      return (
+                        <td
+                          key={key}
+                          colSpan={1}
+                          rowSpan={1}
+                          style={{
+                            background: "transparent",
+                            border: "none",
+                            padding: 0,
+                          }}
+                        />
+                      );
+                    }
+
+                    const isSpacer = cell.label === "(spacer)" || cell.id.includes("spacer");
+                    const isHeaderLike =
+                      cell.id.endsWith("_hdr")
+                      || cell.id.endsWith("_title")
+                      || cell.id.endsWith("_page");
+
+                    const isTableHeader = Boolean(tableConfig)
+                      && tableHeaderY !== null
+                      && (tableConfig?.columnIds.has(cell.id) ?? false)
+                      && cell.y === tableHeaderY;
+                    const isTableValue = Boolean(tableConfig)
+                      && tableValueY !== null
+                      && (tableConfig?.columnIds.has(cell.id) ?? false)
+                      && cell.y === tableValueY;
+
+                    const raw = cellValueFor(rows, cell);
+                    const v = display(raw);
+                    const labelWithColon = cell.label.trim().endsWith(":") ? cell.label.trim() : `${cell.label.trim()}:`;
+
+                    const content = (() => {
+                      if (isSpacer) return null;
+                      if (isTableHeader) {
+                        return <strong>{cell.label}</strong>;
+                      }
+                      if (isTableValue) {
+                        return <span style={{ fontWeight: 400 }}>{v}</span>;
+                      }
+                      if (isHeaderLike) {
+                        // Allow invoice/packing to decide ORIGINAL/FINAL based on isFinal via custom cells.
+                        if (cell.id.endsWith("_page") && v) {
+                          return <strong>{v}</strong>;
+                        }
+                        return <strong>{cell.label}</strong>;
+                      }
+                      if (!v) {
+                        return null;
+                      }
+                      return (
+                        <>
+                          <strong>{labelWithColon}</strong>{" "}
+                          <span style={{ fontWeight: 400 }}>{v}</span>
+                        </>
+                      );
+                    })();
+
+                    return (
+                      <td
+                        key={key}
+                        colSpan={Math.max(1, cell.w)}
+                        rowSpan={Math.max(1, cell.h)}
+                        style={{
+                          background: isHeaderLike || isTableHeader ? "#f6f6f6" : "white",
+                          fontWeight: 500,
+                          whiteSpace: "pre-wrap",
+                          wordBreak: "break-word",
+                          verticalAlign: "top",
+                          height: isSpacer ? `${Math.max(1, cell.h) * ICC_PRINT_GRID_ROW_MM * spacerRowScale}mm` : undefined,
+                        }}
+                      >
+                        {content}
+                      </td>
                     );
                   })}
                 </tr>
@@ -448,7 +659,7 @@ function IccInvoicePrintView({ output, documentId, isFinal, templateLayout }: Pr
     if (fromPayload) {
       return fromPayload;
     }
-    return readIccTemplateFromStorage();
+    return readIccInvoiceTemplateFromStorage();
   }, [templateLayout]);
   if (template) {
     return (
@@ -609,6 +820,620 @@ function IccInvoicePrintView({ output, documentId, isFinal, templateLayout }: Pr
 
       <p className="permit-doc-id">Document ID: {documentId}</p>
     </article>
+  );
+}
+
+const PACKING_CELL_LABEL_MAP: Record<string, string> = {
+  pl_date: "Date",
+  pl_sales_ref: "Sales Contract Ref",
+  pl_ref_no: "Ref No",
+  pl_sales_date: "Sales Contract Date",
+  pl_exporter: "Exporter/Beneficiary/Seller",
+  pl_bank_permit: "Bank Permit Number",
+  pl_applicant: "Applicant/Notify",
+  pl_bol: "Bill of Lading Number",
+  pl_consignee: "Consignee",
+  pl_ship_date: "Shipped on Board Date",
+  pl_shipping_line: "Shipping Line",
+  pl_vessel: "Vessel Name",
+  pl_voyage: "Voyage No",
+  pl_eccsa: "ECCSA Certificate of Origin Number",
+
+  gd_desc: "Description of Goods",
+  gd_hs: "HS Code",
+
+  tt_origin: "Country of Origin",
+  tt_place_issue: "Place of Issue",
+  tt_port_loading: "Port of Loading",
+  tt_date_issue: "Date of Issue",
+  tt_port_discharge: "Port of Discharge",
+  tt_signatory_company: "Signatory Company",
+  tt_final_destination: "Final Destination",
+  tt_auth_sign_name: "Authorized Signatory Name",
+  tt_delivery_term: "Delivery/Trade Term",
+  tt_declaration: "Declaration",
+  tt_type_shipment: "Type of Shipment",
+  tt_incoterm: "Incoterm",
+  tt_payment: "Term/Method of Payment",
+  tt_total_net: "Total Net Weight (MT)",
+  tt_packaging_label: "Packaging & Marking (Label)",
+  tt_total_gross: "Total Gross Weight (MT)",
+  tt_packing_date: "Packing Date",
+  tt_packing_place: "Packing Place",
+  tt_address: "Address",
+
+  fm_full_marking: "Full Marking",
+};
+
+const SHIPPING_CELL_LABEL_MAP: Record<string, string> = {
+  si_date: "Date",
+  si_ref: "Ref No",
+  si_shipper: "Shipper",
+  si_consignee: "Consignee",
+  si_notify: "Notify",
+  si_notify2: "Second Notify",
+  si_service_contract: "Service Contract No",
+  si_cargo_desc: "Cargo Description",
+  si_hs: "HS Code",
+  si_qty: "Quantity",
+  si_gross: "Gross Weight",
+  si_net: "Net Weight",
+  si_cert_number: "Cert Number",
+  si_container_size: "Number Type and Size of Containers",
+  si_additional: "Additional Document / Remark",
+  si_port_loading: "Port of Loading",
+  si_discharge: "Place of Discharge",
+  si_booking: "Booking Number",
+  si_etd: "Vessel Departure (ETD) / Date",
+};
+
+const QUALITY_CELL_LABEL_MAP: Record<string, string> = {
+  qc_date: "Date",
+  qc_ref: "Ref No",
+  qc_statement: "Statement",
+  qc_mode: "Mode of Transportation",
+  qc_moisture: "Moisture Content",
+  qc_shipper: "Shipper",
+  qc_notify: "Notify",
+  qc_notify2: "Second Notify",
+  qc_desc: "Description of Goods",
+  qc_origin: "Origin",
+  qc_quality: "Quality",
+  qc_ico_no: "ICO No",
+  qc_cert_no: "Cert No",
+  qc_net_weight: "Net Weight",
+  qc_gross_weight: "Gross Weight",
+  qc_qty_lb: "Quantity in LB",
+  qc_from: "From",
+  qc_to: "To",
+  qc_signatory: "Signatory Company",
+};
+
+const WEIGHT_CELL_LABEL_MAP: Record<string, string> = {
+  wc_date: "Date",
+  wc_ref: "Ref No",
+  wc_shipper: "Shipper",
+  wc_notify: "Notify",
+  wc_notify2: "Second Notify",
+  wc_desc: "Description of Goods",
+  wc_origin: "Origin",
+  wc_quality: "Quality",
+  wc_net_weight: "Net Weight",
+  wc_gross_weight: "Gross Weight",
+  wc_qty_lb: "Quantity in LB",
+  wc_cert_no: "Cert No",
+  wc_signatory: "Signatory Company",
+};
+
+const WAY_BILL_CELL_LABEL_MAP: Record<string, string> = {
+  wb_date: "Date",
+  wb_ref: "Ref No",
+  wb_to: "To",
+  wb_to_contact: "To Contact",
+  wb_truck: "Truck No",
+  wb_trailer: "Trailer No",
+  wb_driver: "Driver Name",
+  wb_driver_phone: "Driver Phone No",
+  wb_license: "License No",
+  wb_destination: "Final Destination",
+  wb_driver_decl: "Driver Declaration",
+  wb_goods_desc: "Detail of Goods",
+  wb_ico: "ICO No",
+  wb_cert: "Cert No",
+  wb_bags: "No of Bag",
+  wb_gross: "Gross Weight",
+  wb_net: "Net Weight",
+  wb_container_1: "Container No 1",
+  wb_seal_1: "Seal No 1",
+  wb_container_2: "Container No 2",
+  wb_seal_2: "Seal No 2",
+};
+
+const ICO_CELL_LABEL_MAP: Record<string, string> = {
+  ico_exporter: "1 Exporter/Consignor",
+  ico_notify_address: "2 Notify Address",
+  ico_internal_ref: "3 Internal Reference No",
+  ico_country_code: "4 Country Code",
+  ico_port_code: "4 Port Code",
+  ico_serial_no: "4 Serial No",
+  ico_producing_country: "5 Producing Country",
+  ico_destination_country: "6 Country of Destination",
+  ico_export_date: "7 Date of Export (DD/MM/YY)",
+  ico_transshipment_country: "8 Country of Trans-shipment",
+  ico_carrier: "9 Name of Carrier",
+  ico_ident_mark: "10 ICO Identification Mark",
+  ico_net_weight: "12 Net Weight of Shipment",
+  ico_unit_weight: "13 Unit of Weight",
+  ico_coffee_desc: "14 Description of coffee",
+};
+
+const PACKING_CONTAINER_COLUMN_IDS = new Set([
+  "ct_container",
+  "ct_seal",
+  "ct_packages",
+  "ct_net_kgs",
+  "ct_gross_kgs",
+]);
+
+function packingCellValue(rows: Row[], cell: TemplateCell): string {
+  const mapped = PACKING_CELL_LABEL_MAP[cell.id] ?? cell.label;
+  return value(rows, mapped);
+}
+
+function shippingCellValue(rows: Row[], cell: TemplateCell): string {
+  if (cell.id === "si_title") {
+    return "SHIPPING INSTRUCTION";
+  }
+  if (cell.id === "si_page") {
+    return "PAGE 1 OF 1";
+  }
+  if (cell.id === "si_container_rows") {
+    const containers = indexedValues(rows, "Container No ");
+    const seals = indexedValues(rows, "Seal No ");
+    const certs = indexedValues(rows, "Cert No ");
+    const fallbackContainers = indexedValues(rows, "Container ");
+    const fallbackSeals = indexedValues(rows, "Seal ");
+    const fallbackCerts = indexedValues(rows, "Cert ");
+    const lineIndexes = Array.from(new Set([
+      ...containers.keys(),
+      ...seals.keys(),
+      ...certs.keys(),
+      ...fallbackContainers.keys(),
+      ...fallbackSeals.keys(),
+      ...fallbackCerts.keys(),
+    ])).sort((a, b) => a - b);
+    const lines = lineIndexes.map((index) => {
+      const container = display(containers.get(index) ?? fallbackContainers.get(index));
+      const seal = display(seals.get(index) ?? fallbackSeals.get(index));
+      const cert = display(certs.get(index) ?? fallbackCerts.get(index));
+      if (!container && !seal && !cert) return "";
+      return [container ? `Container ${container}` : "", seal ? `Seal ${seal}` : "", cert ? `Cert ${cert}` : ""].filter(Boolean).join(" | ");
+    }).filter(Boolean);
+    return lines.join("\n");
+  }
+  const mapped = SHIPPING_CELL_LABEL_MAP[cell.id] ?? cell.label;
+  return value(rows, mapped);
+}
+
+function qualityCellValue(rows: Row[], cell: TemplateCell): string {
+  if (cell.id === "qc_title") {
+    return "CERTIFICATE OF QUALITY";
+  }
+  if (QC_CONTAINER_COLUMN_IDS.has(cell.id)) {
+    const index = 1;
+    if (cell.id === "qc_ct_container") return indexedValues(rows, "Container No ").get(index) ?? "-";
+    if (cell.id === "qc_ct_seal") return indexedValues(rows, "Seal No ").get(index) ?? "-";
+    if (cell.id === "qc_ct_bags") return indexedValues(rows, "Bags per Container ").get(index) ?? "-";
+  }
+  const mapped = QUALITY_CELL_LABEL_MAP[cell.id] ?? cell.label;
+  return value(rows, mapped);
+}
+
+function weightCellValue(rows: Row[], cell: TemplateCell): string {
+  if (cell.id === "wc_title") {
+    return "CERTIFICATE OF WEIGHT";
+  }
+  if (WC_CONTAINER_COLUMN_IDS.has(cell.id)) {
+    const index = 1;
+    if (cell.id === "wc_ct_container") return indexedValues(rows, "Container No ").get(index) ?? "-";
+    if (cell.id === "wc_ct_seal") return indexedValues(rows, "Seal No ").get(index) ?? "-";
+    if (cell.id === "wc_ct_bags") return indexedValues(rows, "Bags per Container ").get(index) ?? "-";
+    if (cell.id === "wc_ct_bag_net") return indexedValues(rows, "Bag Weight Net ").get(index) ?? "-";
+    if (cell.id === "wc_ct_bag_gross") return indexedValues(rows, "Bag Weight Gross ").get(index) ?? "-";
+    if (cell.id === "wc_ct_cont_net") return indexedValues(rows, "Container Net Weight ").get(index) ?? "-";
+    if (cell.id === "wc_ct_cont_gross") return indexedValues(rows, "Container Gross Weight ").get(index) ?? "-";
+  }
+  const mapped = WEIGHT_CELL_LABEL_MAP[cell.id] ?? cell.label;
+  return value(rows, mapped);
+}
+
+function wayBillCellValue(rows: Row[], cell: TemplateCell): string {
+  if (cell.id === "wb_title") {
+    return "WAY BILL";
+  }
+  const mapped = WAY_BILL_CELL_LABEL_MAP[cell.id] ?? cell.label;
+  return value(rows, mapped);
+}
+
+function icoCellValue(rows: Row[], cell: TemplateCell): string {
+  if (cell.id === "ico_title") {
+    return "ICO CERTIFICATE OF ORIGIN";
+  }
+  const mapped = ICO_CELL_LABEL_MAP[cell.id] ?? cell.label;
+  return value(rows, mapped);
+}
+
+function PackingListIccTemplatePrintView({ output, documentId, isFinal, template }: Props & { template: PersistedIccTemplate }) {
+  const rows = flattenRows(output);
+  const sections = normalizeTemplateSections(template.sections);
+  const cols = templateColumnCount(sections);
+  const colCountForPrint = Math.min(12, cols);
+  const scaleX = cols / colCountForPrint;
+
+  const containers = indexedValues(rows, "Container No ");
+  const seals = indexedValues(rows, "Seal No ");
+  const packages = indexedValues(rows, "No. of Packages ");
+  const netWeights = indexedValues(rows, "Net Weight in KGS ");
+  const grossWeights = indexedValues(rows, "Gross Weight in KGS ");
+  const lineIndexes = Array.from(new Set([
+    ...containers.keys(),
+    ...seals.keys(),
+    ...packages.keys(),
+    ...netWeights.keys(),
+    ...grossWeights.keys(),
+  ])).sort((a, b) => a - b);
+
+  return (
+    <article className="print-sheet packing-icc-sheet">
+      {sections.map((section) => {
+        if (section.id === "document_id") {
+          return (
+            <p key={section.id} className="permit-doc-id">
+              Document ID: {documentId}
+            </p>
+          );
+        }
+
+        let normalizedSection: TemplateSection = section;
+        let spacerRowScale = 1;
+
+        if (section.id !== "container_table") {
+          const scaled = scaleSectionRowsForPrint(normalizedSection);
+          normalizedSection = scaled.section;
+          spacerRowScale = scaled.rowScale;
+        }
+
+        if (cols > colCountForPrint) {
+          normalizedSection = {
+            ...normalizedSection,
+            x: Math.floor(normalizedSection.x / scaleX),
+            w: Math.max(1, Math.round(normalizedSection.w / scaleX)),
+            cells: (normalizedSection.cells ?? []).map((cell) => ({
+              ...cell,
+              x: Math.floor(cell.x / scaleX),
+              w: Math.max(1, Math.round(cell.w / scaleX)),
+            })),
+          };
+        }
+
+        if (section.id === "container_table") {
+          const cells = [...(normalizedSection.cells ?? [])];
+          const headers = cells.filter((cell) => PACKING_CONTAINER_COLUMN_IDS.has(cell.id));
+          const headerY = headers.reduce((acc, cell) => Math.min(acc, cell.y), Number.POSITIVE_INFINITY);
+          const normalizedHeaderY = Number.isFinite(headerY) ? headerY : 0;
+          const active = headers
+            .filter((cell) => cell.y === normalizedHeaderY)
+            .sort((a, b) => (a.x - b.x) || a.id.localeCompare(b.id));
+
+          return (
+            <table key={section.id} className="print-table packing-icc-table mt-sm">
+              <colgroup>
+                {Array.from({ length: colCountForPrint }).map((_, index) => (
+                  <col key={index} style={{ width: `${100 / colCountForPrint}%` }} />
+                ))}
+              </colgroup>
+              <thead>
+                <tr>
+                  {active.map((cell) => (
+                    <th key={cell.id} colSpan={Math.max(1, cell.w)}>
+                      {cell.label}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {lineIndexes.length > 0 ? (
+                  lineIndexes.map((index) => (
+                    <tr key={`packing-template-line-${index}`}>
+                      {active.map((cell) => {
+                        const v = (() => {
+                          if (cell.id === "ct_container") return display(containers.get(index));
+                          if (cell.id === "ct_seal") return display(seals.get(index));
+                          if (cell.id === "ct_packages") return display(packages.get(index));
+                          if (cell.id === "ct_net_kgs") return display(netWeights.get(index));
+                          if (cell.id === "ct_gross_kgs") return display(grossWeights.get(index));
+                          return "";
+                        })();
+                        return <td key={`${cell.id}-${index}`}>{v}</td>;
+                      })}
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={active.reduce((acc, cell) => acc + Math.max(1, cell.w), 0) || colCountForPrint}>
+                      No container lines yet.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          );
+        }
+
+        const { rows: tableRows } = buildTemplateTableRows(normalizedSection, colCountForPrint);
+
+        return (
+          <table key={section.id} className="print-table packing-icc-table mt-sm" style={{ tableLayout: "fixed", borderCollapse: "collapse" }}>
+            <colgroup>
+              {Array.from({ length: colCountForPrint }).map((_, index) => (
+                <col key={index} style={{ width: `${100 / colCountForPrint}%` }} />
+              ))}
+            </colgroup>
+            <tbody>
+              {tableRows.map((rowCells, rowIndex) => (
+                <tr key={rowIndex}>
+                  {rowCells.map(({ key, cell, isEmpty }) => {
+                    if (isEmpty) {
+                      return (
+                        <td
+                          key={key}
+                          colSpan={1}
+                          rowSpan={1}
+                          style={{
+                            background: "transparent",
+                            border: "none",
+                            padding: 0,
+                          }}
+                        />
+                      );
+                    }
+
+                    const isSpacer = cell.label === "(spacer)" || cell.id.includes("spacer");
+                    const isHeaderLike = cell.id.endsWith("_hdr") || cell.id.endsWith("_title") || cell.id === "pl_title" || cell.id === "pl_page";
+                    const v = display(packingCellValue(rows, cell));
+                    const labelWithColon = cell.label.endsWith(":") ? cell.label : `${cell.label}:`;
+
+                    const content: ReactNode = (() => {
+                      if (cell.id === "pl_title") {
+                        return <strong>PACKING LIST</strong>;
+                      }
+                      if (cell.id === "pl_page") {
+                        return <strong>PAGE 1 OF 1 | {isFinal ? "FINAL" : "ORIGINAL"}</strong>;
+                      }
+                      if (isSpacer) {
+                        return null;
+                      }
+                      if (isHeaderLike) {
+                        return <strong>{cell.label}</strong>;
+                      }
+                      // Cells that behave like invoice multiline blocks.
+                      if (cell.id === "pl_exporter" || cell.id === "pl_applicant" || cell.id === "pl_consignee") {
+                        return (
+                          <>
+                            <strong>{cell.label}</strong>
+                            <br />
+                            <span style={{ fontWeight: 400 }}>{v}</span>
+                          </>
+                        );
+                      }
+                      if (cell.id === "tt_declaration") {
+                        return <span style={{ fontWeight: 400 }}>{v}</span>;
+                      }
+                      if (cell.id === "fm_signature") {
+                        return <strong>{cell.label}</strong>;
+                      }
+                      if (cell.id === "fm_full_marking") {
+                        return (
+                          <>
+                            <strong>FULL MARKING:</strong>
+                            <br />
+                            <span style={{ fontWeight: 400 }}>{v}</span>
+                          </>
+                        );
+                      }
+                      if (cell.id === "gd_desc" || cell.id === "gd_hs") {
+                        return (
+                          <>
+                            <strong>{labelWithColon}</strong>{" "}
+                            <span style={{ fontWeight: 400 }}>{v}</span>
+                          </>
+                        );
+                      }
+                      return (
+                        <>
+                          <strong>{labelWithColon}</strong>{" "}
+                          <span style={{ fontWeight: 400 }}>{v}</span>
+                        </>
+                      );
+                    })();
+
+                    return (
+                      <td
+                        key={key}
+                        colSpan={Math.max(1, cell.w)}
+                        rowSpan={Math.max(1, cell.h)}
+                        style={{
+                          background: isHeaderLike ? "#f6f6f6" : "white",
+                          fontWeight: 500,
+                          whiteSpace: "pre-wrap",
+                          wordBreak: "break-word",
+                          verticalAlign: "top",
+                          height: isSpacer ? `${Math.max(1, cell.h) * ICC_PRINT_GRID_ROW_MM * spacerRowScale}mm` : undefined,
+                          textAlign: cell.id === "pl_page" ? "right" : undefined,
+                        }}
+                      >
+                        {content}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        );
+      })}
+    </article>
+  );
+}
+
+function PackingListIccPrintViewWithTemplate({ output, documentId, isFinal, templateLayout }: Props) {
+  const template = useMemo(() => {
+    const fromPayload = parseIccTemplate(templateLayout);
+    if (fromPayload) {
+      return fromPayload;
+    }
+    return readPackingListTemplateFromStorage();
+  }, [templateLayout]);
+
+  if (template) {
+    return (
+      <PackingListIccTemplatePrintView output={output} documentId={documentId} isFinal={isFinal} template={template} />
+    );
+  }
+  return <PackingListIccPrintView output={output} documentId={documentId} isFinal={isFinal} />;
+}
+
+function ShippingInstructionsPrintViewWithTemplate({ output, documentId, isFinal, templateLayout }: Props) {
+  const template = useMemo(() => {
+    const fromPayload = parseIccTemplate(templateLayout);
+    if (fromPayload) {
+      return fromPayload;
+    }
+    return readTemplateFromStorage(SHIPPING_INSTRUCTIONS_TEMPLATE_STORAGE_KEY);
+  }, [templateLayout]);
+
+  if (!template) {
+    return <SiPrintView output={output} documentId={documentId} />;
+  }
+
+  return (
+    <GenericTemplatePrintView
+      rows={flattenRows(output)}
+      documentId={documentId}
+      template={template}
+      isFinal={isFinal}
+      cellValueFor={shippingCellValue}
+    />
+  );
+}
+
+function CertificateOfQualityPrintViewWithTemplate({ output, documentId, isFinal, templateLayout }: Props) {
+  const template = useMemo(() => {
+    const fromPayload = parseIccTemplate(templateLayout);
+    if (fromPayload) {
+      return fromPayload;
+    }
+    return readTemplateFromStorage(QUALITY_CERT_TEMPLATE_STORAGE_KEY);
+  }, [templateLayout]);
+
+  if (!template) {
+    return <CertificateOfQualityPrintView output={output} documentId={documentId} />;
+  }
+
+  return (
+    <GenericTemplatePrintView
+      rows={flattenRows(output)}
+      documentId={documentId}
+      template={template}
+      isFinal={isFinal}
+      cellValueFor={qualityCellValue}
+      tableSectionConfig={{
+        container_table: { columnIds: QC_CONTAINER_COLUMN_IDS, rowPlaceholderId: "qc_ct_row" },
+      }}
+    />
+  );
+}
+
+function CertificateOfWeightPrintViewWithTemplate({ output, documentId, isFinal, templateLayout }: Props) {
+  const template = useMemo(() => {
+    const fromPayload = parseIccTemplate(templateLayout);
+    if (fromPayload) {
+      return fromPayload;
+    }
+    return readTemplateFromStorage(WEIGHT_CERT_TEMPLATE_STORAGE_KEY);
+  }, [templateLayout]);
+
+  if (!template) {
+    return <CertificateOfWeightPrintView output={output} documentId={documentId} />;
+  }
+
+  return (
+    <GenericTemplatePrintView
+      rows={flattenRows(output)}
+      documentId={documentId}
+      template={template}
+      isFinal={isFinal}
+      cellValueFor={weightCellValue}
+      tableSectionConfig={{
+        container_table: { columnIds: WC_CONTAINER_COLUMN_IDS, rowPlaceholderId: "wc_ct_row" },
+      }}
+    />
+  );
+}
+
+function WayBillPrintViewWithTemplate({ output, documentId, isFinal, templateLayout }: Props) {
+  const template = useMemo(() => {
+    const fromPayload = parseIccTemplate(templateLayout);
+    if (fromPayload) {
+      return fromPayload;
+    }
+    return readTemplateFromStorage(WAY_BILL_TEMPLATE_STORAGE_KEY);
+  }, [templateLayout]);
+
+  if (!template) {
+    return <WayBillPrintView output={output} documentId={documentId} />;
+  }
+
+  const driverTabs = output.sections
+    .filter((section) => section.heading.startsWith("Driver "))
+    .map((section, index) => ({
+      key: `${section.heading}-${index + 1}`,
+      rows: section.rows,
+    }));
+  const activeRows = driverTabs[0]?.rows ?? flattenRows(output);
+
+  return (
+    <GenericTemplatePrintView
+      rows={activeRows}
+      documentId={documentId}
+      template={template}
+      isFinal={isFinal}
+      cellValueFor={wayBillCellValue}
+    />
+  );
+}
+
+function IcoCertificatePrintViewWithTemplate({ output, documentId, isFinal, templateLayout }: Props) {
+  const template = useMemo(() => {
+    const fromPayload = parseIccTemplate(templateLayout);
+    if (fromPayload) {
+      return fromPayload;
+    }
+    return readTemplateFromStorage(ICO_CERT_TEMPLATE_STORAGE_KEY);
+  }, [templateLayout]);
+
+  if (!template) {
+    return <IcoCertificatePrintView output={output} documentId={documentId} />;
+  }
+
+  return (
+    <GenericTemplatePrintView
+      rows={flattenRows(output)}
+      documentId={documentId}
+      template={template}
+      isFinal={isFinal}
+      cellValueFor={icoCellValue}
+    />
   );
 }
 
@@ -1777,16 +2602,18 @@ export function DocumentPrintTemplate({
     if (output.docVariant === "permit") {
       content = <PermitPackingListPrintView output={output} documentId={documentId} input={input} />;
     } else {
-      content = <PackingListIccPrintView output={output} documentId={documentId} input={input} isFinal={isFinal} />;
+      content = <PackingListIccPrintViewWithTemplate output={output} documentId={documentId} input={input} isFinal={isFinal} templateLayout={templateLayout} />;
     }
+  } else if (output.docType === "shipping_instructions") {
+    content = <ShippingInstructionsPrintViewWithTemplate output={output} documentId={documentId} input={input} isFinal={isFinal} templateLayout={templateLayout} />;
   } else if (output.docType === "quality_certificate") {
-    content = <CertificateOfQualityPrintView output={output} documentId={documentId} input={input} />;
+    content = <CertificateOfQualityPrintViewWithTemplate output={output} documentId={documentId} input={input} isFinal={isFinal} templateLayout={templateLayout} />;
   } else if (output.docType === "weight_certificate") {
-    content = <CertificateOfWeightPrintView output={output} documentId={documentId} input={input} />;
+    content = <CertificateOfWeightPrintViewWithTemplate output={output} documentId={documentId} input={input} isFinal={isFinal} templateLayout={templateLayout} />;
   } else if (output.docType === "way_bill") {
-    content = <WayBillPrintView output={output} documentId={documentId} input={input} />;
+    content = <WayBillPrintViewWithTemplate output={output} documentId={documentId} input={input} isFinal={isFinal} templateLayout={templateLayout} />;
   } else if (output.docType === "ico_certificate") {
-    content = <IcoCertificatePrintView output={output} documentId={documentId} input={input} />;
+    content = <IcoCertificatePrintViewWithTemplate output={output} documentId={documentId} input={input} isFinal={isFinal} templateLayout={templateLayout} />;
   } else {
     content = <SiPrintView output={output} documentId={documentId} input={input} />;
   }
