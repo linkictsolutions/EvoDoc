@@ -204,7 +204,15 @@ function normalizeBeneficiaryBanks(value?: BeneficiaryBankProfile[] | null): Ben
       continue;
     }
 
-    banks.push({ beneficiaryBank: bankName, beneficiaryAccountNumbers: accounts });
+    const address = entry.beneficiaryBankAddress?.trim();
+    const swiftNumber = entry.swiftNumber?.trim();
+
+    banks.push({
+      beneficiaryBank: bankName,
+      beneficiaryBankAddress: address ? address : undefined,
+      swiftNumber: swiftNumber ? swiftNumber : undefined,
+      beneficiaryAccountNumbers: accounts,
+    });
     if (banks.length >= MAX_BENEFICIARY_BANKS) {
       break;
     }

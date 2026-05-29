@@ -115,6 +115,15 @@ export function BankLcForm({
 
   const beneficiaryBanks = companyConfiguration?.beneficiaryBanks ?? [];
   const beneficiaryBankOptions = beneficiaryBanks.map((entry) => entry.beneficiaryBank);
+  const selectedBeneficiaryProfile = useMemo(() => {
+    const selected = selectedBeneficiaryBank?.trim();
+    if (!selected) {
+      return null;
+    }
+    return beneficiaryBanks.find(
+      (entry) => entry.beneficiaryBank.trim().toLowerCase() === selected.toLowerCase(),
+    ) ?? null;
+  }, [beneficiaryBanks, selectedBeneficiaryBank]);
   const selectedBeneficiaryAccounts = useMemo(() => {
     const selected = selectedBeneficiaryBank?.trim();
     if (!selected) {
@@ -128,7 +137,13 @@ export function BankLcForm({
 
   useEffect(() => {
     setValue("beneficiaryAccountNumber", "");
-  }, [selectedBeneficiaryBank, setValue]);
+    if (!selectedBeneficiaryProfile) {
+      return;
+    }
+    // These fields are configured once per beneficiary bank, but remain editable if needed.
+    setValue("bankAddress", selectedBeneficiaryProfile.beneficiaryBankAddress ?? "");
+    setValue("swiftCode", selectedBeneficiaryProfile.swiftNumber ?? "");
+  }, [selectedBeneficiaryProfile, selectedBeneficiaryBank, setValue]);
 
   useEffect(() => {
     const queryContractId = initialContractId ?? (typeof window !== "undefined"

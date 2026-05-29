@@ -332,7 +332,7 @@ export function CompanyConfigurationPage() {
         ...current,
         beneficiaryBanks: [
           ...current.beneficiaryBanks,
-          { beneficiaryBank: "", beneficiaryAccountNumbers: [""] },
+          { beneficiaryBank: "", beneficiaryBankAddress: "", swiftNumber: "", beneficiaryAccountNumbers: [""] },
         ],
       };
     });
@@ -346,6 +346,40 @@ export function CompanyConfigurationPage() {
 
       const nextBanks = current.beneficiaryBanks.map((bank, bankIndex) => (
         bankIndex === index ? { ...bank, beneficiaryBank: value } : bank
+      ));
+
+      return {
+        ...current,
+        beneficiaryBanks: nextBanks,
+      };
+    });
+  }
+
+  function updateBeneficiaryBankAddress(index: number, value: string) {
+    setForm((current) => {
+      if (!current) {
+        return current;
+      }
+
+      const nextBanks = current.beneficiaryBanks.map((bank, bankIndex) => (
+        bankIndex === index ? { ...bank, beneficiaryBankAddress: value } : bank
+      ));
+
+      return {
+        ...current,
+        beneficiaryBanks: nextBanks,
+      };
+    });
+  }
+
+  function updateBeneficiarySwiftNumber(index: number, value: string) {
+    setForm((current) => {
+      if (!current) {
+        return current;
+      }
+
+      const nextBanks = current.beneficiaryBanks.map((bank, bankIndex) => (
+        bankIndex === index ? { ...bank, swiftNumber: value } : bank
       ));
 
       return {
@@ -1150,6 +1184,24 @@ export function CompanyConfigurationPage() {
                       value={bank.beneficiaryBank}
                       onChange={(event) => updateBeneficiaryBankName(bankIndex, event.target.value)}
                       placeholder="e.g. Commercial Bank of Ethiopia"
+                    />
+                  </label>
+
+                  <label className="span-all">
+                    Address of Bank
+                    <input
+                      value={bank.beneficiaryBankAddress ?? ""}
+                      onChange={(event) => updateBeneficiaryBankAddress(bankIndex, event.target.value)}
+                      placeholder="e.g. Addis Ababa, Ethiopia"
+                    />
+                  </label>
+
+                  <label className="span-all">
+                    SWIFT Number
+                    <input
+                      value={bank.swiftNumber ?? ""}
+                      onChange={(event) => updateBeneficiarySwiftNumber(bankIndex, event.target.value)}
+                      placeholder="e.g. CBETETAA"
                     />
                   </label>
 

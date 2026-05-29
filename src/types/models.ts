@@ -106,6 +106,8 @@ export interface DocumentBrandingSettings {
 
 export interface BeneficiaryBankProfile {
   beneficiaryBank: string;
+  beneficiaryBankAddress?: string;
+  swiftNumber?: string;
   beneficiaryAccountNumbers: string[];
 }
 
