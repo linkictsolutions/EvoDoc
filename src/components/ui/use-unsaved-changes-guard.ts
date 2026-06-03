@@ -6,9 +6,10 @@ import { useToast } from "@/components/ui/toast";
 type Options = {
   enabled: boolean;
   message?: string;
+  onBlockedNavigation?: () => void;
 };
 
-export function useUnsavedChangesGuard({ enabled, message }: Options) {
+export function useUnsavedChangesGuard({ enabled, message, onBlockedNavigation }: Options) {
   const toast = useToast();
   const lastToastAt = useRef(0);
 
@@ -32,6 +33,7 @@ export function useUnsavedChangesGuard({ enabled, message }: Options) {
         return;
       }
       lastToastAt.current = now;
+      onBlockedNavigation?.();
       toast.error(warning);
     }
 
@@ -71,5 +73,5 @@ export function useUnsavedChangesGuard({ enabled, message }: Options) {
       document.removeEventListener("click", onDocumentClick, true);
       window.removeEventListener("popstate", onPopState);
     };
-  }, [enabled, message, toast]);
+  }, [enabled, message, onBlockedNavigation, toast]);
 }

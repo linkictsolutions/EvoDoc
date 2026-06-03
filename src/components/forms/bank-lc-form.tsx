@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
-import type { CompanyConfiguration, Contract } from "@/types/models";
+import type { AttachmentRef, CompanyConfiguration, Contract } from "@/types/models";
 import { CenteredLoader } from "@/components/ui/centered-loader";
+import { AttachmentsField } from "@/components/ui/attachments";
 import { useToast } from "@/components/ui/toast";
 import { useUnsavedChangesGuard } from "@/components/ui/use-unsaved-changes-guard";
 
@@ -46,6 +47,7 @@ interface BankLcFormProps {
 
 interface ContractDetailResponse {
   contract: Contract;
+  sourceInputs?: Array<{ id: string; sourceType?: string; payload?: unknown }>;
 }
 
 export function BankLcForm({
@@ -59,6 +61,9 @@ export function BankLcForm({
   const [savedContractId, setSavedContractId] = useState<string | null>(null);
   const [loadingExisting, setLoadingExisting] = useState(false);
   const [companyConfiguration, setCompanyConfiguration] = useState<CompanyConfiguration | null>(null);
+  const [attachments, setAttachments] = useState<AttachmentRef[]>([]);
+  const [highlightDirty, setHighlightDirty] = useState(false);
+  const lastSavedRef = useRef<{ form: Partial<FormData>; attachments: AttachmentRef[] }>({ form: {}, attachments: [] });
 
   const {
     register,
@@ -66,7 +71,7 @@ export function BankLcForm({
     setValue,
     reset,
     handleSubmit,
-    formState: { errors, isDirty },
+    formState: { errors, isDirty, dirtyFields },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -97,7 +102,16 @@ export function BankLcForm({
   const beneficiaryBankRegister = register("beneficiaryBank");
   const beneficiaryAccountRegister = register("beneficiaryAccountNumber");
 
-  useUnsavedChangesGuard({ enabled: isDirty && !saving });
+  useUnsavedChangesGuard({ enabled: isDirty && !saving, onBlockedNavigation: () => setHighlightDirty(true) });
+
+  const isFieldDirty = useCallback(
+    (name: keyof FormData) => Boolean((dirtyFields as Record<string, unknown>)[name]),
+    [dirtyFields],
+  );
+  const dirtyControlClass = useCallback(
+    (name: keyof FormData) => (highlightDirty && isFieldDirty(name) ? "field-error-control" : undefined),
+    [highlightDirty, isFieldDirty],
+  );
 
   function requiredLabelClass(hasError: boolean) {
     return hasError ? "is-required field-error" : "is-required";
@@ -197,9 +211,14 @@ export function BankLcForm({
 
         const banking = data.contract.banking;
         const contractIdentifier = data.contract.contractNumber;
+        const bankSource = data.sourceInputs?.find(
+          (input) => input.id === "bank_lc_sheet" || input.sourceType === "bank_lc_sheet",
+        );
+        const storedAttachments = (bankSource?.payload as { attachments?: AttachmentRef[] } | undefined)?.attachments ?? [];
+        const nextAttachments = Array.isArray(storedAttachments) ? storedAttachments : [];
+        setAttachments(nextAttachments);
         setSavedContractId(contractIdentifier);
-        reset(
-          {
+        const nextForm: FormData = {
             contractId: contractIdentifier,
             lcNumber: banking.lcNumber ?? "",
             permitNumber: banking.permitNumber ?? "",
@@ -221,12 +240,10 @@ export function BankLcForm({
             swiftCode: banking.swiftCode ?? "",
             beneficiaryAccountNumber: banking.beneficiaryAccountNumber ?? "",
             accountNumber: banking.accountNumber ?? "",
-          },
-          {
-            keepDirty: false,
-            keepTouched: false,
-          },
-        );
+        };
+        reset(nextForm, { keepDirty: false, keepTouched: false });
+        lastSavedRef.current = { form: nextForm, attachments: nextAttachments };
+        setHighlightDirty(false);
       })
       .catch((error: Error) => {
         if (mounted) {
@@ -244,6 +261,16 @@ export function BankLcForm({
     };
   }, [autoLoadExisting, contractIdInput, initialContractId, reset]);
 
+  function discardChanges() {
+    const snapshot = lastSavedRef.current;
+    if (snapshot?.form) {
+      reset(snapshot.form as FormData, { keepDirty: false, keepTouched: false });
+    }
+    setAttachments(snapshot.attachments ?? []);
+    setHighlightDirty(false);
+    toast.info("Discarded unsaved changes.");
+  }
+
   async function onSubmit(form: FormData) {
     setSaving(true);
     setApiError(null);
@@ -254,6 +281,7 @@ export function BankLcForm({
         body: JSON.stringify({
           orgId: DEFAULT_ORG_ID,
           contractId: form.contractId,
+          attachments,
           banking: {
             lcNumber: form.lcNumber,
             permitNumber: form.permitNumber,
@@ -280,6 +308,8 @@ export function BankLcForm({
       });
 
       setSavedContractId(result.contractId);
+      lastSavedRef.current = { form, attachments };
+      setHighlightDirty(false);
       reset(form, { keepDirty: false, keepTouched: false });
       toast.success("Bank & LC saved.");
       if (typeof window !== "undefined") {
@@ -308,74 +338,84 @@ export function BankLcForm({
         <h3 className="span-all">Contract Link</h3>
         <label className={requiredLabelClass(Boolean(errors.contractId))}>
           <span className="label-text">Contract Number (link only)</span>
-          <input {...register("contractId")} readOnly={Boolean(initialContractId)} />
+          <input className={dirtyControlClass("contractId")} {...register("contractId")} readOnly={Boolean(initialContractId)} />
           <small>{errors.contractId?.message}</small>
         </label>
+
+        <AttachmentsField
+          orgId={DEFAULT_ORG_ID}
+          contractId={savedContractId ?? contractIdInput ?? "draft"}
+          stage="bank_lc_sheet"
+          value={attachments}
+          onChange={setAttachments}
+          helperText="Attach LC documents, bank letters, or related files (multiple allowed)."
+        />
 
         <h3 className="span-all">LC Information</h3>
         <label>
           LC No
-          <input {...register("lcNumber")} />
+          <input className={dirtyControlClass("lcNumber")} {...register("lcNumber")} />
         </label>
         <label>
           Applicant
-          <input {...register("applicant")} />
+          <input className={dirtyControlClass("applicant")} {...register("applicant")} />
         </label>
         <label>
           Port of Loading / Airport of Departure
-          <input {...register("portOfLoading")} />
+          <input className={dirtyControlClass("portOfLoading")} {...register("portOfLoading")} />
         </label>
         <label>
           Port of Discharge / Airport of Destination
-          <input {...register("portOfDischarge")} />
+          <input className={dirtyControlClass("portOfDischarge")} {...register("portOfDischarge")} />
         </label>
         <label>
           Latest Date of Shipment
-          <input {...register("latestShipmentDate")} />
+          <input className={dirtyControlClass("latestShipmentDate")} {...register("latestShipmentDate")} />
         </label>
         <label className="span-all">
           Description of Goods
-          <textarea rows={3} {...register("goodsDescription")} />
+          <textarea className={dirtyControlClass("goodsDescription")} rows={3} {...register("goodsDescription")} />
         </label>
         <label>
           Number of Bags
-          <input {...register("noOfBags")} />
+          <input className={dirtyControlClass("noOfBags")} {...register("noOfBags")} />
         </label>
         <label>
           Currency Amount
-          <input {...register("currencyAmount")} />
+          <input className={dirtyControlClass("currencyAmount")} {...register("currencyAmount")} />
         </label>
         <label>
           Sender
-          <input {...register("sender")} />
+          <input className={dirtyControlClass("sender")} {...register("sender")} />
         </label>
         <label>
           Receiver
-          <input {...register("receiver")} />
+          <input className={dirtyControlClass("receiver")} {...register("receiver")} />
         </label>
 
         <h3 className="span-all">Consignee and Notify Parties</h3>
         <label>
           Consignee
-          <textarea rows={2} {...register("consignee")} />
+          <textarea className={dirtyControlClass("consignee")} rows={2} {...register("consignee")} />
         </label>
         <label>
           Notify
-          <textarea rows={2} {...register("notify")} />
+          <textarea className={dirtyControlClass("notify")} rows={2} {...register("notify")} />
         </label>
         <label>
           2nd Notify
-          <textarea rows={2} {...register("secondNotify")} />
+          <textarea className={dirtyControlClass("secondNotify")} rows={2} {...register("secondNotify")} />
         </label>
 
         <h3 className="span-all">Bank Information</h3>
         <label>
           Bank Permit
-          <input {...register("permitNumber")} />
+          <input className={dirtyControlClass("permitNumber")} {...register("permitNumber")} />
         </label>
         <label>
           Beneficiary Bank
           <select
+            className={dirtyControlClass("beneficiaryBank")}
             {...beneficiaryBankRegister}
             onChange={(event) => {
               beneficiaryBankRegister.onChange(event);
@@ -396,11 +436,12 @@ export function BankLcForm({
         </label>
         <label>
           Address of Bank
-          <input {...register("bankAddress")} />
+          <input className={dirtyControlClass("bankAddress")} {...register("bankAddress")} />
         </label>
         <label>
           Beneficiary Account No
           <select
+            className={dirtyControlClass("beneficiaryAccountNumber")}
             {...beneficiaryAccountRegister}
             disabled={!selectedBeneficiaryBank || selectedBeneficiaryAccounts.length === 0}
           >
@@ -421,19 +462,22 @@ export function BankLcForm({
         </label>
         <label>
           Correspondent Bank
-          <input {...register("correspondentBank")} />
+          <input className={dirtyControlClass("correspondentBank")} {...register("correspondentBank")} />
         </label>
         <label>
           SWIFT Number
-          <input {...register("swiftCode")} />
+          <input className={dirtyControlClass("swiftCode")} {...register("swiftCode")} />
         </label>
         <label>
           Account No
-          <input {...register("accountNumber")} />
+          <input className={dirtyControlClass("accountNumber")} {...register("accountNumber")} />
         </label>
 
         <div className="row-actions">
           <button type="submit" disabled={saving}>{saving ? "Saving..." : "Save Bank & LC"}</button>
+          <button type="button" className="button-secondary" disabled={!isDirty || saving} onClick={discardChanges}>
+            Discard changes
+          </button>
           <Link href={reportHref}>
             <button type="button" className="button-secondary">View Resolved Values</button>
           </Link>

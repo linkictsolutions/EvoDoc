@@ -1,12 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { appendVehiclePair, removeLastVehiclePair, syncBookingEntryPairs } from "@/domain/execution";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
 import type { BookingsSheet } from "@/types/models";
 import { CenteredLoader } from "@/components/ui/centered-loader";
 import { useToast } from "@/components/ui/toast";
+import { useUnsavedChangesGuard } from "@/components/ui/use-unsaved-changes-guard";
 
 type ContractShippingOptionsResponse = {
   contract: {
@@ -41,6 +42,17 @@ export function BookingsPage({ contractId }: { contractId: string }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [highlightDirty, setHighlightDirty] = useState(false);
+  const lastSavedRef = useRef<BookingsSheet | null>(null);
+
+  const isDirty = useMemo(() => {
+    if (!form || !lastSavedRef.current) {
+      return false;
+    }
+    return JSON.stringify(form) !== JSON.stringify(lastSavedRef.current);
+  }, [form]);
+
+  useUnsavedChangesGuard({ enabled: isDirty && !saving, onBlockedNavigation: () => setHighlightDirty(true) });
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -51,6 +63,8 @@ export function BookingsPage({ contractId }: { contractId: string }) {
         apiClient<ContractShippingOptionsResponse>(`/api/contracts/${contractId}?orgId=${DEFAULT_ORG_ID}`).catch(() => null),
       ]);
       setForm(bookingsData);
+      lastSavedRef.current = bookingsData;
+      setHighlightDirty(false);
       setShippingLineOptions(buildShippingLineOptions(contractData, bookingsData.shippingLine));
     } catch (loadError) {
       setError((loadError as Error).message);
@@ -99,6 +113,15 @@ export function BookingsPage({ contractId }: { contractId: string }) {
 
   function removeVehiclePair() {
     setForm((current) => current ? { ...current, entries: removeLastVehiclePair(current.entries) } : current);
+  }
+
+  function discardChanges() {
+    if (!lastSavedRef.current) {
+      return;
+    }
+    setForm(lastSavedRef.current);
+    setHighlightDirty(false);
+    toast.info("Discarded unsaved changes.");
   }
 
   async function save() {
@@ -151,6 +174,19 @@ export function BookingsPage({ contractId }: { contractId: string }) {
     );
   }
 
+  const headerDirty = Boolean(form && lastSavedRef.current && (
+    form.bookingNumber !== lastSavedRef.current.bookingNumber
+    || form.shippingLine !== lastSavedRef.current.shippingLine
+    || form.vesselName !== lastSavedRef.current.vesselName
+    || form.voyageNo !== lastSavedRef.current.voyageNo
+    || form.freeDays !== lastSavedRef.current.freeDays
+    || form.billOfLadingNumber !== lastSavedRef.current.billOfLadingNumber
+    || Boolean(form.hasSecondSeal) !== Boolean(lastSavedRef.current.hasSecondSeal)
+  ));
+  const entriesDirty = Boolean(form && lastSavedRef.current && JSON.stringify(form.entries) !== JSON.stringify(lastSavedRef.current.entries));
+  const headerControlClass = highlightDirty && headerDirty ? "field-error-control" : undefined;
+  const entriesControlClass = highlightDirty && entriesDirty ? "field-error-control" : undefined;
+
   return (
     <section className="page-shell bookings-page">
       <header className="page-header">
@@ -161,11 +197,12 @@ export function BookingsPage({ contractId }: { contractId: string }) {
       <section className="card form-grid bookings-header-grid">
         <label>
           Booking Number
-          <input value={form.bookingNumber ?? ""} onChange={(event) => updateHeader("bookingNumber", event.target.value)} />
+          <input className={headerControlClass} value={form.bookingNumber ?? ""} onChange={(event) => updateHeader("bookingNumber", event.target.value)} />
         </label>
         <label>
           Shipping Line
           <select
+            className={headerControlClass}
             value={form.shippingLine ?? ""}
             onChange={(event) => updateHeader("shippingLine", event.target.value)}
           >
@@ -182,19 +219,19 @@ export function BookingsPage({ contractId }: { contractId: string }) {
         </label>
         <label>
           Vessel Name
-          <input value={form.vesselName ?? ""} onChange={(event) => updateHeader("vesselName", event.target.value)} />
+          <input className={headerControlClass} value={form.vesselName ?? ""} onChange={(event) => updateHeader("vesselName", event.target.value)} />
         </label>
         <label>
           Voyage No
-          <input value={form.voyageNo ?? ""} onChange={(event) => updateHeader("voyageNo", event.target.value)} />
+          <input className={headerControlClass} value={form.voyageNo ?? ""} onChange={(event) => updateHeader("voyageNo", event.target.value)} />
         </label>
         <label>
           Free Days
-          <input value={form.freeDays ?? ""} onChange={(event) => updateHeader("freeDays", event.target.value)} />
+          <input className={headerControlClass} value={form.freeDays ?? ""} onChange={(event) => updateHeader("freeDays", event.target.value)} />
         </label>
         <label>
           Bill of Lading Number
-          <input value={form.billOfLadingNumber ?? ""} onChange={(event) => updateHeader("billOfLadingNumber", event.target.value)} />
+          <input className={headerControlClass} value={form.billOfLadingNumber ?? ""} onChange={(event) => updateHeader("billOfLadingNumber", event.target.value)} />
         </label>
       </section>
 
@@ -208,6 +245,7 @@ export function BookingsPage({ contractId }: { contractId: string }) {
             <button type="button" onClick={addVehiclePair} disabled={saving}>Add Vehicle</button>
             <button type="button" className="button-secondary" onClick={removeVehiclePair} disabled={saving || form.entries.length <= 2}>Remove Last Vehicle</button>
             <button type="button" className="button-secondary" onClick={() => void load()} disabled={saving}>Refresh</button>
+            <button type="button" className="button-secondary" onClick={discardChanges} disabled={!isDirty || saving}>Discard changes</button>
             <button type="button" onClick={() => void save()} disabled={saving}>{saving ? "Saving..." : "Save Bookings"}</button>
           </div>
         </div>
@@ -249,9 +287,10 @@ export function BookingsPage({ contractId }: { contractId: string }) {
                   <td>
                     {entry.vehicleType}
                   </td>
-                  <td><input value={entry.plateNo ?? ""} onChange={(event) => updateEntry(index, "plateNo", event.target.value)} /></td>
+                  <td><input className={entriesControlClass} value={entry.plateNo ?? ""} onChange={(event) => updateEntry(index, "plateNo", event.target.value)} /></td>
                   <td>
                     <input
+                      className={entriesControlClass}
                       value={entry.driverName ?? ""}
                       onChange={(event) => updateEntry(index, "driverName", event.target.value)}
                       disabled={entry.vehicleType === "TRAILER"}
@@ -259,6 +298,7 @@ export function BookingsPage({ contractId }: { contractId: string }) {
                   </td>
                   <td>
                     <input
+                      className={entriesControlClass}
                       value={entry.driverPhoneNo ?? ""}
                       onChange={(event) => updateEntry(index, "driverPhoneNo", event.target.value)}
                       disabled={entry.vehicleType === "TRAILER"}
@@ -266,6 +306,7 @@ export function BookingsPage({ contractId }: { contractId: string }) {
                   </td>
                   <td>
                     <input
+                      className={entriesControlClass}
                       value={entry.djiboutiPhoneNo ?? ""}
                       onChange={(event) => updateEntry(index, "djiboutiPhoneNo", event.target.value)}
                       disabled={entry.vehicleType === "TRAILER"}
@@ -273,17 +314,18 @@ export function BookingsPage({ contractId }: { contractId: string }) {
                   </td>
                   <td>
                     <input
+                      className={entriesControlClass}
                       value={entry.licenseNo ?? ""}
                       onChange={(event) => updateEntry(index, "licenseNo", event.target.value)}
                       disabled={entry.vehicleType === "TRAILER"}
                     />
                   </td>
-                  <td><input value={entry.containerNumber ?? ""} onChange={(event) => updateEntry(index, "containerNumber", event.target.value)} /></td>
-                  <td><input className="bookings-seal-input" value={entry.sealNumber ?? ""} onChange={(event) => updateEntry(index, "sealNumber", event.target.value)} /></td>
+                  <td><input className={entriesControlClass} value={entry.containerNumber ?? ""} onChange={(event) => updateEntry(index, "containerNumber", event.target.value)} /></td>
+                  <td><input className={`bookings-seal-input ${entriesControlClass ?? ""}`.trim()} value={entry.sealNumber ?? ""} onChange={(event) => updateEntry(index, "sealNumber", event.target.value)} /></td>
                   {form.hasSecondSeal ? (
-                    <td><input className="bookings-seal-input" value={entry.secondSealNumber ?? ""} onChange={(event) => updateEntry(index, "secondSealNumber", event.target.value)} /></td>
+                    <td><input className={`bookings-seal-input ${entriesControlClass ?? ""}`.trim()} value={entry.secondSealNumber ?? ""} onChange={(event) => updateEntry(index, "secondSealNumber", event.target.value)} /></td>
                   ) : null}
-                  <td><input className="bookings-tare-input" type="number" step="0.001" value={entry.tareWeightKg ?? ""} onChange={(event) => updateEntry(index, "tareWeightKg", event.target.value)} /></td>
+                  <td><input className={`bookings-tare-input ${entriesControlClass ?? ""}`.trim()} type="number" step="0.001" value={entry.tareWeightKg ?? ""} onChange={(event) => updateEntry(index, "tareWeightKg", event.target.value)} /></td>
                 </tr>
               ))}
             </tbody>

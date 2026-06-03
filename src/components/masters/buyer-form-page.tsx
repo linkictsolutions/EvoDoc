@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
@@ -36,12 +36,23 @@ export function BuyerFormPage({ buyerId }: { buyerId?: string }) {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(Boolean(buyerId));
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);
-  const initialSnapshot = useRef(JSON.stringify(initialForm));
+  const [highlightDirty, setHighlightDirty] = useState(false);
+  const initialSnapshot = useRef<BuyerFormState>(initialForm);
+  const initialSnapshotJson = useRef(JSON.stringify(initialForm));
 
   const isEdit = Boolean(buyerId);
-  const isDirty = useMemo(() => JSON.stringify(form) !== initialSnapshot.current, [form]);
+  const isDirty = useMemo(() => JSON.stringify(form) !== initialSnapshotJson.current, [form]);
 
-  useUnsavedChangesGuard({ enabled: isDirty && !saving });
+  useUnsavedChangesGuard({ enabled: isDirty && !saving, onBlockedNavigation: () => setHighlightDirty(true) });
+
+  const isFieldDirty = useCallback(
+    (name: keyof BuyerFormState) => form[name] !== initialSnapshot.current[name],
+    [form],
+  );
+  const dirtyControlClass = useCallback(
+    (name: keyof BuyerFormState) => (highlightDirty && isFieldDirty(name) ? "field-error-control" : undefined),
+    [highlightDirty, isFieldDirty],
+  );
 
   function requiredLabelClass(isMissing: boolean) {
     return isMissing ? "is-required field-error" : "is-required";
@@ -71,7 +82,9 @@ export function BuyerFormPage({ buyerId }: { buyerId?: string }) {
           taxId: buyer.taxId ?? "",
         };
         setForm(nextForm);
-        initialSnapshot.current = JSON.stringify(nextForm);
+        initialSnapshot.current = nextForm;
+        initialSnapshotJson.current = JSON.stringify(nextForm);
+        setHighlightDirty(false);
       })
       .catch((loadError: Error) => {
         if (mounted) {
@@ -88,6 +101,13 @@ export function BuyerFormPage({ buyerId }: { buyerId?: string }) {
       mounted = false;
     };
   }, [buyerId]);
+
+  function discardChanges() {
+    setForm(initialSnapshot.current);
+    setAttemptedSubmit(false);
+    setHighlightDirty(false);
+    toast.info("Discarded unsaved changes.");
+  }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -115,7 +135,9 @@ export function BuyerFormPage({ buyerId }: { buyerId?: string }) {
       });
 
       toast.success("Buyer saved.");
-      initialSnapshot.current = JSON.stringify(form);
+      initialSnapshot.current = form;
+      initialSnapshotJson.current = JSON.stringify(form);
+      setHighlightDirty(false);
       router.push("/app/masters/customers");
       router.refresh();
     } catch (submitError) {
@@ -153,32 +175,64 @@ export function BuyerFormPage({ buyerId }: { buyerId?: string }) {
       <form className="card form-grid" onSubmit={handleSubmit} noValidate>
         <label className={requiredLabelClass(attemptedSubmit && form.name.trim().length === 0)}>
           <span className="label-text">Legal Name</span>
-          <input value={form.name} onChange={(event) => updateField("name", event.target.value)} required />
+          <input
+            className={dirtyControlClass("name")}
+            value={form.name}
+            onChange={(event) => updateField("name", event.target.value)}
+            required
+          />
         </label>
         <label className={`span-all ${requiredLabelClass(attemptedSubmit && form.address.trim().length === 0)}`}>
           <span className="label-text">Address</span>
-          <textarea rows={4} value={form.address} onChange={(event) => updateField("address", event.target.value)} required />
+          <textarea
+            className={dirtyControlClass("address")}
+            rows={4}
+            value={form.address}
+            onChange={(event) => updateField("address", event.target.value)}
+            required
+          />
         </label>
         <label className={requiredLabelClass(attemptedSubmit && form.country.trim().length === 0)}>
           <span className="label-text">Country</span>
-          <input value={form.country} onChange={(event) => updateField("country", event.target.value)} required />
+          <input
+            className={dirtyControlClass("country")}
+            value={form.country}
+            onChange={(event) => updateField("country", event.target.value)}
+            required
+          />
         </label>
         <label>
           Contact Name
-          <input value={form.contactName} onChange={(event) => updateField("contactName", event.target.value)} />
+          <input
+            className={dirtyControlClass("contactName")}
+            value={form.contactName}
+            onChange={(event) => updateField("contactName", event.target.value)}
+          />
         </label>
         <label>
           Contact Email
-          <input type="email" value={form.contactEmail} onChange={(event) => updateField("contactEmail", event.target.value)} />
+          <input
+            className={dirtyControlClass("contactEmail")}
+            type="email"
+            value={form.contactEmail}
+            onChange={(event) => updateField("contactEmail", event.target.value)}
+          />
         </label>
         <label>
           Tax ID
-          <input value={form.taxId} onChange={(event) => updateField("taxId", event.target.value)} />
+          <input
+            className={dirtyControlClass("taxId")}
+            value={form.taxId}
+            onChange={(event) => updateField("taxId", event.target.value)}
+          />
         </label>
 
         {error ? <p className="error-text">{error}</p> : null}
         <div className="row-actions">
           <button type="submit" disabled={saving}>{saving ? "Saving..." : isEdit ? "Save Changes" : "Save Buyer"}</button>
+          <button type="button" className="button-secondary" disabled={!isDirty || saving} onClick={discardChanges}>
+            Discard changes
+          </button>
           <Link href="/app/masters/customers">
             <button type="button" className="button-secondary" disabled={saving}>Back to Buyers</button>
           </Link>

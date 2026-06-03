@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
-import type { CompanyConfiguration, Contract } from "@/types/models";
+import type { AttachmentRef, CompanyConfiguration, Contract } from "@/types/models";
 import { CenteredLoader } from "@/components/ui/centered-loader";
+import { AttachmentsField } from "@/components/ui/attachments";
 import { useToast } from "@/components/ui/toast";
 import { useUnsavedChangesGuard } from "@/components/ui/use-unsaved-changes-guard";
 
@@ -45,6 +46,7 @@ interface ShippingInstructionFormProps {
 
 interface ContractDetailResponse {
   contract: Contract;
+  sourceInputs?: Array<{ id: string; sourceType?: string; payload?: unknown }>;
 }
 
 function toMonthInputValue(value?: string): string {
@@ -77,6 +79,9 @@ export function ShippingInstructionForm({
   const [savedContractId, setSavedContractId] = useState<string | null>(null);
   const [loadingExisting, setLoadingExisting] = useState(false);
   const [packagingOptions, setPackagingOptions] = useState<string[]>([]);
+  const [attachments, setAttachments] = useState<AttachmentRef[]>([]);
+  const [highlightDirty, setHighlightDirty] = useState(false);
+  const lastSavedRef = useRef<{ form: Partial<FormData>; attachments: AttachmentRef[] }>({ form: {}, attachments: [] });
 
   const {
     register,
@@ -84,7 +89,7 @@ export function ShippingInstructionForm({
     watch,
     reset,
     handleSubmit,
-    formState: { errors, isDirty },
+    formState: { errors, isDirty, dirtyFields },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -114,7 +119,16 @@ export function ShippingInstructionForm({
   const contractIdInput = watch("contractId");
   const selectedPackagingValue = watch("packagingValue");
 
-  useUnsavedChangesGuard({ enabled: isDirty && !saving });
+  useUnsavedChangesGuard({ enabled: isDirty && !saving, onBlockedNavigation: () => setHighlightDirty(true) });
+
+  const isFieldDirty = useCallback(
+    (name: keyof FormData) => Boolean((dirtyFields as Record<string, unknown>)[name]),
+    [dirtyFields],
+  );
+  const dirtyControlClass = useCallback(
+    (name: keyof FormData) => (highlightDirty && isFieldDirty(name) ? "field-error-control" : undefined),
+    [highlightDirty, isFieldDirty],
+  );
 
   function requiredLabelClass(hasError: boolean) {
     return hasError ? "is-required field-error" : "is-required";
@@ -161,9 +175,13 @@ export function ShippingInstructionForm({
 
         const shipping = data.contract.shipping;
         const contractIdentifier = data.contract.contractNumber;
+        const shippingSource = data.sourceInputs?.find(
+          (input) => input.id === "shipping_instruction_sheet" || input.sourceType === "shipping_instruction_sheet",
+        );
+        const storedAttachments = (shippingSource?.payload as { attachments?: AttachmentRef[] } | undefined)?.attachments ?? [];
+        setAttachments(Array.isArray(storedAttachments) ? storedAttachments : []);
         setSavedContractId(contractIdentifier);
-        reset(
-          {
+        const nextForm: FormData = {
             contractId: contractIdentifier,
             destinationPort: shipping.destinationPort ?? "",
             shippingLine: shipping.shippingLine ?? "",
@@ -184,12 +202,10 @@ export function ShippingInstructionForm({
             consignee: shipping.consignee ?? "",
             notifyParty: shipping.notifyParty ?? "",
             secondNotify: shipping.secondNotify ?? "",
-          },
-          {
-            keepDirty: false,
-            keepTouched: false,
-          },
-        );
+        };
+        reset(nextForm, { keepDirty: false, keepTouched: false });
+        lastSavedRef.current = { form: nextForm, attachments: Array.isArray(storedAttachments) ? storedAttachments : [] };
+        setHighlightDirty(false);
       })
       .catch((error: Error) => {
         if (mounted) {
@@ -228,6 +244,16 @@ export function ShippingInstructionForm({
     };
   }, []);
 
+  function discardChanges() {
+    const snapshot = lastSavedRef.current;
+    if (snapshot?.form) {
+      reset(snapshot.form as FormData, { keepDirty: false, keepTouched: false });
+    }
+    setAttachments(snapshot.attachments ?? []);
+    setHighlightDirty(false);
+    toast.info("Discarded unsaved changes.");
+  }
+
   async function onSubmit(form: FormData) {
     setSaving(true);
     setApiError(null);
@@ -238,6 +264,7 @@ export function ShippingInstructionForm({
         body: JSON.stringify({
           orgId: DEFAULT_ORG_ID,
           contractId: form.contractId,
+          attachments,
           shipping: {
             destinationPort: form.destinationPort,
             shippingLine: form.shippingLine,
@@ -263,6 +290,8 @@ export function ShippingInstructionForm({
       });
 
       setSavedContractId(result.contractId);
+      lastSavedRef.current = { form, attachments };
+      setHighlightDirty(false);
       reset(form, { keepDirty: false, keepTouched: false });
       toast.success("Shipping instruction saved.");
       if (typeof window !== "undefined") {
@@ -295,61 +324,70 @@ export function ShippingInstructionForm({
         <h3 className="span-all">Contract Link</h3>
         <label className={requiredLabelClass(Boolean(errors.contractId))}>
           <span className="label-text">Contract Number (link only, no auto-fill)</span>
-          <input {...register("contractId")} readOnly={Boolean(initialContractId)} />
+          <input className={dirtyControlClass("contractId")} {...register("contractId")} readOnly={Boolean(initialContractId)} />
           <small>{errors.contractId?.message}</small>
         </label>
+
+        <AttachmentsField
+          orgId={DEFAULT_ORG_ID}
+          contractId={savedContractId ?? contractIdInput ?? "draft"}
+          stage="shipping_instruction_sheet"
+          value={attachments}
+          onChange={setAttachments}
+          helperText="Attach supporting shipping instruction documents (multiple files allowed)."
+        />
 
         <h3 className="span-all">Route and Carrier</h3>
         <label className={requiredLabelClass(Boolean(errors.destinationPort))}>
           <span className="label-text">Destination (Port, Country)</span>
-          <input {...register("destinationPort")} />
+          <input className={dirtyControlClass("destinationPort")} {...register("destinationPort")} />
           <small>{errors.destinationPort?.message}</small>
         </label>
         <label className={requiredLabelClass(Boolean(errors.portOfLoading))}>
           <span className="label-text">Port of Loading</span>
-          <input {...register("portOfLoading")} />
+          <input className={dirtyControlClass("portOfLoading")} {...register("portOfLoading")} />
           <small>{errors.portOfLoading?.message}</small>
         </label>
         <label className={requiredLabelClass(Boolean(errors.shippingLine))}>
           <span className="label-text">Shipping Line</span>
-          <input {...register("shippingLine")} />
+          <input className={dirtyControlClass("shippingLine")} {...register("shippingLine")} />
           <small>{errors.shippingLine?.message}</small>
         </label>
         <label>
           Service Contract
-          <input {...register("serviceContract")} />
+          <input className={dirtyControlClass("serviceContract")} {...register("serviceContract")} />
         </label>
         <label>
           Alternative 1
-          <input {...register("alternative1")} />
+          <input className={dirtyControlClass("alternative1")} {...register("alternative1")} />
         </label>
         <label>
           Alternative 1 Service Contract
-          <input {...register("alternative1ServiceContract")} />
+          <input className={dirtyControlClass("alternative1ServiceContract")} {...register("alternative1ServiceContract")} />
         </label>
         <label>
           Alternative 2
-          <input {...register("alternative2")} />
+          <input className={dirtyControlClass("alternative2")} {...register("alternative2")} />
         </label>
         <label>
           Alternative 2 Service Contract
-          <input {...register("alternative2ServiceContract")} />
+          <input className={dirtyControlClass("alternative2ServiceContract")} {...register("alternative2ServiceContract")} />
         </label>
 
         <h3 className="span-all">Cargo Details</h3>
         <label className={requiredLabelClass(Boolean(errors.quantityValue))}>
           <span className="label-text">Quantity</span>
-          <input {...register("quantityValue")} />
+          <input className={dirtyControlClass("quantityValue")} {...register("quantityValue")} />
           <small>{errors.quantityValue?.message}</small>
         </label>
         <label className={requiredLabelClass(Boolean(errors.qualityValue))}>
           <span className="label-text">Quality</span>
-          <textarea rows={3} {...register("qualityValue")} />
+          <textarea className={dirtyControlClass("qualityValue")} rows={3} {...register("qualityValue")} />
           <small>{errors.qualityValue?.message}</small>
         </label>
         <label className={requiredLabelClass(Boolean(errors.packagingValue))}>
           <span className="label-text">Packaging</span>
-          <select {...register("packagingValue")}>
+          <select className={dirtyControlClass("packagingValue")} {...register("packagingValue")}>
             <option value="">Select packaging</option>
             {selectedPackagingValue && !packagingOptions.includes(selectedPackagingValue) ? (
               <option value={selectedPackagingValue}>{selectedPackagingValue}</option>
@@ -362,43 +400,46 @@ export function ShippingInstructionForm({
         </label>
         <label className={requiredLabelClass(Boolean(errors.noOfBagsValue))}>
           <span className="label-text">Number of Bags</span>
-          <input {...register("noOfBagsValue")} />
+          <input className={dirtyControlClass("noOfBagsValue")} {...register("noOfBagsValue")} />
           <small>{errors.noOfBagsValue?.message}</small>
         </label>
         <label className={requiredLabelClass(Boolean(errors.containerCountValue))}>
           <span className="label-text">Containers</span>
-          <input {...register("containerCountValue")} />
+          <input className={dirtyControlClass("containerCountValue")} {...register("containerCountValue")} />
           <small>{errors.containerCountValue?.message}</small>
         </label>
         <label>
           Shipment Month
-          <input type="month" {...register("shipmentMonth")} />
+          <input className={dirtyControlClass("shipmentMonth")} type="month" {...register("shipmentMonth")} />
         </label>
         <label>
           Bag Marking
-          <textarea rows={6} {...register("bagMarkings")} />
+          <textarea className={dirtyControlClass("bagMarkings")} rows={6} {...register("bagMarkings")} />
         </label>
         <label>
           Description
-          <textarea rows={8} {...register("description")} />
+          <textarea className={dirtyControlClass("description")} rows={8} {...register("description")} />
         </label>
 
         <h3 className="span-all">Consignee and Notify Parties</h3>
         <label>
           Consignee
-          <textarea rows={3} {...register("consignee")} />
+          <textarea className={dirtyControlClass("consignee")} rows={3} {...register("consignee")} />
         </label>
         <label>
           Notify
-          <textarea rows={3} {...register("notifyParty")} />
+          <textarea className={dirtyControlClass("notifyParty")} rows={3} {...register("notifyParty")} />
         </label>
         <label>
           2nd Notify
-          <textarea rows={3} {...register("secondNotify")} />
+          <textarea className={dirtyControlClass("secondNotify")} rows={3} {...register("secondNotify")} />
         </label>
 
         <div className="row-actions">
           <button type="submit" disabled={saving}>{saving ? "Saving..." : "Save Shipping Instruction"}</button>
+          <button type="button" className="button-secondary" disabled={!isDirty || saving} onClick={discardChanges}>
+            Discard changes
+          </button>
           <Link href={bankLcHref}>
             <button type="button" className="button-secondary">Continue to Bank & LC</button>
           </Link>

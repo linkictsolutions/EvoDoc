@@ -66,6 +66,7 @@ export async function POST(request: NextRequest) {
       {
         customer: normalized.customer,
         contractTerms: normalized.contract.terms,
+        attachments: parsed.attachments ?? [],
       },
       actor.uid,
       requestId,

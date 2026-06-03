@@ -1,6 +1,7 @@
 import { getApps, initializeApp } from "firebase/app";
 import { connectAuthEmulator, getAuth, type Auth } from "firebase/auth";
 import { connectFirestoreEmulator, getFirestore, type Firestore } from "firebase/firestore";
+import { connectStorageEmulator, getStorage, type FirebaseStorage } from "firebase/storage";
 
 const config = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -25,6 +26,12 @@ function getAuthEmulatorPort(): number {
   const raw = process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_PORT;
   const parsed = raw ? Number(raw) : NaN;
   return Number.isFinite(parsed) ? parsed : 9099;
+}
+
+function getStorageEmulatorPort(): number {
+  const raw = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_EMULATOR_PORT;
+  const parsed = raw ? Number(raw) : NaN;
+  return Number.isFinite(parsed) ? parsed : 9199;
 }
 
 export function getFirebaseClientApp() {
@@ -73,4 +80,17 @@ export function getFirebaseFirestoreClient(): Firestore {
     }
   }
   return db;
+}
+
+export function getFirebaseStorageClient(): FirebaseStorage {
+  const storage = getStorage(getFirebaseClientApp());
+  if (shouldUseEmulators() && typeof window !== "undefined") {
+    const alreadyConnected = (storage as unknown as { __evodocEmulatorConnected?: boolean })
+      .__evodocEmulatorConnected;
+    if (!alreadyConnected) {
+      connectStorageEmulator(storage, "127.0.0.1", getStorageEmulatorPort());
+      (storage as unknown as { __evodocEmulatorConnected?: boolean }).__evodocEmulatorConnected = true;
+    }
+  }
+  return storage;
 }

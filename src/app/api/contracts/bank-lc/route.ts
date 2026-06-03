@@ -48,7 +48,10 @@ export async function POST(request: NextRequest) {
       parsed.orgId,
       contractId,
       "bank_lc_sheet",
-      normalized.banking,
+      {
+        ...normalized.banking,
+        attachments: parsed.attachments ?? [],
+      },
       actor.uid,
       requestId,
     );

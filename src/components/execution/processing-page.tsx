@@ -1,11 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
 import type { ProcessingSheet } from "@/types/models";
 import { CenteredLoader } from "@/components/ui/centered-loader";
 import { useToast } from "@/components/ui/toast";
+import { useUnsavedChangesGuard } from "@/components/ui/use-unsaved-changes-guard";
 
 export function ProcessingPage({ contractId }: { contractId: string }) {
   const toast = useToast();
@@ -13,6 +14,17 @@ export function ProcessingPage({ contractId }: { contractId: string }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [highlightDirty, setHighlightDirty] = useState(false);
+  const lastSavedRef = useRef<ProcessingSheet | null>(null);
+
+  const isDirty = useMemo(() => {
+    if (!form || !lastSavedRef.current) {
+      return false;
+    }
+    return JSON.stringify(form) !== JSON.stringify(lastSavedRef.current);
+  }, [form]);
+
+  useUnsavedChangesGuard({ enabled: isDirty && !saving, onBlockedNavigation: () => setHighlightDirty(true) });
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -20,6 +32,8 @@ export function ProcessingPage({ contractId }: { contractId: string }) {
     try {
       const data = await apiClient<ProcessingSheet>(`/api/contracts/${contractId}/execution/processing?orgId=${DEFAULT_ORG_ID}`);
       setForm(data);
+      lastSavedRef.current = data;
+      setHighlightDirty(false);
     } catch (loadError) {
       setError((loadError as Error).message);
     } finally {
@@ -30,6 +44,15 @@ export function ProcessingPage({ contractId }: { contractId: string }) {
   useEffect(() => {
     void load();
   }, [load]);
+
+  function discardChanges() {
+    if (!lastSavedRef.current) {
+      return;
+    }
+    setForm(lastSavedRef.current);
+    setHighlightDirty(false);
+    toast.info("Discarded unsaved changes.");
+  }
 
   async function save() {
     if (!form) {
@@ -77,6 +100,11 @@ export function ProcessingPage({ contractId }: { contractId: string }) {
     );
   }
 
+  const moistureDirty = Boolean(lastSavedRef.current && form.moisturePercent !== lastSavedRef.current.moisturePercent);
+  const stationDirty = Boolean(lastSavedRef.current && form.stationName !== lastSavedRef.current.stationName);
+  const stationLocalDirty = Boolean(lastSavedRef.current && (form.stationNameLocal ?? "") !== (lastSavedRef.current.stationNameLocal ?? ""));
+  const addressDirty = Boolean(lastSavedRef.current && form.stationAddress !== lastSavedRef.current.stationAddress);
+
   return (
     <section className="page-shell">
       <header className="page-header">
@@ -88,6 +116,7 @@ export function ProcessingPage({ contractId }: { contractId: string }) {
         <label>
           Moisture
           <input
+            className={highlightDirty && moistureDirty ? "field-error-control" : undefined}
             type="number"
             step="0.001"
             value={form.moisturePercent}
@@ -97,6 +126,7 @@ export function ProcessingPage({ contractId }: { contractId: string }) {
         <label>
           Processing Station
           <input
+            className={highlightDirty && stationDirty ? "field-error-control" : undefined}
             value={form.stationName}
             onChange={(event) => setForm((current) => current ? { ...current, stationName: event.target.value } : current)}
           />
@@ -104,6 +134,7 @@ export function ProcessingPage({ contractId }: { contractId: string }) {
         <label>
           Local Station Name
           <input
+            className={highlightDirty && stationLocalDirty ? "field-error-control" : undefined}
             value={form.stationNameLocal ?? ""}
             onChange={(event) => setForm((current) => current ? { ...current, stationNameLocal: event.target.value } : current)}
           />
@@ -111,6 +142,7 @@ export function ProcessingPage({ contractId }: { contractId: string }) {
         <label className="span-all">
           Station Address
           <textarea
+            className={highlightDirty && addressDirty ? "field-error-control" : undefined}
             rows={3}
             value={form.stationAddress}
             onChange={(event) => setForm((current) => current ? { ...current, stationAddress: event.target.value } : current)}
@@ -119,6 +151,7 @@ export function ProcessingPage({ contractId }: { contractId: string }) {
         {error ? <p className="error-text">{error}</p> : null}
         <div className="row-actions">
           <button type="button" className="button-secondary" onClick={() => void load()} disabled={saving}>Refresh</button>
+          <button type="button" className="button-secondary" onClick={discardChanges} disabled={!isDirty || saving}>Discard changes</button>
           <button type="button" onClick={() => void save()} disabled={saving}>{saving ? "Saving..." : "Save Processing"}</button>
         </div>
       </section>

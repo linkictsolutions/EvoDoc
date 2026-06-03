@@ -35,12 +35,18 @@ export async function GET(
 
     const executionData = hydrateExecutionData(await getExecutionData(orgId, resolvedContractId).catch(() => ({})));
 
+    const sourceInputsSnap = await adminDb
+      .collection(`organizations/${orgId}/contracts/${resolvedContractId}/sourceInputs`)
+      .get();
+    const sourceInputs = sourceInputsSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+
     return ok(requestId, {
       contract,
       customer,
       shipments: shipmentSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() })),
       documents: documentSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() })),
       executionData,
+      sourceInputs,
     });
   } catch (error) {
     return fail(requestId, (error as Error).message, 400);

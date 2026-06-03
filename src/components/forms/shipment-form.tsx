@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -28,19 +28,47 @@ export function ShipmentForm({ contractId }: { contractId: string }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [highlightDirty, setHighlightDirty] = useState(false);
+  const lastSavedRef = useRef<ShipmentFormData>({
+    vessel: "",
+    voyageNo: "",
+    bookingReference: "",
+    bags: 0,
+    grossWeightKg: 0,
+    tareWeightKg: 0,
+    containerNumber: "",
+    sealNumber: "",
+  });
 
   const {
     register,
     handleSubmit,
-    formState: { errors, isDirty },
+    reset,
+    formState: { errors, isDirty, dirtyFields },
   } = useForm<ShipmentFormData>({
     resolver: zodResolver(shipmentSchema),
+    defaultValues: lastSavedRef.current,
   });
 
-  useUnsavedChangesGuard({ enabled: isDirty && !saving });
+  useUnsavedChangesGuard({ enabled: isDirty && !saving, onBlockedNavigation: () => setHighlightDirty(true) });
+
+  const isFieldDirty = useCallback(
+    (name: keyof ShipmentFormData) => Boolean((dirtyFields as Record<string, unknown>)[name]),
+    [dirtyFields],
+  );
+  const dirtyControlClass = useCallback(
+    (name: keyof ShipmentFormData) => (highlightDirty && isFieldDirty(name) ? "field-error-control" : undefined),
+    [highlightDirty, isFieldDirty],
+  );
 
   function requiredLabelClass(hasError: boolean) {
     return hasError ? "is-required field-error" : "is-required";
+  }
+
+  function discardChanges() {
+    reset(lastSavedRef.current, { keepDirty: false, keepTouched: false });
+    setHighlightDirty(false);
+    toast.info("Discarded unsaved changes.");
   }
 
   async function onSubmit(values: ShipmentFormData) {
@@ -88,42 +116,57 @@ export function ShipmentForm({ contractId }: { contractId: string }) {
     >
       <label>
         Vessel
-        <input {...register("vessel")} />
+        <input className={dirtyControlClass("vessel")} {...register("vessel")} />
       </label>
       <label>
         Voyage Number
-        <input {...register("voyageNo")} />
+        <input className={dirtyControlClass("voyageNo")} {...register("voyageNo")} />
       </label>
       <label>
         Booking Reference
-        <input {...register("bookingReference")} />
+        <input className={dirtyControlClass("bookingReference")} {...register("bookingReference")} />
       </label>
       <label className={requiredLabelClass(Boolean(errors.bags))}>
         <span className="label-text">Bags</span>
-        <input type="number" {...register("bags", { valueAsNumber: true })} />
+        <input className={dirtyControlClass("bags")} type="number" {...register("bags", { valueAsNumber: true })} />
         <small>{errors.bags?.message}</small>
       </label>
       <label className={requiredLabelClass(Boolean(errors.grossWeightKg))}>
         <span className="label-text">Gross Weight (kg)</span>
-        <input type="number" step="0.001" {...register("grossWeightKg", { valueAsNumber: true })} />
+        <input
+          className={dirtyControlClass("grossWeightKg")}
+          type="number"
+          step="0.001"
+          {...register("grossWeightKg", { valueAsNumber: true })}
+        />
         <small>{errors.grossWeightKg?.message}</small>
       </label>
       <label className={requiredLabelClass(Boolean(errors.tareWeightKg))}>
         <span className="label-text">Tare Weight (kg)</span>
-        <input type="number" step="0.001" {...register("tareWeightKg", { valueAsNumber: true })} />
+        <input
+          className={dirtyControlClass("tareWeightKg")}
+          type="number"
+          step="0.001"
+          {...register("tareWeightKg", { valueAsNumber: true })}
+        />
         <small>{errors.tareWeightKg?.message}</small>
       </label>
       <label>
         Container Number
-        <input {...register("containerNumber")} />
+        <input className={dirtyControlClass("containerNumber")} {...register("containerNumber")} />
       </label>
       <label>
         Seal Number
-        <input {...register("sealNumber")} />
+        <input className={dirtyControlClass("sealNumber")} {...register("sealNumber")} />
       </label>
 
       {error ? <p className="error-text">{error}</p> : null}
-      <button type="submit" disabled={saving}>{saving ? "Saving..." : "Save Shipment"}</button>
+      <div className="row-actions">
+        <button type="submit" disabled={saving}>{saving ? "Saving..." : "Save Shipment"}</button>
+        <button type="button" className="button-secondary" disabled={!isDirty || saving} onClick={discardChanges}>
+          Discard changes
+        </button>
+      </div>
     </form>
   );
 }

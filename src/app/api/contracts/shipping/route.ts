@@ -50,7 +50,10 @@ export async function POST(request: NextRequest) {
       parsed.orgId,
       contractId,
       "shipping_instruction_sheet",
-      normalized.shipping,
+      {
+        ...normalized.shipping,
+        attachments: parsed.attachments ?? [],
+      },
       actor.uid,
       requestId,
     );

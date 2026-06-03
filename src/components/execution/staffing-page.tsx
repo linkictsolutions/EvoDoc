@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
 import { computeContractExcelParity } from "@/domain/excel-parity";
@@ -8,6 +8,7 @@ import { collectSealOptions, deriveFinalStaffingRows } from "@/domain/execution"
 import type { BookingsSheet, Contract, StaffingFinalRow, StaffingSheet } from "@/types/models";
 import { CenteredLoader } from "@/components/ui/centered-loader";
 import { useToast } from "@/components/ui/toast";
+import { useUnsavedChangesGuard } from "@/components/ui/use-unsaved-changes-guard";
 
 type StaffingPayload = StaffingSheet & { finalRows: StaffingFinalRow[] };
 type ContractDetailResponse = {
@@ -22,6 +23,8 @@ export function StaffingPage({ contractId }: { contractId: string }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [highlightDirty, setHighlightDirty] = useState(false);
+  const lastSavedRowsRef = useRef<StaffingSheet["instructionRows"]>([]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -35,6 +38,8 @@ export function StaffingPage({ contractId }: { contractId: string }) {
       ]);
       setBookings(bookingsData);
       setForm(staffingData);
+      lastSavedRowsRef.current = staffingData.instructionRows;
+      setHighlightDirty(false);
       setContract(contractData.contract);
     } catch (loadError) {
       setError((loadError as Error).message);
@@ -46,6 +51,15 @@ export function StaffingPage({ contractId }: { contractId: string }) {
   useEffect(() => {
     void load();
   }, [load]);
+
+  const isDirty = useMemo(() => {
+    if (!form) {
+      return false;
+    }
+    return JSON.stringify(form.instructionRows) !== JSON.stringify(lastSavedRowsRef.current);
+  }, [form]);
+
+  useUnsavedChangesGuard({ enabled: isDirty && !saving, onBlockedNavigation: () => setHighlightDirty(true) });
 
   const sealOptions = useMemo(() => collectSealOptions(bookings ?? undefined), [bookings]);
   const containerCount = useMemo(() => {
@@ -104,6 +118,16 @@ export function StaffingPage({ contractId }: { contractId: string }) {
     });
   }
 
+  function discardChanges() {
+    if (!form) {
+      return;
+    }
+    const instructionRows = lastSavedRowsRef.current;
+    setForm((current) => current ? { ...current, instructionRows, finalRows: deriveFinalStaffingRows({ ...current, instructionRows }) } : current);
+    setHighlightDirty(false);
+    toast.info("Discarded unsaved changes.");
+  }
+
   async function save() {
     if (!form) {
       return;
@@ -147,6 +171,8 @@ export function StaffingPage({ contractId }: { contractId: string }) {
     );
   }
 
+  const controlClass = highlightDirty && isDirty ? "field-error-control" : undefined;
+
   return (
     <section className="page-shell staffing-page">
       <header className="page-header">
@@ -162,6 +188,7 @@ export function StaffingPage({ contractId }: { contractId: string }) {
           </div>
           <div className="row-actions">
             <button type="button" className="button-secondary" onClick={() => void load()} disabled={saving}>Refresh from Bookings</button>
+            <button type="button" className="button-secondary" onClick={discardChanges} disabled={!isDirty || saving}>Discard changes</button>
             <button type="button" onClick={() => void save()} disabled={saving}>{saving ? "Saving..." : "Save Staffing"}</button>
           </div>
         </div>
@@ -199,13 +226,14 @@ export function StaffingPage({ contractId }: { contractId: string }) {
                   <td>{row.licenseNo ?? "-"}</td>
                   <td>{row.containerNumber ?? "-"}</td>
                   <td>
-                    <select value={row.sealNumber ?? ""} onChange={(event) => updateRow(index, "sealNumber", event.target.value)}>
+                    <select className={controlClass} value={row.sealNumber ?? ""} onChange={(event) => updateRow(index, "sealNumber", event.target.value)}>
                       <option value="">Select seal</option>
                       {sealOptions.map((seal) => <option key={seal} value={seal}>{seal}</option>)}
                     </select>
                   </td>
                   <td>
                     <select
+                      className={controlClass}
                       value={row.certNumber ?? ""}
                       onChange={(event) => updateRow(index, "certNumber", event.target.value)}
                       disabled={certOptions.length === 0}
@@ -215,10 +243,10 @@ export function StaffingPage({ contractId }: { contractId: string }) {
                     </select>
                   </td>
                   <td>{row.tareWeightKg ?? "-"}</td>
-                  <td><input type="number" step="0.001" value={row.firstWeightKg ?? ""} onChange={(event) => updateRow(index, "firstWeightKg", event.target.value)} /></td>
-                  <td><input type="number" step="0.001" value={row.secondWeightKg ?? ""} onChange={(event) => updateRow(index, "secondWeightKg", event.target.value)} /></td>
-                  <td><input type="number" step="0.001" value={row.netWeightKg ?? ""} onChange={(event) => updateRow(index, "netWeightKg", event.target.value)} /></td>
-                  <td><input value={row.doNumber ?? ""} onChange={(event) => updateRow(index, "doNumber", event.target.value)} /></td>
+                  <td><input className={controlClass} type="number" step="0.001" value={row.firstWeightKg ?? ""} onChange={(event) => updateRow(index, "firstWeightKg", event.target.value)} /></td>
+                  <td><input className={controlClass} type="number" step="0.001" value={row.secondWeightKg ?? ""} onChange={(event) => updateRow(index, "secondWeightKg", event.target.value)} /></td>
+                  <td><input className={controlClass} type="number" step="0.001" value={row.netWeightKg ?? ""} onChange={(event) => updateRow(index, "netWeightKg", event.target.value)} /></td>
+                  <td><input className={controlClass} value={row.doNumber ?? ""} onChange={(event) => updateRow(index, "doNumber", event.target.value)} /></td>
                 </tr>
               ))}
             </tbody>

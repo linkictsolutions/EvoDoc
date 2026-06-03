@@ -109,6 +109,15 @@ export const contractInputSchema = z.object({
 export const contractCoreInputSchema = z.object({
   orgId: z.string().min(1),
   contractId: z.string().optional(),
+  attachments: z.array(z.object({
+    id: z.string().min(1),
+    fileName: z.string().min(1),
+    mimeType: z.string().min(1),
+    sizeBytes: z.number().int().nonnegative(),
+    storagePath: z.string().min(1),
+    downloadUrl: z.string().url(),
+    uploadedAt: z.string().min(1),
+  })).optional(),
   customer: z.object({
     id: z.string().optional(),
     name: z.string().min(1),
@@ -128,12 +137,30 @@ export const contractCoreInputSchema = z.object({
 export const shippingInstructionInputSchema = z.object({
   orgId: z.string().min(1),
   contractId: z.string().min(1),
+  attachments: z.array(z.object({
+    id: z.string().min(1),
+    fileName: z.string().min(1),
+    mimeType: z.string().min(1),
+    sizeBytes: z.number().int().nonnegative(),
+    storagePath: z.string().min(1),
+    downloadUrl: z.string().url(),
+    uploadedAt: z.string().min(1),
+  })).optional(),
   shipping: shippingInstructionsSchema,
 });
 
 export const bankLcInputSchema = z.object({
   orgId: z.string().min(1),
   contractId: z.string().min(1),
+  attachments: z.array(z.object({
+    id: z.string().min(1),
+    fileName: z.string().min(1),
+    mimeType: z.string().min(1),
+    sizeBytes: z.number().int().nonnegative(),
+    storagePath: z.string().min(1),
+    downloadUrl: z.string().url(),
+    uploadedAt: z.string().min(1),
+  })).optional(),
   banking: bankingPaymentInfoSchema,
 });
 

@@ -111,6 +111,16 @@ export interface BeneficiaryBankProfile {
   beneficiaryAccountNumbers: string[];
 }
 
+export interface AttachmentRef {
+  id: string;
+  fileName: string;
+  mimeType: string;
+  sizeBytes: number;
+  storagePath: string;
+  downloadUrl: string;
+  uploadedAt: string;
+}
+
 export interface CompanyConfiguration extends Timestamped {
   orgId: string;
   sellerName: string;

@@ -2,14 +2,15 @@
 
 import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { computeContractExcelParity } from "@/domain/excel-parity";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
-import type { CompanyConfiguration, Customer } from "@/types/models";
+import type { AttachmentRef, CompanyConfiguration, Customer } from "@/types/models";
 import { CenteredLoader } from "@/components/ui/centered-loader";
+import { AttachmentsField } from "@/components/ui/attachments";
 import { useToast } from "@/components/ui/toast";
 import { useUnsavedChangesGuard } from "@/components/ui/use-unsaved-changes-guard";
 
@@ -95,6 +96,7 @@ interface ContractDetailResponse {
     };
   };
   customer: Customer | null;
+  sourceInputs?: Array<{ id: string; sourceType?: string; payload?: unknown }>;
 }
 
 function toMonthInputValue(value?: string): string {
@@ -129,6 +131,7 @@ export function ContractCoreForm({
   const [savedContractId, setSavedContractId] = useState<string | null>(null);
   const [activeContractId, setActiveContractId] = useState<string | null>(initialContractId ?? null);
   const [savedNotice, setSavedNotice] = useState<string | null>(null);
+  const [attachments, setAttachments] = useState<AttachmentRef[]>([]);
   const [saving, setSaving] = useState(false);
   const [loadingExisting, setLoadingExisting] = useState(false);
   const [paymentTermOptions, setPaymentTermOptions] = useState<string[]>(fallbackPaymentTerms);
@@ -136,7 +139,10 @@ export function ContractCoreForm({
   const [priceUomOptions, setPriceUomOptions] = useState<string[]>(fallbackPriceUoms);
   const [currencyOptions, setCurrencyOptions] = useState<string[]>(fallbackCurrencies);
 
-  const { register, watch, handleSubmit, setValue, reset, formState: { errors, isDirty } } = useForm<FormData>({
+  const [highlightDirty, setHighlightDirty] = useState(false);
+  const lastSavedRef = useRef<{ form: Partial<FormData>; attachments: AttachmentRef[] }>({ form: {}, attachments: [] });
+
+  const { register, watch, handleSubmit, setValue, reset, formState: { errors, isDirty, dirtyFields } } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
       buyerId: "",
@@ -158,7 +164,13 @@ export function ContractCoreForm({
     },
   });
 
-  useUnsavedChangesGuard({ enabled: isDirty && !saving });
+  useUnsavedChangesGuard({
+    enabled: isDirty && !saving,
+    onBlockedNavigation: () => setHighlightDirty(true),
+  });
+
+  const isFieldDirty = useCallback((name: keyof FormData) => Boolean((dirtyFields as Record<string, unknown>)[name]), [dirtyFields]);
+  const dirtyControlClass = useCallback((name: keyof FormData) => (highlightDirty && isFieldDirty(name) ? "field-error-control" : undefined), [highlightDirty, isFieldDirty]);
 
   const values = watch();
   const packagingRegister = register("packagingUnit");
@@ -203,6 +215,7 @@ export function ContractCoreForm({
         body: JSON.stringify({
           orgId: DEFAULT_ORG_ID,
           contractId: activeContractId ?? undefined,
+          attachments,
           customer: {
             id: form.buyerId,
             name: form.customerName,
@@ -236,6 +249,8 @@ export function ContractCoreForm({
       setSavedContractId(result.contractId);
       setActiveContractId(result.contractId);
       setSavedNotice("Contract draft saved.");
+      lastSavedRef.current = { form, attachments };
+      setHighlightDirty(false);
       reset(form, { keepDirty: false, keepTouched: false });
       toast.success("Contract saved.");
       if (typeof window !== "undefined") {
@@ -248,6 +263,16 @@ export function ContractCoreForm({
     } finally {
       setSaving(false);
     }
+  }
+
+  function discardChanges() {
+    const snapshot = lastSavedRef.current;
+    if (snapshot?.form) {
+      reset(snapshot.form as FormData, { keepDirty: false, keepTouched: false });
+    }
+    setAttachments(snapshot.attachments ?? []);
+    setHighlightDirty(false);
+    toast.info("Discarded unsaved changes.");
   }
 
   function onPackagingUnitChange(unit: string) {
@@ -353,10 +378,41 @@ export function ContractCoreForm({
         const terms = data.contract.terms;
         const customer = data.customer;
         const contractIdentifier = data.contract.contractNumber;
+        const buyerId = customer?.id ?? "";
+        const contractSource = data.sourceInputs?.find(
+          (input) => input.id === "contract_sheet" || input.sourceType === "contract_sheet",
+        );
+        const storedAttachments = (contractSource?.payload as { attachments?: AttachmentRef[] } | undefined)?.attachments ?? [];
+        setAttachments(Array.isArray(storedAttachments) ? storedAttachments : []);
+        lastSavedRef.current = {
+          form: {
+            buyerId,
+            contractNumber: data.contract.contractNumber,
+            customerName: customer?.name ?? "",
+            customerAddress: customer?.address ?? "",
+            customerCountry: customer?.country ?? "",
+            quality: terms.quality,
+            origin: terms.origin,
+            grade: terms.grade,
+            quantityBags: terms.quantityBags,
+            bagWeightKg: terms.bagWeightKg,
+            unitPrice: terms.unitPrice,
+            priceUnitForPrice: terms.priceUnitForPrice ?? 100,
+            priceUom: terms.priceUom ?? "Lbs",
+            packagingUnit: terms.packagingUnit,
+            currency: terms.currency,
+            shipmentPeriod: toMonthInputValue(terms.shipmentPeriod),
+            paymentTerm: terms.paymentTerm ?? paymentTermOptions[0] ?? "CAD",
+            deliveryTerm: terms.deliveryTerm ?? deliveryTermOptions[0] ?? fallbackDeliveryTerms[0],
+            cropYear: terms.cropYear ?? "",
+            lastCertNo: terms.lastCertNo ?? 0,
+          },
+          attachments: Array.isArray(storedAttachments) ? storedAttachments : [],
+        };
+        setHighlightDirty(false);
 
         setActiveContractId(contractIdentifier);
         setSavedContractId(contractIdentifier);
-        const buyerId = customer?.id ?? "";
         setSelectedBuyerId(buyerId);
         reset(
           {
@@ -436,13 +492,14 @@ export function ContractCoreForm({
       >
         <label className={requiredLabelClass(Boolean(errors.contractNumber))}>
           <span className="label-text">Contract Number</span>
-          <input {...register("contractNumber")} />
+          <input className={dirtyControlClass("contractNumber")} {...register("contractNumber")} />
           <small>{errors.contractNumber?.message}</small>
         </label>
         <label className={requiredLabelClass(Boolean(errors.buyerId))}>
           <span className="label-text">Buyer</span>
           <input type="hidden" {...register("buyerId")} />
           <select
+            className={dirtyControlClass("buyerId")}
             value={selectedBuyerId}
             onChange={(event) => {
               const buyerId = event.target.value;
@@ -458,6 +515,26 @@ export function ContractCoreForm({
             ))}
           </select>
           <small>{errors.buyerId?.message ?? (buyers.length === 0 ? "No buyers found. Create one in Master Data > Buyers." : "")}</small>
+          <div style={{ marginTop: 6 }}>
+            <Link
+              href="/app/masters/customers/new"
+              className="muted-text"
+              style={{
+                display: "inline-flex",
+                gap: 6,
+                alignItems: "center",
+                border: "1px solid rgba(148,163,184,0.9)",
+                borderRadius: 10,
+                padding: "6px 10px",
+                background: "rgba(255,255,255,0.7)",
+                textDecoration: "none",
+                width: "fit-content",
+              }}
+            >
+              <span aria-hidden style={{ fontWeight: 800 }}>＋</span>
+              <span>Register new buyer</span>
+            </Link>
+          </div>
         </label>
         <label className={requiredLabelClass(Boolean(errors.customerName))}>
           <span className="label-text">Buyer Name</span>
@@ -475,17 +552,26 @@ export function ContractCoreForm({
           <small>{errors.customerCountry?.message}</small>
         </label>
 
+        <AttachmentsField
+          orgId={DEFAULT_ORG_ID}
+          contractId={activeContractId ?? savedContractId ?? values.contractNumber ?? "draft"}
+          stage="contract_sheet"
+          value={attachments}
+          onChange={setAttachments}
+          helperText="Attach the original contract file(s) for this source document."
+        />
+
         <label className={requiredLabelClass(Boolean(errors.quality))}>
           <span className="label-text">Quality</span>
-          <textarea rows={3} {...register("quality")} />
+          <textarea className={dirtyControlClass("quality")} rows={3} {...register("quality")} />
         </label>
         <label className={requiredLabelClass(Boolean(errors.origin))}>
           <span className="label-text">Origin</span>
-          <input {...register("origin")} />
+          <input className={dirtyControlClass("origin")} {...register("origin")} />
         </label>
         <label className={requiredLabelClass(Boolean(errors.grade))}>
           <span className="label-text">Grade</span>
-          <input {...register("grade")} />
+          <input className={dirtyControlClass("grade")} {...register("grade")} />
         </label>
         <label className={requiredLabelClass(Boolean(errors.packagingUnit))}>
           <span className="label-text">Packaging Unit</span>
@@ -505,19 +591,19 @@ export function ContractCoreForm({
 
         <label className={requiredLabelClass(Boolean(errors.quantityBags))}>
           <span className="label-text">Quantity (Main Unit)</span>
-          <input type="number" step="0.001" {...register("quantityBags", { valueAsNumber: true })} />
+          <input className={dirtyControlClass("quantityBags")} type="number" step="0.001" {...register("quantityBags", { valueAsNumber: true })} />
         </label>
         <label className={requiredLabelClass(Boolean(errors.unitPrice))}>
           <span className="label-text">Unit Price</span>
-          <input type="number" step="0.01" {...register("unitPrice", { valueAsNumber: true })} />
+          <input className={dirtyControlClass("unitPrice")} type="number" step="0.01" {...register("unitPrice", { valueAsNumber: true })} />
         </label>
         <label className={requiredLabelClass(Boolean(errors.priceUnitForPrice))}>
           <span className="label-text">Price Unit Base</span>
-          <input type="number" step="1" {...register("priceUnitForPrice", { valueAsNumber: true })} />
+          <input className={dirtyControlClass("priceUnitForPrice")} type="number" step="1" {...register("priceUnitForPrice", { valueAsNumber: true })} />
         </label>
         <label className={requiredLabelClass(Boolean(errors.priceUom))}>
           <span className="label-text">Price UoM</span>
-          <select {...register("priceUom")}>
+          <select className={dirtyControlClass("priceUom")} {...register("priceUom")}>
             <option value="">Select price UoM</option>
             {priceUomOptions.map((uom) => (
               <option key={uom} value={uom}>{uom}</option>
@@ -526,7 +612,7 @@ export function ContractCoreForm({
         </label>
         <label className={requiredLabelClass(Boolean(errors.currency))}>
           <span className="label-text">Currency</span>
-          <select {...register("currency")}>
+          <select className={dirtyControlClass("currency")} {...register("currency")}>
             <option value="">Select currency</option>
             {values.currency && !currencyOptions.includes(values.currency) ? (
               <option value={values.currency}>{values.currency}</option>
@@ -540,11 +626,11 @@ export function ContractCoreForm({
 
         <label>
           Shipment Period
-          <input type="month" {...register("shipmentPeriod")} />
+          <input className={dirtyControlClass("shipmentPeriod")} type="month" {...register("shipmentPeriod")} />
         </label>
         <label className={requiredLabelClass(Boolean(errors.paymentTerm))}>
           <span className="label-text">Payment Term</span>
-          <select {...register("paymentTerm")}>
+          <select className={dirtyControlClass("paymentTerm")} {...register("paymentTerm")}>
             <option value="">Select payment term</option>
             {paymentTermOptions.map((term) => (
               <option key={term} value={term}>{term}</option>
@@ -571,6 +657,9 @@ export function ContractCoreForm({
 
         <div className="row-actions">
           <button type="submit" disabled={saving}>{saving ? "Saving..." : "Save Contract Draft"}</button>
+          <button type="button" className="button-secondary" disabled={!isDirty || saving} onClick={discardChanges}>
+            Discard changes
+          </button>
           {savedContractId && shippingHref ? (
             <Link href={shippingHref}>
               <button type="button" className="button-secondary">Continue to Shipping Instruction</button>

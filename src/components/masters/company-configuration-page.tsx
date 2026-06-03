@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
 import { CenteredLoader } from "@/components/ui/centered-loader";
@@ -119,6 +119,8 @@ export function CompanyConfigurationPage() {
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);
   const initialSnapshot = useRef<string>("");
+  const initialSnapshotForm = useRef<CompanyConfigurationFormState | null>(null);
+  const [highlightDirty, setHighlightDirty] = useState(false);
 
   const isDirty = useMemo(() => {
     if (!form) {
@@ -127,7 +129,32 @@ export function CompanyConfigurationPage() {
     return JSON.stringify(form) !== initialSnapshot.current;
   }, [form]);
 
-  useUnsavedChangesGuard({ enabled: isDirty && !saving });
+  useUnsavedChangesGuard({ enabled: isDirty && !saving, onBlockedNavigation: () => setHighlightDirty(true) });
+
+  const isFieldDirty = useCallback(
+    <Key extends keyof CompanyConfigurationFormState>(key: Key) => {
+      const snapshot = initialSnapshotForm.current;
+      if (!form || !snapshot) {
+        return false;
+      }
+      return JSON.stringify(form[key]) !== JSON.stringify(snapshot[key]);
+    },
+    [form],
+  );
+  const dirtyControlClass = useCallback(
+    <Key extends keyof CompanyConfigurationFormState>(key: Key) => (highlightDirty && isFieldDirty(key) ? "field-error-control" : undefined),
+    [highlightDirty, isFieldDirty],
+  );
+
+  function discardChanges() {
+    if (!initialSnapshotForm.current) {
+      return;
+    }
+    setForm(initialSnapshotForm.current);
+    setAttemptedSubmit(false);
+    setHighlightDirty(false);
+    toast.info("Discarded unsaved changes.");
+  }
 
   function requiredLabelClass(isMissing: boolean) {
     return isMissing ? "is-required field-error" : "is-required";
@@ -142,7 +169,9 @@ export function CompanyConfigurationPage() {
       const nextForm = toFormState(data);
       setForm(nextForm);
       initialSnapshot.current = JSON.stringify(nextForm);
+      initialSnapshotForm.current = nextForm;
       setAttemptedSubmit(false);
+      setHighlightDirty(false);
       setSavedAt(data.updatedAt.startsWith("1970-01-01") ? null : data.updatedAt);
     } catch (loadError) {
       setError((loadError as Error).message);
@@ -749,6 +778,9 @@ export function CompanyConfigurationPage() {
             <button type="button" className="button-secondary" onClick={() => void loadConfiguration()} disabled={loading || saving}>
               Refresh
             </button>
+            <button type="button" className="button-secondary" onClick={discardChanges} disabled={!isDirty || saving}>
+              Discard changes
+            </button>
             <button type="submit" disabled={saving}>
               {saving ? "Saving..." : "Save Configuration"}
             </button>
@@ -783,23 +815,23 @@ export function CompanyConfigurationPage() {
           <>
             <label className={requiredLabelClass(attemptedSubmit && form.sellerName.trim().length === 0)}>
               <span className="label-text">Seller Name</span>
-              <input value={form.sellerName} onChange={(event) => updateField("sellerName", event.target.value)} required />
+              <input className={dirtyControlClass("sellerName")} value={form.sellerName} onChange={(event) => updateField("sellerName", event.target.value)} required />
             </label>
             <label>
               Company Email
-              <input type="email" value={form.companyEmail} onChange={(event) => updateField("companyEmail", event.target.value)} />
+              <input className={dirtyControlClass("companyEmail")} type="email" value={form.companyEmail} onChange={(event) => updateField("companyEmail", event.target.value)} />
             </label>
             <label className={`span-all ${requiredLabelClass(attemptedSubmit && form.sellerAddress.trim().length === 0)}`}>
               <span className="label-text">Seller Address</span>
-              <textarea rows={3} value={form.sellerAddress} onChange={(event) => updateField("sellerAddress", event.target.value)} required />
+              <textarea className={dirtyControlClass("sellerAddress")} rows={3} value={form.sellerAddress} onChange={(event) => updateField("sellerAddress", event.target.value)} required />
             </label>
             <label className="span-all">
               Amharic Name
-              <input value={form.sellerAmharicName} onChange={(event) => updateField("sellerAmharicName", event.target.value)} />
+              <input className={dirtyControlClass("sellerAmharicName")} value={form.sellerAmharicName} onChange={(event) => updateField("sellerAmharicName", event.target.value)} />
             </label>
             <label>
               Company Phone
-              <input value={form.companyPhone} onChange={(event) => updateField("companyPhone", event.target.value)} />
+              <input className={dirtyControlClass("companyPhone")} value={form.companyPhone} onChange={(event) => updateField("companyPhone", event.target.value)} />
             </label>
 
             <div className="section-heading span-all mt-sm">
@@ -811,25 +843,26 @@ export function CompanyConfigurationPage() {
 
             <label className={requiredLabelClass(attemptedSubmit && form.defaultOrigin.trim().length === 0)}>
               <span className="label-text">Default Origin</span>
-              <input value={form.defaultOrigin} onChange={(event) => updateField("defaultOrigin", event.target.value)} required />
+              <input className={dirtyControlClass("defaultOrigin")} value={form.defaultOrigin} onChange={(event) => updateField("defaultOrigin", event.target.value)} required />
             </label>
             <label className={requiredLabelClass(attemptedSubmit && form.defaultHsCode.trim().length === 0)}>
               <span className="label-text">Default HS Code</span>
-              <input value={form.defaultHsCode} onChange={(event) => updateField("defaultHsCode", event.target.value)} required />
+              <input className={dirtyControlClass("defaultHsCode")} value={form.defaultHsCode} onChange={(event) => updateField("defaultHsCode", event.target.value)} required />
             </label>
             <label className={requiredLabelClass(attemptedSubmit && form.icoReferencePrefix.trim().length === 0)}>
               <span className="label-text">ICO Reference Prefix</span>
-              <input value={form.icoReferencePrefix} onChange={(event) => updateField("icoReferencePrefix", event.target.value)} required />
+              <input className={dirtyControlClass("icoReferencePrefix")} value={form.icoReferencePrefix} onChange={(event) => updateField("icoReferencePrefix", event.target.value)} required />
             </label>
             <label className={requiredLabelClass(attemptedSubmit && form.placeOfIssue.trim().length === 0)}>
               <span className="label-text">Place of Issue</span>
-              <input value={form.placeOfIssue} onChange={(event) => updateField("placeOfIssue", event.target.value)} required />
+              <input className={dirtyControlClass("placeOfIssue")} value={form.placeOfIssue} onChange={(event) => updateField("placeOfIssue", event.target.value)} required />
             </label>
             <label
               className={requiredLabelClass(attemptedSubmit && (!Number.isFinite(Number(form.bulkReferenceKg)) || Number(form.bulkReferenceKg) <= 0))}
             >
               <span className="label-text">Bulk Reference Kg</span>
               <input
+                className={dirtyControlClass("bulkReferenceKg")}
                 type="number"
                 min="0.001"
                 step="0.001"
@@ -861,6 +894,7 @@ export function CompanyConfigurationPage() {
                       <td>{index + 1}</td>
                       <td>
                         <input
+                          className={dirtyControlClass("paymentTerms")}
                           value={term}
                           onChange={(event) => updatePaymentTerm(index, event.target.value)}
                           required
@@ -902,6 +936,7 @@ export function CompanyConfigurationPage() {
                       <td>{index + 1}</td>
                       <td>
                         <input
+                          className={dirtyControlClass("deliveryTerms")}
                           value={term}
                           onChange={(event) => updateDeliveryTerm(index, event.target.value)}
                           required
@@ -943,6 +978,7 @@ export function CompanyConfigurationPage() {
                       <td>{index + 1}</td>
                       <td>
                         <input
+                          className={dirtyControlClass("priceUoms")}
                           value={uom}
                           onChange={(event) => updatePriceUom(index, event.target.value)}
                           required
@@ -984,6 +1020,7 @@ export function CompanyConfigurationPage() {
                       <td>{index + 1}</td>
                       <td>
                         <input
+                          className={dirtyControlClass("currencies")}
                           value={currency}
                           onChange={(event) => updateCurrency(index, event.target.value)}
                           required
@@ -1025,6 +1062,7 @@ export function CompanyConfigurationPage() {
                       <td>{index + 1}</td>
                       <td>
                         <input
+                          className={dirtyControlClass("packagingUnits")}
                           value={unit}
                           onChange={(event) => updatePackagingUnit(index, event.target.value)}
                           required
@@ -1059,15 +1097,15 @@ export function CompanyConfigurationPage() {
             </div>
             <label className="span-all">
               Transitor Company Name
-              <input value={form.transitorCompanyName} onChange={(event) => updateField("transitorCompanyName", event.target.value)} />
+              <input className={dirtyControlClass("transitorCompanyName")} value={form.transitorCompanyName} onChange={(event) => updateField("transitorCompanyName", event.target.value)} />
             </label>
             <label>
               Transitor Phone Number
-              <input value={form.transitorPhoneNumber} onChange={(event) => updateField("transitorPhoneNumber", event.target.value)} />
+              <input className={dirtyControlClass("transitorPhoneNumber")} value={form.transitorPhoneNumber} onChange={(event) => updateField("transitorPhoneNumber", event.target.value)} />
             </label>
             <label>
               Transitor Location
-              <input value={form.transitorLocation} onChange={(event) => updateField("transitorLocation", event.target.value)} />
+              <input className={dirtyControlClass("transitorLocation")} value={form.transitorLocation} onChange={(event) => updateField("transitorLocation", event.target.value)} />
             </label>
 
             <div className="section-heading span-all mt-sm">
@@ -1093,14 +1131,14 @@ export function CompanyConfigurationPage() {
                     <tr key={index}>
                       <td>
                         <input
-                          className={attemptedSubmit && definition.label.trim().length === 0 ? "field-error-control" : undefined}
+                          className={attemptedSubmit && definition.label.trim().length === 0 ? "field-error-control" : dirtyControlClass("packagingDefinitions")}
                           value={definition.label}
                           onChange={(event) => updatePackagingDefinition(index, "label", event.target.value)}
                         />
                       </td>
                       <td>
                         <input
-                          className={attemptedSubmit && definition.uom.trim().length === 0 ? "field-error-control" : undefined}
+                          className={attemptedSubmit && definition.uom.trim().length === 0 ? "field-error-control" : dirtyControlClass("packagingDefinitions")}
                           value={definition.uom}
                           onChange={(event) => updatePackagingDefinition(index, "uom", event.target.value)}
                         />

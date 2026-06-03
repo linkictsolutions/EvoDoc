@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -81,6 +81,7 @@ export function ContractWizardForm() {
   const [step, setStep] = useState(0);
   const [apiError, setApiError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [highlightDirty, setHighlightDirty] = useState(false);
   const [paymentTermOptions, setPaymentTermOptions] = useState<string[]>(fallbackPaymentTerms);
   const [deliveryTermOptions, setDeliveryTermOptions] = useState<string[]>(fallbackDeliveryTerms);
   const [currencyOptions, setCurrencyOptions] = useState<string[]>(fallbackCurrencies);
@@ -91,7 +92,8 @@ export function ContractWizardForm() {
     getValues,
     trigger,
     setValue,
-    formState: { errors, isDirty },
+    reset,
+    formState: { errors, isDirty, dirtyFields },
   } = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -108,7 +110,18 @@ export function ContractWizardForm() {
     },
   });
 
-  useUnsavedChangesGuard({ enabled: isDirty && !isSaving });
+  const lastSavedRef = useRef<Partial<FormData>>(getValues());
+
+  useUnsavedChangesGuard({ enabled: isDirty && !isSaving, onBlockedNavigation: () => setHighlightDirty(true) });
+
+  const isFieldDirty = useCallback(
+    (name: keyof FormData) => Boolean((dirtyFields as Record<string, unknown>)[name]),
+    [dirtyFields],
+  );
+  const dirtyControlClass = useCallback(
+    (name: keyof FormData) => (highlightDirty && isFieldDirty(name) ? "field-error-control" : undefined),
+    [highlightDirty, isFieldDirty],
+  );
 
   function requiredLabelClass(hasError: boolean) {
     return hasError ? "is-required field-error" : "is-required";
@@ -234,6 +247,9 @@ export function ContractWizardForm() {
       });
 
       toast.success("Contract saved.");
+      lastSavedRef.current = values;
+      setHighlightDirty(false);
+      reset(values, { keepDirty: false, keepTouched: false });
       router.push(`/app/contracts/${encodeURIComponent(data.contractId)}`);
     } catch (error) {
       setApiError((error as Error).message);
@@ -243,26 +259,32 @@ export function ContractWizardForm() {
     }
   }
 
+  function discardChanges() {
+    reset(lastSavedRef.current as FormData, { keepDirty: false, keepTouched: false });
+    setHighlightDirty(false);
+    toast.info("Discarded unsaved changes.");
+  }
+
   const common = (
     <>
       <label className={requiredLabelClass(Boolean(errors.contractNumber))}>
         <span className="label-text">Contract Number</span>
-        <input {...register("contractNumber")} />
+        <input className={dirtyControlClass("contractNumber")} {...register("contractNumber")} />
         <small>{errors.contractNumber?.message}</small>
       </label>
       <label className={requiredLabelClass(Boolean(errors.customerName))}>
         <span className="label-text">Buyer Name</span>
-        <input {...register("customerName")} />
+        <input className={dirtyControlClass("customerName")} {...register("customerName")} />
         <small>{errors.customerName?.message}</small>
       </label>
       <label className={requiredLabelClass(Boolean(errors.customerAddress))}>
         <span className="label-text">Buyer Address</span>
-        <input {...register("customerAddress")} />
+        <input className={dirtyControlClass("customerAddress")} {...register("customerAddress")} />
         <small>{errors.customerAddress?.message}</small>
       </label>
       <label className={requiredLabelClass(Boolean(errors.customerCountry))}>
         <span className="label-text">Buyer Country</span>
-        <input {...register("customerCountry")} />
+        <input className={dirtyControlClass("customerCountry")} {...register("customerCountry")} />
         <small>{errors.customerCountry?.message}</small>
       </label>
     </>
@@ -284,27 +306,28 @@ export function ContractWizardForm() {
         <>
           <label className={requiredLabelClass(Boolean(errors.quality))}>
             <span className="label-text">Quality</span>
-            <input {...register("quality")} />
+            <input className={dirtyControlClass("quality")} {...register("quality")} />
             <small>{errors.quality?.message}</small>
           </label>
           <label className={requiredLabelClass(Boolean(errors.origin))}>
             <span className="label-text">Origin</span>
-            <input {...register("origin")} />
+            <input className={dirtyControlClass("origin")} {...register("origin")} />
             <small>{errors.origin?.message}</small>
           </label>
           <label className={requiredLabelClass(Boolean(errors.grade))}>
             <span className="label-text">Grade</span>
-            <input {...register("grade")} />
+            <input className={dirtyControlClass("grade")} {...register("grade")} />
             <small>{errors.grade?.message}</small>
           </label>
           <label className={requiredLabelClass(Boolean(errors.quantityBags))}>
             <span className="label-text">Quantity (Bags)</span>
-            <input type="number" {...register("quantityBags", { valueAsNumber: true })} />
+            <input className={dirtyControlClass("quantityBags")} type="number" {...register("quantityBags", { valueAsNumber: true })} />
             <small>{errors.quantityBags?.message}</small>
           </label>
           <label className={requiredLabelClass(Boolean(errors.bagWeightKg))}>
             <span className="label-text">Bag Weight (kg)</span>
             <input
+              className={dirtyControlClass("bagWeightKg")}
               type="number"
               step="0.001"
               {...register("bagWeightKg", { valueAsNumber: true })}
@@ -313,12 +336,13 @@ export function ContractWizardForm() {
           </label>
           <label className={requiredLabelClass(Boolean(errors.unitPrice))}>
             <span className="label-text">Unit Price</span>
-            <input type="number" step="0.01" {...register("unitPrice", { valueAsNumber: true })} />
+            <input className={dirtyControlClass("unitPrice")} type="number" step="0.01" {...register("unitPrice", { valueAsNumber: true })} />
             <small>{errors.unitPrice?.message}</small>
           </label>
           <label className={requiredLabelClass(Boolean(errors.priceUnitForPrice))}>
             <span className="label-text">Price Unit Base</span>
             <input
+              className={dirtyControlClass("priceUnitForPrice")}
               type="number"
               step="1"
               {...register("priceUnitForPrice", { valueAsNumber: true })}
@@ -327,12 +351,12 @@ export function ContractWizardForm() {
           </label>
           <label className={requiredLabelClass(Boolean(errors.priceUom))}>
             <span className="label-text">Price UoM</span>
-            <input {...register("priceUom")} />
+            <input className={dirtyControlClass("priceUom")} {...register("priceUom")} />
             <small>{errors.priceUom?.message}</small>
           </label>
           <label className={requiredLabelClass(Boolean(errors.currency))}>
             <span className="label-text">Currency</span>
-            <select {...register("currency")}>
+            <select className={dirtyControlClass("currency")} {...register("currency")}>
               <option value="">Select currency</option>
               {currencyOptions.map((currency) => (
                 <option key={currency} value={currency}>{currency}</option>
@@ -342,12 +366,12 @@ export function ContractWizardForm() {
           </label>
           <label className={requiredLabelClass(Boolean(errors.packagingUnit))}>
             <span className="label-text">Packaging Unit</span>
-            <input {...register("packagingUnit")} />
+            <input className={dirtyControlClass("packagingUnit")} {...register("packagingUnit")} />
             <small>{errors.packagingUnit?.message}</small>
           </label>
           <label className={requiredLabelClass(Boolean(errors.paymentTerm))}>
             <span className="label-text">Payment Term</span>
-            <select {...register("paymentTerm")}>
+            <select className={dirtyControlClass("paymentTerm")} {...register("paymentTerm")}>
               {paymentTermOptions.map((term) => (
                 <option key={term} value={term}>{term}</option>
               ))}
@@ -356,7 +380,7 @@ export function ContractWizardForm() {
           </label>
           <label className={requiredLabelClass(Boolean(errors.deliveryTerm))}>
             <span className="label-text">Delivery Term</span>
-            <select {...register("deliveryTerm")}>
+            <select className={dirtyControlClass("deliveryTerm")} {...register("deliveryTerm")}>
               {deliveryTermOptions.map((term) => (
                 <option key={term} value={term}>{term}</option>
               ))}
@@ -365,15 +389,15 @@ export function ContractWizardForm() {
           </label>
           <label>
             Shipment Period
-            <input type="month" {...register("shipmentPeriod")} />
+            <input className={dirtyControlClass("shipmentPeriod")} type="month" {...register("shipmentPeriod")} />
           </label>
           <label>
             Crop Year
-            <input {...register("cropYear")} />
+            <input className={dirtyControlClass("cropYear")} {...register("cropYear")} />
           </label>
           <label className={requiredLabelClass(Boolean(errors.lastCertNo))}>
             <span className="label-text">Last Cert No</span>
-            <input type="number" step="1" {...register("lastCertNo", { valueAsNumber: true })} />
+            <input className={dirtyControlClass("lastCertNo")} type="number" step="1" {...register("lastCertNo", { valueAsNumber: true })} />
             <small>{errors.lastCertNo?.message}</small>
           </label>
         </>
@@ -383,46 +407,46 @@ export function ContractWizardForm() {
         <>
           <label className={requiredLabelClass(Boolean(errors.destinationPort))}>
             <span className="label-text">Destination Port</span>
-            <input {...register("destinationPort")} />
+            <input className={dirtyControlClass("destinationPort")} {...register("destinationPort")} />
             <small>{errors.destinationPort?.message}</small>
           </label>
           <label className={requiredLabelClass(Boolean(errors.shippingLine))}>
             <span className="label-text">Shipping Line</span>
-            <input {...register("shippingLine")} />
+            <input className={dirtyControlClass("shippingLine")} {...register("shippingLine")} />
             <small>{errors.shippingLine?.message}</small>
           </label>
           <label className={requiredLabelClass(Boolean(errors.portOfLoading))}>
             <span className="label-text">Port of Loading</span>
-            <input {...register("portOfLoading")} />
+            <input className={dirtyControlClass("portOfLoading")} {...register("portOfLoading")} />
             <small>{errors.portOfLoading?.message}</small>
           </label>
           <label>
             Bag Markings
-            <input {...register("bagMarkings")} />
+            <input className={dirtyControlClass("bagMarkings")} {...register("bagMarkings")} />
           </label>
           <label>
             Alternative 1
-            <input {...register("alternative1")} />
+            <input className={dirtyControlClass("alternative1")} {...register("alternative1")} />
           </label>
           <label>
             Alternative 2
-            <input {...register("alternative2")} />
+            <input className={dirtyControlClass("alternative2")} {...register("alternative2")} />
           </label>
           <label>
             Consignee
-            <input {...register("consignee")} />
+            <input className={dirtyControlClass("consignee")} {...register("consignee")} />
           </label>
           <label>
             Notify Party
-            <input {...register("notifyParty")} />
+            <input className={dirtyControlClass("notifyParty")} {...register("notifyParty")} />
           </label>
           <label>
             2nd Notify
-            <input {...register("secondNotify")} />
+            <input className={dirtyControlClass("secondNotify")} {...register("secondNotify")} />
           </label>
           <label>
             Booking Number
-            <input {...register("bookingNumber")} />
+            <input className={dirtyControlClass("bookingNumber")} {...register("bookingNumber")} />
           </label>
         </>
       )}
@@ -431,12 +455,12 @@ export function ContractWizardForm() {
         <>
           <label className={requiredLabelClass(Boolean(errors.beneficiaryBank))}>
             <span className="label-text">Beneficiary Bank</span>
-            <input {...register("beneficiaryBank")} />
+            <input className={dirtyControlClass("beneficiaryBank")} {...register("beneficiaryBank")} />
             <small>{errors.beneficiaryBank?.message}</small>
           </label>
           <label className={requiredLabelClass(Boolean(errors.accountNumber))}>
             <span className="label-text">Account Number</span>
-            <input {...register("accountNumber")} />
+            <input className={dirtyControlClass("accountNumber")} {...register("accountNumber")} />
             <small>{errors.accountNumber?.message}</small>
           </label>
         </>
@@ -446,17 +470,18 @@ export function ContractWizardForm() {
         <>
           <label className={requiredLabelClass(Boolean(errors.stationName))}>
             <span className="label-text">Station Name</span>
-            <input {...register("stationName")} />
+            <input className={dirtyControlClass("stationName")} {...register("stationName")} />
             <small>{errors.stationName?.message}</small>
           </label>
           <label className={requiredLabelClass(Boolean(errors.stationAddress))}>
             <span className="label-text">Station Address</span>
-            <input {...register("stationAddress")} />
+            <input className={dirtyControlClass("stationAddress")} {...register("stationAddress")} />
             <small>{errors.stationAddress?.message}</small>
           </label>
           <label className={requiredLabelClass(Boolean(errors.moisturePercent))}>
             <span className="label-text">Moisture (%)</span>
             <input
+              className={dirtyControlClass("moisturePercent")}
               type="number"
               step="0.01"
               {...register("moisturePercent", { valueAsNumber: true })}
@@ -478,6 +503,9 @@ export function ContractWizardForm() {
       <div className="row-actions">
         <button type="button" onClick={() => setStep((s) => Math.max(0, s - 1))} disabled={step === 0}>
           Back
+        </button>
+        <button type="button" className="button-secondary" onClick={discardChanges} disabled={!isDirty || isSaving}>
+          Discard changes
         </button>
         {step < stepFields.length ? (
           <button type="button" onClick={nextStep}>Next</button>
