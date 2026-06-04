@@ -423,6 +423,15 @@ function IccInvoiceTemplatePrintView({ output, documentId, isFinal, template }: 
                           </>
                         );
                       }
+                      if (cell.id === "ts_full_marking") {
+                        return (
+                          <>
+                            <strong>FULL MARKING</strong>
+                            <br />
+                            <span style={{ fontWeight: 400 }}>{v}</span>
+                          </>
+                        );
+                      }
                       if (isGoodsHeader) {
                         return <strong>{cell.label}</strong>;
                       }

@@ -1,6 +1,6 @@
 import Decimal from "decimal.js";
 import { packagingDefinitionFor } from "@/domain/company-configuration";
-import { roundMoney, roundWeight } from "@/domain/rounding";
+import { roundLbWeight, roundMoney, roundWeight } from "@/domain/rounding";
 import type { CompanyConfiguration, ContractTerms, DocumentInputSnapshot } from "@/types/models";
 
 const KG_TO_LB = 2.20462;
@@ -134,7 +134,7 @@ export function computeContractExcelParity(
   return {
     totalPrice: roundMoney(totalPrice),
     quantityKg: roundWeight(quantityKg),
-    quantityLb: roundWeight(quantityLb),
+    quantityLb: roundLbWeight(quantityLb),
     quantityMt: roundWeight(quantityMt),
     grossWeightKg: roundWeight(grossWeightKg),
     grossWeightMt: roundWeight(grossWeightMt),

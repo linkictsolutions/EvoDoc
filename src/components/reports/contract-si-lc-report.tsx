@@ -141,9 +141,7 @@ export function ContractSiLcReportView({ initialContractId }: ContractSiLcReport
                   <th>Field</th>
                   <th>Contract</th>
                   <th>Shipping</th>
-                  <th>Updated Shipping</th>
                   <th>Bank &amp; LC</th>
-                  <th>Updated Bank &amp; LC</th>
                   <th>Final Value</th>
                   <th>Source</th>
                 </tr>
@@ -158,14 +156,8 @@ export function ContractSiLcReportView({ initialContractId }: ContractSiLcReport
                     <td className={valueCellClass(row.label, row.shippingValue)}>
                       {displayResolvedValue(row.shippingValue || "-")}
                     </td>
-                    <td className={valueCellClass(row.label, row.revisedShippingValue)}>
-                      {displayResolvedValue(row.revisedShippingValue || "-")}
-                    </td>
                     <td className={valueCellClass(row.label, row.lcValue)}>
                       {displayResolvedValue(row.lcValue || "-")}
-                    </td>
-                    <td className={valueCellClass(row.label, row.revisedLcValue)}>
-                      {displayResolvedValue(row.revisedLcValue || "-")}
                     </td>
                     <td className={valueCellClass(row.label, row.finalValue)}>
                       <strong>{displayResolvedValue(row.finalValue)}</strong>

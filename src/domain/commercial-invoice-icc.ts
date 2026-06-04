@@ -201,7 +201,7 @@ export function buildCommercialInvoiceIccSample(
     goodsLine: {
       descriptionOfGoods: description,
       hsCode: companyConfiguration.defaultHsCode,
-      quantityLbNet: formatNumber(parity.quantityLb),
+      quantityLbNet: formatNumber(parity.quantityLb, 4),
       quantityKgNet: formatNumber(parity.quantityKg),
       quantityKgGross: formatNumber(parity.grossWeightKg),
       packagesInBags: noOfBags,
@@ -213,11 +213,11 @@ export function buildCommercialInvoiceIccSample(
     bank: {
       bankOfBeneficiary: clean(contract.banking.beneficiaryBank),
       beneficiaryBankAddress: clean(contract.banking.bankAddress),
-      swiftNumber: clean(contract.banking.receiver),
+      swiftNumber: clean(contract.banking.swiftCode),
       beneficiaryName: companyConfiguration.sellerName,
       beneficiaryAccountNumber: clean(contract.banking.beneficiaryAccountNumber),
       correspondentBankName: clean(contract.banking.correspondentBank),
-      correspondentBankAddress: clean(contract.banking.bankAddress),
+      correspondentBankAddress: clean(contract.banking.receiver),
       correspondentSwiftNumber: clean(contract.banking.swiftCode),
       correspondentAccountNumber: clean(contract.banking.accountNumber),
     },

@@ -1,6 +1,7 @@
 import Decimal from "decimal.js";
 
 export const WEIGHT_DP = 3;
+export const LB_WEIGHT_DP = 4;
 export const MONEY_DP = 2;
 
 export function roundWeight(value: Decimal.Value): number {
@@ -11,8 +12,12 @@ export function roundMoney(value: Decimal.Value): number {
   return new Decimal(value).toDecimalPlaces(MONEY_DP, Decimal.ROUND_HALF_UP).toNumber();
 }
 
+export function roundLbWeight(value: Decimal.Value): number {
+  return new Decimal(value).toDecimalPlaces(LB_WEIGHT_DP, Decimal.ROUND_HALF_UP).toNumber();
+}
+
 export function kgToLb(value: Decimal.Value): number {
-  return roundWeight(new Decimal(value).mul(2.2046226218));
+  return roundLbWeight(new Decimal(value).mul(2.2046226218));
 }
 
 export function sum(values: Decimal.Value[]): Decimal {

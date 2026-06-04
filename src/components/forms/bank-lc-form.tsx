@@ -50,6 +50,25 @@ interface ContractDetailResponse {
   sourceInputs?: Array<{ id: string; sourceType?: string; payload?: unknown }>;
 }
 
+function toMonthInputValue(value?: string): string {
+  const normalized = value?.trim();
+  if (!normalized) {
+    return "";
+  }
+
+  const isoMonthMatch = normalized.match(/^(\d{4}-\d{2})(?:-\d{2})?/);
+  if (isoMonthMatch) {
+    return isoMonthMatch[1];
+  }
+
+  const parsed = new Date(normalized);
+  if (Number.isNaN(parsed.getTime())) {
+    return "";
+  }
+
+  return parsed.toISOString().slice(0, 7);
+}
+
 export function BankLcForm({
   initialContractId,
   autoLoadExisting = false,
@@ -227,7 +246,7 @@ export function BankLcForm({
             applicant: banking.applicant ?? "",
             portOfLoading: banking.portOfLoading ?? "",
             portOfDischarge: banking.portOfDischarge ?? "",
-            latestShipmentDate: banking.latestShipmentDate ?? "",
+            latestShipmentDate: toMonthInputValue(banking.latestShipmentDate),
             goodsDescription: banking.goodsDescription ?? "",
             noOfBags: banking.noOfBags ?? "",
             consignee: banking.consignee ?? "",
@@ -370,7 +389,7 @@ export function BankLcForm({
         </label>
         <label>
           Latest Date of Shipment
-          <input className={dirtyControlClass("latestShipmentDate")} {...register("latestShipmentDate")} />
+          <input className={dirtyControlClass("latestShipmentDate")} type="month" {...register("latestShipmentDate")} />
         </label>
         <label className="span-all">
           Description of Goods

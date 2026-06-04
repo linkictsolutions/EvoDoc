@@ -688,7 +688,7 @@ export function ContractCoreForm({
               <tbody>
                 <tr><th>Total Price</th><td>{computed.totalPrice.toFixed(2)}</td></tr>
                 <tr><th>Quantity Kg</th><td>{computed.quantityKg.toFixed(3)}</td></tr>
-                <tr><th>Quantity Lb</th><td>{computed.quantityLb.toFixed(3)}</td></tr>
+              <tr><th>Quantity Lb</th><td>{computed.quantityLb.toFixed(4)}</td></tr>
                 <tr><th>Quantity MT</th><td>{computed.quantityMt.toFixed(3)}</td></tr>
                 <tr><th>Gross Weight Kg</th><td>{computed.grossWeightKg.toFixed(3)}</td></tr>
                 <tr><th>Gross Weight MT</th><td>{computed.grossWeightMt.toFixed(3)}</td></tr>
