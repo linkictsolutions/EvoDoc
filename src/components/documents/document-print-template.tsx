@@ -12,6 +12,8 @@ const WEIGHT_CERT_TEMPLATE_STORAGE_KEY = "evodoc.templates.weight_certificate.v1
 const WAY_BILL_TEMPLATE_STORAGE_KEY = "evodoc.templates.way_bill.v1";
 const ICO_CERT_TEMPLATE_STORAGE_KEY = "evodoc.templates.ico_certificate.v1";
 const ICC_PRINT_GRID_ROW_MM = 4;
+const MIN_RENDERED_HEADER_HEIGHT_MM = 32;
+const MIN_RENDERED_FOOTER_HEIGHT_MM = 28;
 
 type Props = {
   output: DocumentOutputSnapshot;
@@ -2582,10 +2584,12 @@ function DocumentPrintPageFrame(
   const apply = branding.applyByDocType[docType];
   const showHeader = Boolean(apply.header && branding.header.imageDataUrl);
   const showFooter = Boolean(apply.footer && branding.footer.imageDataUrl);
+  const headerHeightMm = showHeader ? Math.max(branding.header.heightMm, MIN_RENDERED_HEADER_HEIGHT_MM) : 0;
+  const footerHeightMm = showFooter ? Math.max(branding.footer.heightMm, MIN_RENDERED_FOOTER_HEIGHT_MM) : 0;
 
   const style = {
-    "--brand-header-height": showHeader ? `${branding.header.heightMm}mm` : "0mm",
-    "--brand-footer-height": showFooter ? `${branding.footer.heightMm}mm` : "0mm",
+    "--brand-header-height": `${headerHeightMm}mm`,
+    "--brand-footer-height": `${footerHeightMm}mm`,
   } as CSSProperties;
 
   return (
