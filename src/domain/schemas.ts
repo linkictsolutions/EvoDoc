@@ -86,6 +86,27 @@ export const processingInfoSchema = z.object({
   moisturePercent: z.number().nonnegative(),
 });
 
+export const billOfLadingInfoSchema = z.object({
+  billType: z.enum(["ORIGINAL BILL No.", "WAYBILL No."]).optional(),
+  billNo: z.string().optional(),
+  noOfCopyBills: z.string().optional(),
+  shipperReferenceType: z.enum(["Booking Ref", "Shipper Ref."]).optional(),
+  shipperReferenceValue: z.string().optional(),
+  placeOfReceipt: z.string().optional(),
+  placeOfDelivery: z.string().optional(),
+  shippedOnBoardDate: z.string().optional(),
+  placeAndDateOfIssue: z.string().optional(),
+  carrierAgentsEndorsements: z.string().optional(),
+  notify2: z.string().optional(),
+  notify3: z.string().optional(),
+  declaredValue: z.string().optional(),
+  freightAndChargesText: z.string().optional(),
+  measurement: z.string().optional(),
+  cargoMarksText: z.string().optional(),
+  descriptionOverride: z.string().optional(),
+  riderDescriptions: z.array(z.string().min(1)).optional(),
+});
+
 export const contractInputSchema = z.object({
   orgId: z.string().min(1),
   contractId: z.string().optional(),
@@ -105,6 +126,7 @@ export const contractInputSchema = z.object({
     terms: contractTermsSchema,
     shipping: shippingInstructionsSchema,
     banking: bankingPaymentInfoSchema,
+    billOfLading: billOfLadingInfoSchema.optional(),
     processing: processingInfoSchema,
   }),
 });
@@ -165,6 +187,21 @@ export const bankLcInputSchema = z.object({
     uploadedAt: z.string().min(1),
   })).optional(),
   banking: bankingPaymentInfoSchema,
+});
+
+export const billOfLadingInputSchema = z.object({
+  orgId: z.string().min(1),
+  contractId: z.string().min(1),
+  attachments: z.array(z.object({
+    id: z.string().min(1),
+    fileName: z.string().min(1),
+    mimeType: z.string().min(1),
+    sizeBytes: z.number().int().nonnegative(),
+    storagePath: z.string().min(1),
+    downloadUrl: z.string().url(),
+    uploadedAt: z.string().min(1),
+  })).optional(),
+  billOfLading: billOfLadingInfoSchema,
 });
 
 export const customerMasterInputSchema = z.object({
@@ -257,6 +294,10 @@ export const companyConfigurationInputSchema = z.object({
           footer: z.boolean(),
         }),
         ico_certificate: z.object({
+          header: z.boolean(),
+          footer: z.boolean(),
+        }),
+        bill_of_lading: z.object({
           header: z.boolean(),
           footer: z.boolean(),
         }),
@@ -383,6 +424,7 @@ export const generateDocumentSchema = z.object({
     "weight_certificate",
     "way_bill",
     "ico_certificate",
+    "bill_of_lading",
   ]),
   docVariant: z.enum(["permit", "final", "standard"]).optional(),
   templateVersion: z.string().default("v1"),

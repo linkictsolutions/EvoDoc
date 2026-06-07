@@ -50,6 +50,12 @@ export const documentFamilies: DocumentFamilyDefinition[] = [
     docType: "ico_certificate",
     variants: ["standard"],
   },
+  {
+    family: "bill_of_lading",
+    label: "Bill of Lading (MSC)",
+    docType: "bill_of_lading",
+    variants: ["standard"],
+  },
 ];
 
 export function getDocumentFamilyDefinition(family: DocumentFamily): DocumentFamilyDefinition {
@@ -84,6 +90,10 @@ export function resolveDocumentFamily(docType: DocumentType): DocumentFamily {
 
   if (docType === "ico_certificate") {
     return "ico_certificate";
+  }
+
+  if (docType === "bill_of_lading") {
+    return "bill_of_lading";
   }
 
   return "shipping_instruction";

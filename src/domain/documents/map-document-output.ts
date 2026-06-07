@@ -1,4 +1,5 @@
 import { buildCommercialInvoiceIccSample } from "@/domain/commercial-invoice-icc";
+import { buildBillOfLadingSample } from "@/domain/bill-of-lading";
 import { buildCertificateOfQualitySample } from "@/domain/certificate-quality";
 import { buildCertificateOfWeightSample } from "@/domain/certificate-weight";
 import { resolveCompanyConfiguration } from "@/domain/company-configuration";
@@ -72,6 +73,7 @@ export function mapDocumentOutput(
       || docType === "weight_certificate"
       || docType === "way_bill"
       || docType === "ico_certificate"
+      || docType === "bill_of_lading"
         ? "standard"
         : "final"
     );
@@ -615,6 +617,93 @@ export function mapDocumentOutput(
             countryCode,
             portCode,
             serialNo,
+          },
+        };
+      }
+
+    case "bill_of_lading":
+      {
+        const sample = buildBillOfLadingSample({
+          contract: snapshot.contract,
+          customer: snapshot.customer,
+          companyConfigurationInput: companyConfiguration,
+          bookings: snapshot.executionData?.bookings,
+          staffingRows,
+        });
+
+        return {
+          docType,
+          docVariant: "standard",
+          title: "Bill of Lading (MSC)",
+          sections: [
+            {
+              heading: "BL Meta",
+              rows: sectionRowsFromRecord({
+                "Bill Type": sample.meta.billType,
+                "Page Label": sample.meta.pageLabel,
+                "No. Copy Bills": sample.meta.noOfCopyBills,
+                "No. Rider Pages": sample.meta.noOfRiderPages,
+                "Bill No": sample.meta.billNo,
+                "Reference Type": sample.meta.referenceType,
+                "Reference Value": sample.meta.referenceValue,
+              }),
+            },
+            {
+              heading: "BL Parties",
+              rows: sectionRowsFromRecord({
+                Shipper: sample.parties.shipper,
+                Consignee: sample.parties.consignee,
+                "Notify Parties": sample.parties.notifyParty,
+                "Carrier Agents Endorsements": sample.parties.carrierAgentsEndorsements,
+                "Notify 2": sample.parties.notify2,
+                "Notify 3": sample.parties.notify3,
+              }),
+            },
+            {
+              heading: "BL Routing",
+              rows: sectionRowsFromRecord({
+                "Vessel & Voyage No": sample.routing.vesselAndVoyageNo,
+                "Port of Loading": sample.routing.portOfLoading,
+                "Place of Receipt": sample.routing.placeOfReceipt,
+                "Port of Discharge": sample.routing.portOfDischarge,
+                "Place of Delivery": sample.routing.placeOfDelivery,
+              }),
+            },
+            {
+              heading: "BL Cargo Table",
+              rows: sectionRowsFromRecord({
+                "Container Numbers, Seal Numbers and Marks": sample.cargo.marks,
+                "Description of Packages and Goods": sample.cargo.description,
+                "Gross Cargo Weight": sample.cargo.grossCargoWeight,
+                Measurement: sample.cargo.measurement,
+              }),
+            },
+            {
+              heading: "BL Footer",
+              rows: sectionRowsFromRecord({
+                "Freight & Charges": sample.footer.freightAndCharges,
+                "Legal Text": sample.footer.legalText,
+                "Declared Value": sample.footer.declaredValue,
+                "Carrier Receipt": sample.footer.carrierReceipt,
+                "Signed on Behalf": sample.footer.signedOnBehalf,
+                "Place and Date of Issue": sample.footer.placeAndDateOfIssue,
+                "Shipped on Board Date": sample.footer.shippedOnBoardDate,
+              }),
+            },
+            ...sample.riderPages.map((page) => ({
+              heading: `BL Rider ${page.index}`,
+              rows: sectionRowsFromRecord({
+                "Bill of Lading No": page.billNo,
+                "Rider Page Label": `RIDER PAGE ${page.index + 1} OF ${page.totalPages}`,
+                "Rider Description": page.description,
+                "Place and Date of Issue": page.placeAndDateOfIssue,
+                "Shipped on Board Date": page.shippedOnBoardDate,
+              }),
+            })),
+          ],
+          totals: {
+            ...sharedTotals,
+            riderPages: String(sample.riderPages.length),
           },
         };
       }

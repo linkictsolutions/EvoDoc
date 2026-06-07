@@ -262,6 +262,7 @@ function prettifySegment(segment: string): string {
     input: "Source Documents",
     "shipping-instruction": "Shipping Instruction",
     "bank-lc": "Bank & LC",
+    "bill-of-lading": "Bill of Lading",
     "contract-si-lc": "Resolved Values",
     "commercial-invoice-icc": "Commercial Invoice ICC",
     "commercial_invoice": "Commercial Invoice (ICC)",
@@ -271,6 +272,7 @@ function prettifySegment(segment: string): string {
     "certificate_of_weight": "Certificate of Weight",
     "way_bill": "Way Bill",
     "ico_certificate": "ICO Certificate",
+    "bill_of_lading": "Bill of Lading (MSC)",
   };
 
   return labels[segment] ?? segment.replace(/-/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
@@ -314,6 +316,7 @@ const documentFamilySegments = new Set([
   "certificate_of_weight",
   "way_bill",
   "ico_certificate",
+  "bill_of_lading",
 ]);
 
 function resolveDocumentFamilySegment(value: string | null): string | null {

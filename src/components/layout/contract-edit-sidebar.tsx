@@ -30,6 +30,12 @@ export function ContractEditSidebar({ contractId }: ContractEditSidebarProps) {
       hint: "Letter of credit and bank information.",
     },
     {
+      href: `/app/contracts/${contractId}/inputs/bill-of-lading`,
+      label: "Bill of Lading",
+      code: "BL",
+      hint: "Carrier bill-specific overrides and rider content.",
+    },
+    {
       href: `/app/contracts/${contractId}/inputs/contract-si-lc`,
       label: "Resolved Values",
       code: "RV",

@@ -95,6 +95,18 @@ export function TemplatesMasterPage() {
           </Link>
         </div>
       </section>
+
+      <section className="card">
+        <h2>Bill of Lading (MSC)</h2>
+        <p className="muted-text">
+          Template-driven layout for the MSC bill of lading main page and continuation-ready cargo block.
+        </p>
+        <div className="row-actions">
+          <Link href="/app/masters/templates/bill-of-lading">
+            <button type="button">Open Template</button>
+          </Link>
+        </div>
+      </section>
     </section>
   );
 }

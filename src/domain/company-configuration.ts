@@ -66,6 +66,7 @@ const DEFAULT_DOCUMENT_BRANDING: DocumentBrandingSettings = {
     weight_certificate: { header: false, footer: false },
     way_bill: { header: false, footer: false },
     ico_certificate: { header: false, footer: false },
+    bill_of_lading: { header: false, footer: false },
   },
 };
 
@@ -307,6 +308,12 @@ function resolveDocumentBranding(
           ?? DEFAULT_DOCUMENT_BRANDING.applyByDocType.ico_certificate.header,
         footer: configuration?.documentBranding?.applyByDocType?.ico_certificate?.footer
           ?? DEFAULT_DOCUMENT_BRANDING.applyByDocType.ico_certificate.footer,
+      },
+      bill_of_lading: {
+        header: configuration?.documentBranding?.applyByDocType?.bill_of_lading?.header
+          ?? DEFAULT_DOCUMENT_BRANDING.applyByDocType.bill_of_lading.header,
+        footer: configuration?.documentBranding?.applyByDocType?.bill_of_lading?.footer
+          ?? DEFAULT_DOCUMENT_BRANDING.applyByDocType.bill_of_lading.footer,
       },
     },
   };

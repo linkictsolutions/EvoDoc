@@ -1,4 +1,5 @@
 import {
+  billOfLadingInputSchema,
   bankLcInputSchema,
   contractCoreInputSchema,
   contractInputSchema,
@@ -7,6 +8,7 @@ import {
 import { computeContractExcelParity } from "@/domain/excel-parity";
 import type {
   BankingPaymentInfo,
+  BillOfLadingInfo,
   Contract,
   Customer,
   ShippingInstructions,
@@ -32,6 +34,10 @@ export interface NormalizedShippingInstructionPayload {
 
 export interface NormalizedBankLcPayload {
   banking: BankingPaymentInfo;
+}
+
+export interface NormalizedBillOfLadingPayload {
+  billOfLading: BillOfLadingInfo;
 }
 
 function cleanOptional(value?: string): string | undefined {
@@ -148,6 +154,26 @@ export function validateAndNormalizeContractCorePayload(
         swiftCode: "",
         correspondentSwiftCode: "",
       },
+      billOfLading: {
+        billType: "ORIGINAL BILL No.",
+        billNo: "",
+        noOfCopyBills: "",
+        shipperReferenceType: "Booking Ref",
+        shipperReferenceValue: "",
+        placeOfReceipt: "",
+        placeOfDelivery: "",
+        shippedOnBoardDate: "",
+        placeAndDateOfIssue: "",
+        carrierAgentsEndorsements: "",
+        notify2: "",
+        notify3: "",
+        declaredValue: "",
+        freightAndChargesText: "",
+        measurement: "",
+        cargoMarksText: "",
+        descriptionOverride: "",
+        riderDescriptions: [],
+      },
       processing: {
         stationName: "",
         stationAddress: "",
@@ -237,6 +263,39 @@ export function validateAndNormalizeBankLcPayload(input: unknown): NormalizedBan
       accountNumber: cleanOptional(parsed.banking.accountNumber),
       swiftCode: cleanOptional(parsed.banking.swiftCode),
       correspondentSwiftCode: cleanOptional(parsed.banking.correspondentSwiftCode),
+    },
+  };
+}
+
+export function validateAndNormalizeBillOfLadingPayload(
+  input: unknown,
+): NormalizedBillOfLadingPayload {
+  const parsed = billOfLadingInputSchema.parse(input);
+
+  const splitRiderDescriptions = (parsed.billOfLading.riderDescriptions ?? [])
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
+
+  return {
+    billOfLading: {
+      billType: parsed.billOfLading.billType ?? "ORIGINAL BILL No.",
+      billNo: cleanOptional(parsed.billOfLading.billNo),
+      noOfCopyBills: cleanOptional(parsed.billOfLading.noOfCopyBills),
+      shipperReferenceType: parsed.billOfLading.shipperReferenceType ?? "Booking Ref",
+      shipperReferenceValue: cleanOptional(parsed.billOfLading.shipperReferenceValue),
+      placeOfReceipt: cleanOptional(parsed.billOfLading.placeOfReceipt),
+      placeOfDelivery: cleanOptional(parsed.billOfLading.placeOfDelivery),
+      shippedOnBoardDate: cleanOptional(parsed.billOfLading.shippedOnBoardDate),
+      placeAndDateOfIssue: cleanOptional(parsed.billOfLading.placeAndDateOfIssue),
+      carrierAgentsEndorsements: cleanOptional(parsed.billOfLading.carrierAgentsEndorsements),
+      notify2: cleanOptional(parsed.billOfLading.notify2),
+      notify3: cleanOptional(parsed.billOfLading.notify3),
+      declaredValue: cleanOptional(parsed.billOfLading.declaredValue),
+      freightAndChargesText: cleanOptional(parsed.billOfLading.freightAndChargesText),
+      measurement: cleanOptional(parsed.billOfLading.measurement),
+      cargoMarksText: cleanOptional(parsed.billOfLading.cargoMarksText),
+      descriptionOverride: cleanOptional(parsed.billOfLading.descriptionOverride),
+      riderDescriptions: splitRiderDescriptions.length > 0 ? splitRiderDescriptions : undefined,
     },
   };
 }

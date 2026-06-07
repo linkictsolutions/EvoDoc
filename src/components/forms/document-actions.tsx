@@ -14,6 +14,7 @@ const QUALITY_CERT_TEMPLATE_STORAGE_KEY = "evodoc.templates.quality_certificate.
 const WEIGHT_CERT_TEMPLATE_STORAGE_KEY = "evodoc.templates.weight_certificate.v1";
 const WAY_BILL_TEMPLATE_STORAGE_KEY = "evodoc.templates.way_bill.v1";
 const ICO_CERT_TEMPLATE_STORAGE_KEY = "evodoc.templates.ico_certificate.v1";
+const BILL_OF_LADING_TEMPLATE_STORAGE_KEY = "evodoc.templates.bill_of_lading.v1";
 
 export function GenerateDocumentButton({
   contractId,
@@ -63,6 +64,9 @@ export function GenerateDocumentButton({
         }
         if (docType === "ico_certificate") {
           return window.localStorage.getItem(ICO_CERT_TEMPLATE_STORAGE_KEY) ?? undefined;
+        }
+        if (docType === "bill_of_lading") {
+          return window.localStorage.getItem(BILL_OF_LADING_TEMPLATE_STORAGE_KEY) ?? undefined;
         }
         return undefined;
       })();

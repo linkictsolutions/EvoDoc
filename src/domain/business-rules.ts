@@ -141,7 +141,8 @@ export function validateDocumentGenerationRules(
     || snapshot.docType === "quality_certificate"
     || snapshot.docType === "weight_certificate"
     || snapshot.docType === "way_bill"
-    || snapshot.docType === "ico_certificate";
+    || snapshot.docType === "ico_certificate"
+    || snapshot.docType === "bill_of_lading";
 
   if (snapshot.contract.status === "closed") {
     result.errors.push("Cannot generate document for a closed contract.");
@@ -196,6 +197,16 @@ export function validateDocumentGenerationRules(
 
     if (driverRows === 0) {
       result.warnings.push("No driver/truck rows found in staffing; Way Bill tabs will be empty.");
+    }
+  }
+
+  if (snapshot.docType === "bill_of_lading") {
+    const bookingRows = snapshot.executionData?.bookings?.entries
+      ?.filter((row) => (row.containerNumber && row.containerNumber.trim() !== "") || (row.sealNumber && row.sealNumber.trim() !== ""))
+      .length ?? 0;
+
+    if (bookingRows === 0) {
+      result.warnings.push("No booking container/seal rows found; Bill of Lading cargo table will be sparse.");
     }
   }
 

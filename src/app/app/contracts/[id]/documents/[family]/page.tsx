@@ -10,6 +10,7 @@ import { CenteredLoader } from "@/components/ui/centered-loader";
 
 const ICC_INVOICE_TEMPLATE_STORAGE_KEY = "evodoc.templates.commercial_invoice_icc.v1";
 const ICC_PACKING_TEMPLATE_STORAGE_KEY = "evodoc.templates.packing_list_icc.v1";
+const BILL_OF_LADING_TEMPLATE_STORAGE_KEY = "evodoc.templates.bill_of_lading.v1";
 
 type FamilyPayload = {
   family: DocumentFamily;
@@ -212,6 +213,9 @@ export default function ContractDocumentFamilyPage({
         }
         if (payload.docType === "packing_list") {
           return window.localStorage.getItem(ICC_PACKING_TEMPLATE_STORAGE_KEY) ?? undefined;
+        }
+        if (payload.docType === "bill_of_lading") {
+          return window.localStorage.getItem(BILL_OF_LADING_TEMPLATE_STORAGE_KEY) ?? undefined;
         }
         return undefined;
       })();

@@ -46,6 +46,10 @@ function resolveFamilyFromDocType(docType: DocumentType): DocumentFamily {
     return "ico_certificate";
   }
 
+  if (docType === "bill_of_lading") {
+    return "bill_of_lading";
+  }
+
   return "shipping_instruction";
 }
 

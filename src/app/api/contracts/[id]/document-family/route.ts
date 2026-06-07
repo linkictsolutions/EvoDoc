@@ -32,6 +32,7 @@ const querySchema = z.object({
     "certificate_of_weight",
     "way_bill",
     "ico_certificate",
+    "bill_of_lading",
   ]),
 });
 
@@ -45,6 +46,7 @@ const bodySchema = z.object({
     "certificate_of_weight",
     "way_bill",
     "ico_certificate",
+    "bill_of_lading",
   ]),
   refNo: z.string(),
   icoOverrides: z.object({
@@ -148,6 +150,7 @@ export async function GET(
     const canPreview = family === "commercial_invoice"
       || family === "packing_list"
       || family === "ico_certificate"
+      || family === "bill_of_lading"
       ? true
       : Boolean(latestShipmentId);
 

@@ -40,7 +40,7 @@ export function AttachmentsField({
 }: {
   orgId: string;
   contractId: string;
-  stage: "contract_sheet" | "shipping_instruction_sheet" | "bank_lc_sheet";
+  stage: "contract_sheet" | "shipping_instruction_sheet" | "bank_lc_sheet" | "bill_of_lading_sheet";
   value: AttachmentRef[];
   onChange: (next: AttachmentRef[]) => void;
   label?: string;
@@ -56,6 +56,7 @@ export function AttachmentsField({
   const stagePrefix = useMemo(() => {
     if (stage === "contract_sheet") return "contract";
     if (stage === "shipping_instruction_sheet") return "shipping";
+    if (stage === "bill_of_lading_sheet") return "bill-of-lading";
     return "bank-lc";
   }, [stage]);
 
@@ -218,4 +219,3 @@ export function AttachmentsField({
     </div>
   );
 }
-

@@ -9,7 +9,7 @@ export default async function ContractInputsBankLcPage(
     <BankLcForm
       initialContractId={id}
       autoLoadExisting
-      continueHref={`/app/contracts/${id}/inputs/contract-si-lc`}
+      continueHref={`/app/contracts/${id}/inputs/bill-of-lading`}
     />
   );
 }

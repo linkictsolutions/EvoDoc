@@ -13,7 +13,7 @@ type ContractDetail = {
   shipments: Array<{ id: string }>;
   documents: Array<{
     id: string;
-    docType: "invoice" | "packing_list" | "shipping_instructions" | "quality_certificate" | "weight_certificate" | "way_bill" | "ico_certificate";
+    docType: "invoice" | "packing_list" | "shipping_instructions" | "quality_certificate" | "weight_certificate" | "way_bill" | "ico_certificate" | "bill_of_lading";
     documentFamily?:
       | "commercial_invoice"
       | "packing_list"
@@ -21,7 +21,8 @@ type ContractDetail = {
       | "certificate_of_quality"
       | "certificate_of_weight"
       | "way_bill"
-      | "ico_certificate";
+      | "ico_certificate"
+      | "bill_of_lading";
     revisionNumber?: number;
     status: string;
     isFinal?: boolean;
@@ -37,7 +38,8 @@ type FamilyCard = {
     | "certificate_of_quality"
     | "certificate_of_weight"
     | "way_bill"
-    | "ico_certificate";
+    | "ico_certificate"
+    | "bill_of_lading";
   label: string;
   description: string;
 };
@@ -78,6 +80,11 @@ const families: FamilyCard[] = [
     label: "ICO Certificate of Origin",
     description: "ICO form generated for pre-printed certificate layout with populated shipment and origin entries.",
   },
+  {
+    family: "bill_of_lading",
+    label: "Bill of Lading (MSC)",
+    description: "Carrier bill of lading generated from contract, shipping, bank, booking, staffing, and B/L override data.",
+  },
 ];
 
 function familyMatches(
@@ -97,7 +104,9 @@ function familyMatches(
               ? "certificate_of_weight"
               : document.docType === "way_bill"
                 ? "way_bill"
-                : "ico_certificate");
+                : document.docType === "ico_certificate"
+                  ? "ico_certificate"
+                  : "bill_of_lading");
 
   return storedFamily === family;
 }

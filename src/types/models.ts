@@ -9,7 +9,8 @@ export type DocumentType =
   | "quality_certificate"
   | "weight_certificate"
   | "way_bill"
-  | "ico_certificate";
+  | "ico_certificate"
+  | "bill_of_lading";
 export type DocumentFamily =
   | "commercial_invoice"
   | "packing_list"
@@ -17,7 +18,8 @@ export type DocumentFamily =
   | "certificate_of_quality"
   | "certificate_of_weight"
   | "way_bill"
-  | "ico_certificate";
+  | "ico_certificate"
+  | "bill_of_lading";
 export type DocumentVariant = "permit" | "final" | "standard";
 
 export type DocumentStatus =
@@ -249,6 +251,27 @@ export interface IcoDocumentOverrides {
   place?: string;
 }
 
+export interface BillOfLadingInfo {
+  billType?: "ORIGINAL BILL No." | "WAYBILL No.";
+  billNo?: string;
+  noOfCopyBills?: string;
+  shipperReferenceType?: "Booking Ref" | "Shipper Ref.";
+  shipperReferenceValue?: string;
+  placeOfReceipt?: string;
+  placeOfDelivery?: string;
+  shippedOnBoardDate?: string;
+  placeAndDateOfIssue?: string;
+  carrierAgentsEndorsements?: string;
+  notify2?: string;
+  notify3?: string;
+  declaredValue?: string;
+  freightAndChargesText?: string;
+  measurement?: string;
+  cargoMarksText?: string;
+  descriptionOverride?: string;
+  riderDescriptions?: string[];
+}
+
 export type VehicleKind = "TRUCK" | "TRAILER";
 
 export interface BookingEntry {
@@ -342,6 +365,7 @@ export interface Contract extends Timestamped {
   contractNumber: string;
   documentRefs?: Partial<Record<DocumentFamily, string>>;
   icoOverrides?: IcoDocumentOverrides;
+  billOfLading?: BillOfLadingInfo;
   customerId: string;
   status: ContractStatus;
   terms: ContractTerms;
@@ -491,7 +515,8 @@ export interface ApiEnvelope<T> {
 export type SourceInputType =
   | "contract_sheet"
   | "shipping_instruction_sheet"
-  | "bank_lc_sheet";
+  | "bank_lc_sheet"
+  | "bill_of_lading_sheet";
 
 export interface ContractSourceInput<TPayload = unknown> extends Timestamped {
   id: string;

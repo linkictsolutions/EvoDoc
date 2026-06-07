@@ -46,6 +46,7 @@ const documentTypeLabels: Record<DocumentType, string> = {
   weight_certificate: "Certificate of Weight",
   way_bill: "Way Bill",
   ico_certificate: "ICO Certificate of Origin",
+  bill_of_lading: "Bill of Lading (MSC)",
 };
 
 function toFormState(configuration: CompanyConfiguration): CompanyConfigurationFormState {
