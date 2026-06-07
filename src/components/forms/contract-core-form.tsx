@@ -1,5 +1,4 @@
 "use client";
-
 import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -99,6 +98,24 @@ interface ContractDetailResponse {
   sourceInputs?: Array<{ id: string; sourceType?: string; payload?: unknown }>;
 }
 
+type BuyerModalForm = {
+  name: string;
+  address: string;
+  country: string;
+  contactName: string;
+  contactEmail: string;
+  taxId: string;
+};
+
+const initialBuyerModalForm: BuyerModalForm = {
+  name: "",
+  address: "",
+  country: "Ethiopia",
+  contactName: "",
+  contactEmail: "",
+  taxId: "",
+};
+
 function toMonthInputValue(value?: string): string {
   const normalized = value?.trim();
   if (!normalized) {
@@ -138,6 +155,10 @@ export function ContractCoreForm({
   const [deliveryTermOptions, setDeliveryTermOptions] = useState<string[]>(fallbackDeliveryTerms);
   const [priceUomOptions, setPriceUomOptions] = useState<string[]>(fallbackPriceUoms);
   const [currencyOptions, setCurrencyOptions] = useState<string[]>(fallbackCurrencies);
+  const [buyerModalOpen, setBuyerModalOpen] = useState(false);
+  const [buyerModalForm, setBuyerModalForm] = useState<BuyerModalForm>(initialBuyerModalForm);
+  const [buyerModalSaving, setBuyerModalSaving] = useState(false);
+  const [buyerModalAttemptedSubmit, setBuyerModalAttemptedSubmit] = useState(false);
 
   const [highlightDirty, setHighlightDirty] = useState(false);
   const lastSavedRef = useRef<{ form: Partial<FormData>; attachments: AttachmentRef[] }>({ form: {}, attachments: [] });
@@ -279,25 +300,29 @@ export function ContractCoreForm({
     setValue("bagWeightKg", resolveBagWeightFromPackagingUnit(unit));
   }
 
+  const loadBuyers = useCallback(async (nextSelectedBuyerId?: string) => {
+    try {
+      const data = await apiClient<Customer[]>(`/api/customers?orgId=${DEFAULT_ORG_ID}`);
+      setBuyers(data);
+
+      if (nextSelectedBuyerId) {
+        const selectedBuyer = data.find((buyer) => buyer.id === nextSelectedBuyerId);
+        if (selectedBuyer) {
+          setSelectedBuyerId(selectedBuyer.id);
+          setValue("buyerId", selectedBuyer.id, { shouldValidate: true, shouldDirty: true });
+          setValue("customerName", selectedBuyer.name, { shouldValidate: true, shouldDirty: true });
+          setValue("customerAddress", selectedBuyer.address, { shouldValidate: true, shouldDirty: true });
+          setValue("customerCountry", selectedBuyer.country, { shouldValidate: true, shouldDirty: true });
+        }
+      }
+    } catch {
+      setBuyers([]);
+    }
+  }, [setValue]);
+
   useEffect(() => {
-    let mounted = true;
-
-    apiClient<Customer[]>(`/api/customers?orgId=${DEFAULT_ORG_ID}`)
-      .then((data) => {
-        if (mounted) {
-          setBuyers(data);
-        }
-      })
-      .catch(() => {
-        if (mounted) {
-          setBuyers([]);
-        }
-      });
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
+    void loadBuyers();
+  }, [loadBuyers]);
 
   useEffect(() => {
     let mounted = true;
@@ -474,6 +499,53 @@ export function ContractCoreForm({
     setValue("customerCountry", selectedBuyer.country);
   }, [buyers, selectedBuyerId, setValue]);
 
+  function updateBuyerModalField<Key extends keyof BuyerModalForm>(key: Key, value: BuyerModalForm[Key]) {
+    setBuyerModalForm((current) => ({
+      ...current,
+      [key]: value,
+    }));
+  }
+
+  function closeBuyerModal() {
+    if (buyerModalSaving) {
+      return;
+    }
+    setBuyerModalOpen(false);
+    setBuyerModalForm(initialBuyerModalForm);
+    setBuyerModalAttemptedSubmit(false);
+  }
+
+  async function saveBuyerFromModal() {
+    setBuyerModalAttemptedSubmit(true);
+
+    if (
+      buyerModalForm.name.trim().length === 0
+      || buyerModalForm.address.trim().length === 0
+      || buyerModalForm.country.trim().length === 0
+    ) {
+      toast.error("Fill in the required buyer fields.");
+      return;
+    }
+
+    setBuyerModalSaving(true);
+    try {
+      const result = await apiClient<{ customerId: string }>("/api/customers", {
+        method: "POST",
+        body: JSON.stringify({
+          orgId: DEFAULT_ORG_ID,
+          customer: buyerModalForm,
+        }),
+      });
+      await loadBuyers(result.customerId);
+      closeBuyerModal();
+      toast.success("Buyer saved.");
+    } catch (error) {
+      toast.error((error as Error).message || "Unable to save buyer.");
+    } finally {
+      setBuyerModalSaving(false);
+    }
+  }
+
   const shippingHref = continueHref ?? (savedContractId
     ? `/app/contracts/${encodeURIComponent(savedContractId)}/inputs/shipping-instruction`
     : "");
@@ -516,9 +588,10 @@ export function ContractCoreForm({
           </select>
           <small>{errors.buyerId?.message ?? (buyers.length === 0 ? "No buyers found. Create one in Master Data > Buyers." : "")}</small>
           <div style={{ marginTop: 6 }}>
-            <Link
-              href="/app/masters/customers/new"
+            <button
+              type="button"
               className="muted-text"
+              onClick={() => setBuyerModalOpen(true)}
               style={{
                 display: "inline-flex",
                 gap: 6,
@@ -527,13 +600,13 @@ export function ContractCoreForm({
                 borderRadius: 10,
                 padding: "6px 10px",
                 background: "rgba(255,255,255,0.7)",
-                textDecoration: "none",
                 width: "fit-content",
+                cursor: "pointer",
               }}
             >
               <span aria-hidden style={{ fontWeight: 800 }}>＋</span>
               <span>Register new buyer</span>
-            </Link>
+            </button>
           </div>
         </label>
         <label className={requiredLabelClass(Boolean(errors.customerName))}>
@@ -705,6 +778,83 @@ export function ContractCoreForm({
           </div>
         )}
       </section>
+
+      {buyerModalOpen ? (
+        <div className="confirm-modal-backdrop" onClick={closeBuyerModal}>
+          <section
+            className="confirm-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="buyer-modal-title"
+            onClick={(event) => event.stopPropagation()}
+            style={{ width: "min(680px, 100%)" }}
+          >
+            <div>
+              <h3 id="buyer-modal-title">Register New Buyer</h3>
+              <p className="sidebar-subtitle">Create the buyer here and it will be selected on this contract.</p>
+            </div>
+
+            <div className="form-grid" style={{ padding: 0 }}>
+              <label className={buyerModalAttemptedSubmit && buyerModalForm.name.trim().length === 0 ? "is-required field-error" : "is-required"}>
+                <span className="label-text">Legal Name</span>
+                <input
+                  className={buyerModalAttemptedSubmit && buyerModalForm.name.trim().length === 0 ? "field-error-control" : undefined}
+                  value={buyerModalForm.name}
+                  onChange={(event) => updateBuyerModalField("name", event.target.value)}
+                />
+              </label>
+              <label className={`span-all ${buyerModalAttemptedSubmit && buyerModalForm.address.trim().length === 0 ? "is-required field-error" : "is-required"}`}>
+                <span className="label-text">Address</span>
+                <textarea
+                  rows={4}
+                  className={buyerModalAttemptedSubmit && buyerModalForm.address.trim().length === 0 ? "field-error-control" : undefined}
+                  value={buyerModalForm.address}
+                  onChange={(event) => updateBuyerModalField("address", event.target.value)}
+                />
+              </label>
+              <label className={buyerModalAttemptedSubmit && buyerModalForm.country.trim().length === 0 ? "is-required field-error" : "is-required"}>
+                <span className="label-text">Country</span>
+                <input
+                  className={buyerModalAttemptedSubmit && buyerModalForm.country.trim().length === 0 ? "field-error-control" : undefined}
+                  value={buyerModalForm.country}
+                  onChange={(event) => updateBuyerModalField("country", event.target.value)}
+                />
+              </label>
+              <label>
+                <span className="label-text">Contact Name</span>
+                <input
+                  value={buyerModalForm.contactName}
+                  onChange={(event) => updateBuyerModalField("contactName", event.target.value)}
+                />
+              </label>
+              <label>
+                <span className="label-text">Contact Email</span>
+                <input
+                  type="email"
+                  value={buyerModalForm.contactEmail}
+                  onChange={(event) => updateBuyerModalField("contactEmail", event.target.value)}
+                />
+              </label>
+              <label>
+                <span className="label-text">Tax ID</span>
+                <input
+                  value={buyerModalForm.taxId}
+                  onChange={(event) => updateBuyerModalField("taxId", event.target.value)}
+                />
+              </label>
+            </div>
+
+            <div className="row-actions confirm-modal-actions">
+              <button type="button" className="button-secondary" onClick={closeBuyerModal} disabled={buyerModalSaving}>
+                Cancel
+              </button>
+              <button type="button" onClick={() => void saveBuyerFromModal()} disabled={buyerModalSaving}>
+                {buyerModalSaving ? "Saving..." : "Save Buyer"}
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
     </section>
   );
 }

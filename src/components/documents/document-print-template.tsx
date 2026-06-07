@@ -292,6 +292,14 @@ function scaleSectionRowsForPrint(section: TemplateSection): { section: Template
   };
 }
 
+function isSpacerCell(cell: TemplateCell) {
+  return cell.label === "(spacer)" || cell.label === "(spacer no border)" || cell.id.includes("spacer");
+}
+
+function isBorderlessSpacerCell(cell: TemplateCell) {
+  return cell.label === "(spacer no border)" || cell.id.includes("spacer_borderless");
+}
+
 function IccInvoiceTemplatePrintView({ output, documentId, isFinal, template }: Props & { template: PersistedIccTemplate }) {
   const rows = flattenRows(output);
   const sections = normalizeTemplateSections(template.sections);
@@ -383,7 +391,8 @@ function IccInvoiceTemplatePrintView({ output, documentId, isFinal, template }: 
                         />
                       );
                     }
-                    const isSpacer = cell.label === "(spacer)" || cell.id.includes("spacer");
+                    const isSpacer = isSpacerCell(cell);
+                    const isBorderlessSpacer = isBorderlessSpacerCell(cell);
                     const isHeaderLike =
                       cell.id.endsWith("_hdr")
                       || cell.id.endsWith("_title")
@@ -460,12 +469,13 @@ function IccInvoiceTemplatePrintView({ output, documentId, isFinal, template }: 
                         colSpan={Math.max(1, cell.w)}
                         rowSpan={Math.max(1, cell.h)}
                         style={{
-                          background: isHeaderLike || isGoodsHeader ? "#f6f6f6" : "white",
+                          background: isBorderlessSpacer ? "transparent" : (isHeaderLike || isGoodsHeader ? "#f6f6f6" : "white"),
                           fontWeight: 500,
                           whiteSpace: "pre-wrap",
                           wordBreak: "break-word",
                           verticalAlign: "top",
                           height: isSpacer ? `${Math.max(1, cell.h) * ICC_PRINT_GRID_ROW_MM * spacerRowScale}mm` : undefined,
+                          border: isBorderlessSpacer ? "none" : undefined,
                           textAlign: (
                             cell.id === "inv_page"
                             || cell.id === "gt_total_label"
@@ -588,7 +598,8 @@ function GenericTemplatePrintView({
                       );
                     }
 
-                    const isSpacer = cell.label === "(spacer)" || cell.id.includes("spacer");
+                    const isSpacer = isSpacerCell(cell);
+                    const isBorderlessSpacer = isBorderlessSpacerCell(cell);
                     const isHeaderLike =
                       cell.id.endsWith("_hdr")
                       || cell.id.endsWith("_title")
@@ -639,12 +650,13 @@ function GenericTemplatePrintView({
                         colSpan={Math.max(1, cell.w)}
                         rowSpan={Math.max(1, cell.h)}
                         style={{
-                          background: isHeaderLike || isTableHeader ? "#f6f6f6" : "white",
+                          background: isBorderlessSpacer ? "transparent" : (isHeaderLike || isTableHeader ? "#f6f6f6" : "white"),
                           fontWeight: 500,
                           whiteSpace: "pre-wrap",
                           wordBreak: "break-word",
                           verticalAlign: "top",
                           height: isSpacer ? `${Math.max(1, cell.h) * ICC_PRINT_GRID_ROW_MM * spacerRowScale}mm` : undefined,
+                          border: isBorderlessSpacer ? "none" : undefined,
                         }}
                       >
                         {content}
@@ -1750,6 +1762,16 @@ function SiPrintView({ output, documentId }: Props) {
   return (
     <article className="print-sheet si-sheet">
       <table className="print-table si-table">
+        <colgroup>
+          <col span={2} style={{ width: "12%" }} />
+          <col style={{ width: "10.6667%" }} />
+          <col style={{ width: "10.6667%" }} />
+          <col style={{ width: "10.6667%" }} />
+          <col style={{ width: "10.6667%" }} />
+          <col style={{ width: "10.6667%" }} />
+          <col style={{ width: "10.6667%" }} />
+          <col span={2} style={{ width: "18%" }} />
+        </colgroup>
         <tbody>
           <tr>
             <td colSpan={6}><strong>SHIPPING INSTRUCTION</strong></td>
@@ -1823,7 +1845,7 @@ function SiPrintView({ output, documentId }: Props) {
             <td colSpan={8}>---------</td>
           </tr>
           <tr>
-            <td colSpan={2}><strong>Number Type and Size of Containers</strong></td>
+            <td colSpan={2} rowSpan={2}><strong>Number Type and Size of Containers</strong></td>
             <td>20 DRY</td>
             <td>40 DRY</td>
             <td>40 DRHC</td>
@@ -1832,8 +1854,12 @@ function SiPrintView({ output, documentId }: Props) {
             <td colSpan={2}>OTHER</td>
           </tr>
           <tr>
+            <td>{display(pick("Number Type and Size of Containers", "Number Type and Size of Containers (E27)"))}</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
             <td colSpan={2}></td>
-            <td colSpan={8}>{display(pick("Number Type and Size of Containers", "Number Type and Size of Containers (E27)"))}</td>
           </tr>
           <tr>
             <td colSpan={2}><strong>Service Mode (CY/CY - CY/SD)</strong></td>

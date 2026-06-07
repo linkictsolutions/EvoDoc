@@ -44,6 +44,7 @@ type PersistedTemplate = {
 };
 
 type DropMode = "box" | "hline" | "vline";
+type DragKind = "move" | "add" | "add_spacer" | "add_spacer_borderless";
 
 function collides(a: Pick<TemplateGridCell, "x" | "y" | "w" | "h">, b: Pick<TemplateGridCell, "x" | "y" | "w" | "h">) {
   const ax2 = a.x + a.w;
@@ -235,7 +236,7 @@ function GridPreview({
   allowEdit: boolean;
   dragSectionId: string;
   onDropCell: (
-    payload: { kind: "move" | "add" | "add_spacer"; cellId: string; fromSectionId?: string; dropMode: DropMode },
+    payload: { kind: DragKind; cellId: string; fromSectionId?: string; dropMode: DropMode },
     next: { x: number; y: number },
   ) => void;
   onTransformCell: (cellId: string, next: { x: number; y: number; w: number; h: number }) => void;
@@ -267,8 +268,8 @@ function GridPreview({
     event.preventDefault();
 
     const kindRaw = event.dataTransfer.getData("application/x-evodoc-cell-kind");
-    const kind: "move" | "add" | "add_spacer" | null =
-      kindRaw === "add" || kindRaw === "move" || kindRaw === "add_spacer" ? kindRaw : null;
+    const kind: DragKind | null =
+      kindRaw === "add" || kindRaw === "move" || kindRaw === "add_spacer" || kindRaw === "add_spacer_borderless" ? kindRaw : null;
     const draggingId = event.dataTransfer.getData("application/x-evodoc-cell-id") || "";
     const rect = event.currentTarget.getBoundingClientRect();
     const colWidth = rect.width / cols;
@@ -322,8 +323,8 @@ function GridPreview({
     const cellId = event.dataTransfer.getData("application/x-evodoc-cell-id");
     if (!cellId) return;
     const kindRaw = event.dataTransfer.getData("application/x-evodoc-cell-kind");
-    const kind: "move" | "add" | "add_spacer" | null =
-      kindRaw === "add" || kindRaw === "move" || kindRaw === "add_spacer" ? kindRaw : null;
+    const kind: DragKind | null =
+      kindRaw === "add" || kindRaw === "move" || kindRaw === "add_spacer" || kindRaw === "add_spacer_borderless" ? kindRaw : null;
     if (!kind) return;
     const fromSectionId = event.dataTransfer.getData("application/x-evodoc-cell-section") || undefined;
 
@@ -630,7 +631,7 @@ export function TemplateEditor({
     setSections((current) => relayoutSections(current.map((s) => (s.id === sectionId ? updater(s) : s))));
   }, []);
 
-  const handleDropIntoSection = useCallback((sectionId: string, payload: { kind: "move" | "add" | "add_spacer"; cellId: string; fromSectionId?: string; dropMode: DropMode }, next: { x: number; y: number }) => {
+  const handleDropIntoSection = useCallback((sectionId: string, payload: { kind: DragKind; cellId: string; fromSectionId?: string; dropMode: DropMode }, next: { x: number; y: number }) => {
     setSections((current) => {
       const fromId = payload.fromSectionId;
       const nextSections = current.map((section) => {
@@ -649,8 +650,10 @@ export function TemplateEditor({
         } else if (payload.kind === "add") {
           const list = availableFields[fromId ?? sectionId] ?? [];
           moving = list.find((c) => c.id === payload.cellId) ?? null;
-        } else {
+        } else if (payload.kind === "add_spacer") {
           moving = { id: `spacer_${spacerCounterRef.current++}`, label: "(spacer)", x: 0, y: 0, w: 6, h: 2 };
+        } else {
+          moving = { id: `spacer_borderless_${spacerCounterRef.current++}`, label: "(spacer no border)", x: 0, y: 0, w: 6, h: 2 };
         }
 
         if (!moving) return section;
@@ -823,6 +826,28 @@ export function TemplateEditor({
                   }}
                 >
                   (spacer)
+                </div>
+              </div>
+              <div>
+                <div className="muted-text" style={{ fontWeight: 700, marginBottom: 6 }}>Spacer — No Border</div>
+                <div
+                  draggable
+                  onDragStart={(event) => {
+                    event.dataTransfer.setData("application/x-evodoc-cell-id", "__spacer_borderless__");
+                    event.dataTransfer.setData("application/x-evodoc-cell-kind", "add_spacer_borderless");
+                    event.dataTransfer.setData("application/x-evodoc-cell-section", "__available__");
+                    event.dataTransfer.setData("text/plain", JSON.stringify({ w: 6, h: 2 }));
+                  }}
+                  style={{
+                    border: "1px dashed rgba(148,163,184,0.9)",
+                    borderRadius: 10,
+                    padding: "8px 10px",
+                    background: "rgba(239, 246, 255, 0.8)",
+                    cursor: "grab",
+                    fontSize: "0.78rem",
+                  }}
+                >
+                  (spacer no border)
                 </div>
               </div>
 
