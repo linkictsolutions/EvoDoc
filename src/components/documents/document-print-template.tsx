@@ -1851,7 +1851,7 @@ function SiPrintView({ output, documentId }: Props) {
             <td>40 DRHC</td>
             <td>20 REEF</td>
             <td>40 REF</td>
-            <td colSpan={2}>OTHER</td>
+            <td colSpan={3}>OTHER</td>
           </tr>
           <tr>
             <td>{display(pick("Number Type and Size of Containers", "Number Type and Size of Containers (E27)"))}</td>
@@ -1859,7 +1859,7 @@ function SiPrintView({ output, documentId }: Props) {
             <td></td>
             <td></td>
             <td></td>
-            <td colSpan={2}></td>
+            <td colSpan={3}></td>
           </tr>
           <tr>
             <td colSpan={2}><strong>Service Mode (CY/CY - CY/SD)</strong></td>
