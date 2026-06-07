@@ -71,10 +71,13 @@ export const bankingPaymentInfoSchema = z.object({
   revisedSecondNotify: z.string().optional(),
   beneficiaryBank: z.string().optional(),
   bankAddress: z.string().optional(),
+  beneficiarySwiftCode: z.string().optional(),
   correspondentBank: z.string().optional(),
+  correspondentBankAddress: z.string().optional(),
   beneficiaryAccountNumber: z.string().optional(),
   accountNumber: z.string().optional(),
   swiftCode: z.string().optional(),
+  correspondentSwiftCode: z.string().optional(),
 });
 
 export const processingInfoSchema = z.object({

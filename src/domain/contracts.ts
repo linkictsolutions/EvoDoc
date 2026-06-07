@@ -140,10 +140,13 @@ export function validateAndNormalizeContractCorePayload(
         revisedSecondNotify: "",
         beneficiaryBank: "",
         bankAddress: "",
+        beneficiarySwiftCode: "",
         correspondentBank: "",
+        correspondentBankAddress: "",
         beneficiaryAccountNumber: "",
         accountNumber: "",
         swiftCode: "",
+        correspondentSwiftCode: "",
       },
       processing: {
         stationName: "",
@@ -227,10 +230,13 @@ export function validateAndNormalizeBankLcPayload(input: unknown): NormalizedBan
       revisedSecondNotify: cleanOptional(parsed.banking.secondNotify),
       beneficiaryBank: cleanOptional(parsed.banking.beneficiaryBank),
       bankAddress: cleanOptional(parsed.banking.bankAddress),
+      beneficiarySwiftCode: cleanOptional(parsed.banking.beneficiarySwiftCode),
       correspondentBank: cleanOptional(parsed.banking.correspondentBank),
+      correspondentBankAddress: cleanOptional(parsed.banking.correspondentBankAddress),
       beneficiaryAccountNumber: cleanOptional(parsed.banking.beneficiaryAccountNumber),
       accountNumber: cleanOptional(parsed.banking.accountNumber),
       swiftCode: cleanOptional(parsed.banking.swiftCode),
+      correspondentSwiftCode: cleanOptional(parsed.banking.correspondentSwiftCode),
     },
   };
 }

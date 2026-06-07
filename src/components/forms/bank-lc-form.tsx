@@ -31,10 +31,12 @@ const schema = z.object({
   currencyAmount: z.string().optional(),
   beneficiaryBank: z.string().optional(),
   bankAddress: z.string().optional(),
+  beneficiarySwiftCode: z.string().optional(),
   correspondentBank: z.string().optional(),
-  swiftCode: z.string().optional(),
+  correspondentBankAddress: z.string().optional(),
   beneficiaryAccountNumber: z.string().optional(),
   accountNumber: z.string().optional(),
+  correspondentSwiftCode: z.string().optional(),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -50,15 +52,15 @@ interface ContractDetailResponse {
   sourceInputs?: Array<{ id: string; sourceType?: string; payload?: unknown }>;
 }
 
-function toMonthInputValue(value?: string): string {
+function toDateInputValue(value?: string): string {
   const normalized = value?.trim();
   if (!normalized) {
     return "";
   }
 
-  const isoMonthMatch = normalized.match(/^(\d{4}-\d{2})(?:-\d{2})?/);
-  if (isoMonthMatch) {
-    return isoMonthMatch[1];
+  const isoDateMatch = normalized.match(/^(\d{4}-\d{2}-\d{2})/);
+  if (isoDateMatch) {
+    return isoDateMatch[1];
   }
 
   const parsed = new Date(normalized);
@@ -66,7 +68,7 @@ function toMonthInputValue(value?: string): string {
     return "";
   }
 
-  return parsed.toISOString().slice(0, 7);
+  return parsed.toISOString().slice(0, 10);
 }
 
 export function BankLcForm({
@@ -111,10 +113,12 @@ export function BankLcForm({
       currencyAmount: "",
       beneficiaryBank: "",
       bankAddress: "",
+      beneficiarySwiftCode: "",
       correspondentBank: "",
-      swiftCode: "",
+      correspondentBankAddress: "",
       beneficiaryAccountNumber: "",
       accountNumber: "",
+      correspondentSwiftCode: "",
     },
   });
 
@@ -175,7 +179,7 @@ export function BankLcForm({
     }
     // These fields are configured once per beneficiary bank, but remain editable if needed.
     setValue("bankAddress", selectedBeneficiaryProfile.beneficiaryBankAddress ?? "");
-    setValue("swiftCode", selectedBeneficiaryProfile.swiftNumber ?? "");
+    setValue("beneficiarySwiftCode", selectedBeneficiaryProfile.swiftNumber ?? "");
   }, [selectedBeneficiaryProfile, selectedBeneficiaryBank, setValue]);
 
   useEffect(() => {
@@ -246,7 +250,7 @@ export function BankLcForm({
             applicant: banking.applicant ?? "",
             portOfLoading: banking.portOfLoading ?? "",
             portOfDischarge: banking.portOfDischarge ?? "",
-            latestShipmentDate: toMonthInputValue(banking.latestShipmentDate),
+            latestShipmentDate: toDateInputValue(banking.latestShipmentDate),
             goodsDescription: banking.goodsDescription ?? "",
             noOfBags: banking.noOfBags ?? "",
             consignee: banking.consignee ?? "",
@@ -255,10 +259,12 @@ export function BankLcForm({
             currencyAmount: banking.currencyAmount ?? "",
             beneficiaryBank: banking.beneficiaryBank ?? "",
             bankAddress: banking.bankAddress ?? "",
+            beneficiarySwiftCode: banking.beneficiarySwiftCode ?? banking.swiftCode ?? "",
             correspondentBank: banking.correspondentBank ?? "",
-            swiftCode: banking.swiftCode ?? "",
+            correspondentBankAddress: banking.correspondentBankAddress ?? banking.receiver ?? "",
             beneficiaryAccountNumber: banking.beneficiaryAccountNumber ?? "",
             accountNumber: banking.accountNumber ?? "",
+            correspondentSwiftCode: banking.correspondentSwiftCode ?? "",
         };
         reset(nextForm, { keepDirty: false, keepTouched: false });
         lastSavedRef.current = { form: nextForm, attachments: nextAttachments };
@@ -318,10 +324,12 @@ export function BankLcForm({
             currencyAmount: form.currencyAmount,
             beneficiaryBank: form.beneficiaryBank,
             bankAddress: form.bankAddress,
+            beneficiarySwiftCode: form.beneficiarySwiftCode,
             correspondentBank: form.correspondentBank,
-            swiftCode: form.swiftCode,
+            correspondentBankAddress: form.correspondentBankAddress,
             beneficiaryAccountNumber: form.beneficiaryAccountNumber,
             accountNumber: form.accountNumber,
+            correspondentSwiftCode: form.correspondentSwiftCode,
           },
         }),
       });
@@ -389,7 +397,7 @@ export function BankLcForm({
         </label>
         <label>
           Latest Date of Shipment
-          <input className={dirtyControlClass("latestShipmentDate")} type="month" {...register("latestShipmentDate")} />
+          <input className={dirtyControlClass("latestShipmentDate")} type="date" {...register("latestShipmentDate")} />
         </label>
         <label className="span-all">
           Description of Goods
@@ -426,13 +434,13 @@ export function BankLcForm({
           <textarea className={dirtyControlClass("secondNotify")} rows={2} {...register("secondNotify")} />
         </label>
 
-        <h3 className="span-all">Bank Information</h3>
+        <h3 className="span-all">Bank Details (Beneficiary)</h3>
         <label>
           Bank Permit
           <input className={dirtyControlClass("permitNumber")} {...register("permitNumber")} />
         </label>
         <label>
-          Beneficiary Bank
+          Bank of Beneficiary
           <select
             className={dirtyControlClass("beneficiaryBank")}
             {...beneficiaryBankRegister}
@@ -458,6 +466,14 @@ export function BankLcForm({
           <input className={dirtyControlClass("bankAddress")} {...register("bankAddress")} />
         </label>
         <label>
+          Name of Beneficiary
+          <input value={companyConfiguration?.sellerName ?? ""} readOnly disabled />
+        </label>
+        <label>
+          SWIFT Number
+          <input className={dirtyControlClass("beneficiarySwiftCode")} {...register("beneficiarySwiftCode")} />
+        </label>
+        <label>
           Beneficiary Account No
           <select
             className={dirtyControlClass("beneficiaryAccountNumber")}
@@ -479,16 +495,22 @@ export function BankLcForm({
             <small className="muted-text">No beneficiary account numbers configured for this bank.</small>
           ) : null}
         </label>
+
+        <h3 className="span-all">Correspondent Bank</h3>
         <label>
-          Correspondent Bank
+          Bank Name
           <input className={dirtyControlClass("correspondentBank")} {...register("correspondentBank")} />
         </label>
         <label>
-          SWIFT Number
-          <input className={dirtyControlClass("swiftCode")} {...register("swiftCode")} />
+          Address
+          <input className={dirtyControlClass("correspondentBankAddress")} {...register("correspondentBankAddress")} />
         </label>
         <label>
-          Account No
+          SWIFT Number
+          <input className={dirtyControlClass("correspondentSwiftCode")} {...register("correspondentSwiftCode")} />
+        </label>
+        <label>
+          Acc. No
           <input className={dirtyControlClass("accountNumber")} {...register("accountNumber")} />
         </label>
 

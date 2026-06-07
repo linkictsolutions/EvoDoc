@@ -213,12 +213,12 @@ export function buildCommercialInvoiceIccSample(
     bank: {
       bankOfBeneficiary: clean(contract.banking.beneficiaryBank),
       beneficiaryBankAddress: clean(contract.banking.bankAddress),
-      swiftNumber: clean(contract.banking.swiftCode),
+      swiftNumber: clean(contract.banking.beneficiarySwiftCode ?? contract.banking.swiftCode),
       beneficiaryName: companyConfiguration.sellerName,
       beneficiaryAccountNumber: clean(contract.banking.beneficiaryAccountNumber),
       correspondentBankName: clean(contract.banking.correspondentBank),
-      correspondentBankAddress: clean(contract.banking.receiver),
-      correspondentSwiftNumber: clean(contract.banking.swiftCode),
+      correspondentBankAddress: clean(contract.banking.correspondentBankAddress ?? contract.banking.receiver),
+      correspondentSwiftNumber: clean(contract.banking.correspondentSwiftCode),
       correspondentAccountNumber: clean(contract.banking.accountNumber),
     },
     footer: {

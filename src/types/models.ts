@@ -212,10 +212,13 @@ export interface BankingPaymentInfo {
   revisedSecondNotify?: string;
   beneficiaryBank?: string;
   bankAddress?: string;
+  beneficiarySwiftCode?: string;
   correspondentBank?: string;
+  correspondentBankAddress?: string;
   beneficiaryAccountNumber?: string;
   accountNumber?: string;
   swiftCode?: string;
+  correspondentSwiftCode?: string;
 }
 
 export interface ProcessingInfo {
