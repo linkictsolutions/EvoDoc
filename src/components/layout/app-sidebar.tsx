@@ -184,6 +184,19 @@ function buildContractSections(contractId: string): NavSection[] {
       ],
     },
     {
+      title: "Bill of Lading",
+      items: [
+        {
+          href: `/app/contracts/${contractId}/inputs/bill-of-lading`,
+          label: "MSC B/L",
+          description: "Carrier-specific bill details and rider overrides.",
+          short: "BL",
+          glyph: "L",
+          matchPrefix: `/app/contracts/${contractId}/inputs/bill-of-lading`,
+        },
+      ],
+    },
+    {
       title: "Outputs",
       items: [
         {
