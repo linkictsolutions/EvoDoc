@@ -1714,6 +1714,88 @@ tbody tr:hover {
   color: #555;
 }
 
+.bl-sheet {
+  width: min(980px, 100%);
+  color: #111;
+  font-family: "Times New Roman", Times, serif;
+  padding: 0.6rem 0.75rem 0.9rem;
+}
+
+.bl-table {
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.bl-table th,
+.bl-table td {
+  border: 1px solid #2b2b2b;
+  font-size: 0.7rem;
+  line-height: 1.16;
+  padding: 0.14rem 0.18rem;
+  vertical-align: top;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-weight: 400;
+}
+
+.bl-table th {
+  background: #fff;
+  font-weight: 700;
+}
+
+.bl-table strong {
+  font-weight: 700;
+}
+
+.bl-header-cell {
+  font-size: 0.82rem;
+  line-height: 1.12;
+}
+
+.bl-subhead {
+  font-size: 0.68rem;
+}
+
+.bl-meta-cell {
+  text-align: left;
+}
+
+.bl-meta-values {
+  margin-top: 0.08rem;
+  font-weight: 700;
+}
+
+.bl-empty-cell {
+  background: #fff;
+}
+
+.bl-banner-cell {
+  text-align: center;
+  font-size: 0.68rem;
+}
+
+.bl-cargo-marks,
+.bl-cargo-description {
+  font-size: 0.64rem;
+  line-height: 1.14;
+}
+
+.bl-number-cell {
+  font-size: 0.66rem;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.bl-legal-cell {
+  font-size: 0.58rem;
+  line-height: 1.12;
+}
+
+.page-break-before {
+  break-before: page;
+  page-break-before: always;
+}
+
 .quality-certificate-sheet {
   width: min(980px, 100%);
   color: #111;
@@ -2569,6 +2651,48 @@ tbody tr:hover {
   .permit-doc-id {
     margin-top: 0.28rem;
     font-size: 0.62rem;
+  }
+
+  .bl-sheet {
+    padding: 0;
+    font-size: 0.68rem;
+    line-height: 1.12;
+  }
+
+  .bl-table th,
+  .bl-table td {
+    font-size: 0.58rem;
+    padding: 0.1rem 0.12rem;
+    line-height: 1.08;
+  }
+
+  .bl-header-cell {
+    font-size: 0.72rem;
+  }
+
+  .bl-subhead,
+  .bl-banner-cell {
+    font-size: 0.56rem;
+  }
+
+  .bl-cargo-marks,
+  .bl-cargo-description {
+    font-size: 0.54rem;
+    line-height: 1.08;
+  }
+
+  .bl-number-cell {
+    font-size: 0.55rem;
+  }
+
+  .bl-legal-cell {
+    font-size: 0.48rem;
+    line-height: 1.04;
+  }
+
+  .page-break-before {
+    break-before: page;
+    page-break-before: always;
   }
 
   .quality-certificate-sheet,

@@ -11,7 +11,6 @@ const QUALITY_CERT_TEMPLATE_STORAGE_KEY = "evodoc.templates.quality_certificate.
 const WEIGHT_CERT_TEMPLATE_STORAGE_KEY = "evodoc.templates.weight_certificate.v1";
 const WAY_BILL_TEMPLATE_STORAGE_KEY = "evodoc.templates.way_bill.v1";
 const ICO_CERT_TEMPLATE_STORAGE_KEY = "evodoc.templates.ico_certificate.v1";
-const BILL_OF_LADING_TEMPLATE_STORAGE_KEY = "evodoc.templates.bill_of_lading.v1";
 const ICC_PRINT_GRID_ROW_MM = 4;
 const MIN_RENDERED_HEADER_HEIGHT_MM = 32;
 const MIN_RENDERED_FOOTER_HEIGHT_MM = 28;
@@ -170,42 +169,6 @@ const WC_CONTAINER_COLUMN_IDS = new Set([
   "wc_ct_cont_gross",
 ]);
 
-const BILL_OF_LADING_CELL_LABEL_MAP: Record<string, string> = {
-  bl_bill_no: "Bill No",
-  bl_reference_type: "Reference Type",
-  bl_reference_value: "Reference Value",
-  bl_copy_bills: "No. Copy Bills",
-  bl_rider_pages: "No. Rider Pages",
-  bl_shipper: "Shipper",
-  bl_consignee: "Consignee",
-  bl_notify: "Notify Parties",
-  bl_carrier_endorsements: "Carrier Agents Endorsements",
-  bl_notify2: "Notify 2",
-  bl_notify3: "Notify 3",
-  bl_vessel_voyage: "Vessel & Voyage No",
-  bl_port_loading: "Port of Loading",
-  bl_place_receipt: "Place of Receipt",
-  bl_port_discharge: "Port of Discharge",
-  bl_place_delivery: "Place of Delivery",
-  bl_marks: "Container Numbers, Seal Numbers and Marks",
-  bl_description: "Description of Packages and Goods",
-  bl_gross_weight: "Gross Cargo Weight",
-  bl_measurement: "Measurement",
-  bl_freight: "Freight & Charges",
-  bl_legal: "Legal Text",
-  bl_declared: "Declared Value",
-  bl_carrier_receipt: "Carrier Receipt",
-  bl_signed: "Signed on Behalf",
-  bl_issue: "Place and Date of Issue",
-  bl_shipped_on_board: "Shipped on Board Date",
-};
-
-const BILL_OF_LADING_CARGO_COLUMN_IDS = new Set([
-  "bl_marks",
-  "bl_description",
-  "bl_gross_weight",
-  "bl_measurement",
-]);
 
 function readIccInvoiceTemplateFromStorage(): PersistedIccTemplate | null {
   return readTemplateFromStorage(ICC_INVOICE_TEMPLATE_STORAGE_KEY);
@@ -1127,20 +1090,6 @@ function icoCellValue(rows: Row[], cell: TemplateCell): string {
   return value(rows, mapped);
 }
 
-function billOfLadingCellValue(rows: Row[], cell: TemplateCell): string {
-  if (cell.id === "bl_title") {
-    return "MEDITERRANEAN SHIPPING COMPANY S.A.\nSCAC Code: MSCU";
-  }
-  if (cell.id === "bl_page") {
-    return value(rows, "Page Label");
-  }
-  if (cell.id === "bl_bill_type") {
-    return value(rows, "Bill Type");
-  }
-  const mapped = BILL_OF_LADING_CELL_LABEL_MAP[cell.id] ?? cell.label;
-  return value(rows, mapped);
-}
-
 function PackingListIccTemplatePrintView({ output, documentId, isFinal, template }: Props & { template: PersistedIccTemplate }) {
   const rows = flattenRows(output);
   const sections = normalizeTemplateSections(template.sections);
@@ -1570,68 +1519,123 @@ function BillOfLadingPrintView({ output, documentId }: Props) {
   const rows = flattenRows(output);
 
   return (
-    <article className="print-sheet icc-sheet">
-      <table className="print-table icc-table">
+    <article className="print-sheet bl-sheet">
+      <table className="print-table bl-table">
+        <colgroup>
+          <col style={{ width: "20%" }} />
+          <col style={{ width: "10%" }} />
+          <col style={{ width: "4%" }} />
+          <col style={{ width: "16%" }} />
+          <col style={{ width: "10%" }} />
+          <col style={{ width: "2%" }} />
+          <col style={{ width: "10%" }} />
+          <col style={{ width: "6%" }} />
+          <col style={{ width: "11%" }} />
+          <col style={{ width: "11%" }} />
+        </colgroup>
         <tbody>
           <tr>
-            <td colSpan={6}><strong>MEDITERRANEAN SHIPPING COMPANY S.A.</strong><br />SCAC Code: MSCU</td>
-            <td colSpan={4} className="table-align-right"><strong>{display(value(rows, "Page Label"))}</strong></td>
+            <td colSpan={4} rowSpan={2} className="bl-header-cell">
+              <strong>MEDITERRANEAN SHIPPING COMPANY S.A.</strong>
+              <br />
+              <span className="bl-subhead">SCAC Code: MSCU</span>
+            </td>
+            <td colSpan={6} className="bl-empty-cell">&nbsp;</td>
           </tr>
           <tr>
-            <td colSpan={3}><strong>{display(value(rows, "Bill Type"))}</strong></td>
-            <td colSpan={2}><strong>NO. COPY BILLS</strong><br />{display(value(rows, "No. Copy Bills"))}</td>
-            <td colSpan={2}><strong>NO. OF RIDER PAGES</strong><br />{display(value(rows, "No. Rider Pages"))}</td>
-            <td colSpan={3}><strong>BILL OF LADING No.</strong><br />{display(value(rows, "Bill No"))}</td>
+            <td colSpan={3} className="bl-meta-cell">
+              <strong>NO. {display(value(rows, "Bill Type"))}</strong>&nbsp;&nbsp;
+              <strong>NO. COPY BILLS</strong>
+              <div className="bl-meta-values">{display(value(rows, "No. Copy Bills"))}</div>
+            </td>
+            <td colSpan={3} className="bl-meta-cell">
+              <strong>NO. OF RIDER PAGES</strong>
+              <div className="bl-meta-values">{display(value(rows, "No. Rider Pages"))}</div>
+            </td>
           </tr>
           <tr>
-            <td colSpan={5} className="preserve-linebreaks"><strong>SHIPPER:</strong><br />{display(value(rows, "Shipper"))}</td>
-            <td colSpan={5} className="preserve-linebreaks"><strong>CARRIER&apos;S AGENTS ENDORSEMENTS:</strong><br />{display(value(rows, "Carrier Agents Endorsements"))}</td>
+            <td colSpan={4} className="preserve-linebreaks">
+              <strong>SHIPPER:</strong>
+              <br />
+              {display(value(rows, "Shipper"))}
+            </td>
+            <td colSpan={6} rowSpan={3} className="preserve-linebreaks">
+              <strong>CARRIER&apos;S AGENTS ENDORSEMENTS: </strong>
+              <span>(Include Agent(s) at POD)</span>
+              <br />
+              {display(value(rows, "Carrier Agents Endorsements"))}
+              {display(value(rows, "Notify 2")) ? (
+                <>
+                  <br />
+                  <strong>NOTIFY-II</strong>
+                  <br />
+                  {display(value(rows, "Notify 2"))}
+                </>
+              ) : null}
+              {display(value(rows, "Notify 3")) ? (
+                <>
+                  <br />
+                  <strong>NOTIFY 3:</strong>
+                  <br />
+                  {display(value(rows, "Notify 3"))}
+                </>
+              ) : null}
+            </td>
           </tr>
           <tr>
-            <td colSpan={5} className="preserve-linebreaks"><strong>CONSIGNEE:</strong><br />{display(value(rows, "Consignee"))}</td>
-            <td colSpan={5} className="preserve-linebreaks"><strong>NOTIFY-II:</strong><br />{display(value(rows, "Notify 2"))}</td>
+            <td colSpan={4} className="preserve-linebreaks">
+              <strong>CONSIGNEE:</strong> This B/L is not negotiable unless marked “To Order” or “To Order of…” here.
+              <br />
+              {display(value(rows, "Consignee"))}
+            </td>
           </tr>
           <tr>
-            <td colSpan={5} className="preserve-linebreaks"><strong>NOTIFY PARTIES:</strong><br />{display(value(rows, "Notify Parties"))}</td>
-            <td colSpan={5} className="preserve-linebreaks"><strong>NOTIFY 3:</strong><br />{display(value(rows, "Notify 3"))}</td>
+            <td colSpan={4} className="preserve-linebreaks">
+              <strong>NOTIFY PARTIES:</strong> (No responsibility shall attach to the Carrier or to his Agent for failure to notify – see Clause 20)
+              <br />
+              {display(value(rows, "Notify Parties"))}
+            </td>
           </tr>
           <tr>
-            <td colSpan={4}><strong>VESSEL &amp; VOYAGE NO.</strong><br />{display(value(rows, "Vessel & Voyage No"))}</td>
-            <td colSpan={3}><strong>PORT OF LOADING</strong><br />{display(value(rows, "Port of Loading"))}</td>
-            <td colSpan={3}><strong>PLACE OF RECEIPT</strong><br />{display(value(rows, "Place of Receipt"))}</td>
+            <td colSpan={3}><strong>VESSEL &amp; VOYAGE NO. </strong><span>(see Clauses 8 &amp; 9)</span></td>
+            <td colSpan={3}><strong>PORT OF LOADING</strong></td>
+            <td colSpan={4}><strong>PLACE OF RECEIPT: </strong><span>(Combined Transport ONLY – see Clauses 1 &amp; 5.2)</span></td>
           </tr>
           <tr>
-            <td colSpan={4}><strong>{display(value(rows, "Reference Type"))}</strong><br />{display(value(rows, "Reference Value"))}</td>
-            <td colSpan={3}><strong>PORT OF DISCHARGE</strong><br />{display(value(rows, "Port of Discharge"))}</td>
-            <td colSpan={3}><strong>PLACE OF DELIVERY</strong><br />{display(value(rows, "Place of Delivery"))}</td>
+            <td colSpan={3}>{display(value(rows, "Reference Value"))}</td>
+            <td colSpan={3}><strong>PORT OF DISCHARGE </strong>{display(value(rows, "Port of Discharge"))}</td>
+            <td colSpan={4}><strong>PLACE OF DELIVERY: </strong><span>(Combined Transport ONLY – see Clauses 1 &amp; 5.2)</span><br />{display(value(rows, "Place of Delivery"))}</td>
           </tr>
           <tr>
-            <td colSpan={10}><strong>PARTICULARS FURNISHED BY THE SHIPPER – NOT CHECKED BY CARRIER – CARRIER NOT RESPONSIBLE (see Clause 14)</strong></td>
+            <td colSpan={10} className="bl-banner-cell"><strong>PARTICULARS FURNISHED BY THE SHIPPER – NOT CHECKED BY CARRIER – CARRIER NOT RESPONSIBLE (see Clause 14)</strong></td>
           </tr>
           <tr>
-            <th>Container Numbers, Seal Numbers and Marks</th>
+            <th colSpan={1}>Container Numbers, Seal Numbers and Marks</th>
             <th colSpan={7}>Description of Packages and Goods (Continued on attached Bill of Lading Rider page(s), if applicable)</th>
-            <th>Gross Cargo Weight</th>
-            <th>Measurement</th>
+            <th colSpan={1}>Gross Cargo Weight</th>
+            <th colSpan={1}>Measurement</th>
           </tr>
           <tr>
-            <td className="preserve-linebreaks">{display(value(rows, "Container Numbers, Seal Numbers and Marks"))}</td>
-            <td colSpan={7} className="preserve-linebreaks">{display(value(rows, "Description of Packages and Goods"))}</td>
-            <td>{display(value(rows, "Gross Cargo Weight"))}</td>
-            <td>{display(value(rows, "Measurement"))}</td>
+            <td colSpan={1} className="preserve-linebreaks bl-cargo-marks">{display(value(rows, "Container Numbers, Seal Numbers and Marks"))}</td>
+            <td colSpan={7} className="preserve-linebreaks bl-cargo-description">{display(value(rows, "Description of Packages and Goods"))}</td>
+            <td colSpan={1} className="bl-number-cell">{display(value(rows, "Gross Cargo Weight"))}</td>
+            <td colSpan={1} className="bl-number-cell">{display(value(rows, "Measurement"))}</td>
           </tr>
           <tr>
-            <td colSpan={4}><strong>FREIGHT &amp; CHARGES</strong><br />{display(value(rows, "Freight & Charges"))}</td>
-            <td colSpan={6} className="preserve-linebreaks">{display(value(rows, "Legal Text"))}</td>
+            <td colSpan={5}><strong>FREIGHT &amp; CHARGES</strong> Cargo shall not be delivered unless Freight &amp; Charges are paid (see Clause 16)</td>
+            <td colSpan={5} rowSpan={2} className="preserve-linebreaks bl-legal-cell">{display(value(rows, "Legal Text"))}</td>
           </tr>
           <tr>
-            <td colSpan={4}><strong>DECLARED VALUE</strong><br />{display(value(rows, "Declared Value"))}</td>
-            <td colSpan={3}><strong>CARRIER&apos;S RECEIPT</strong><br />{display(value(rows, "Carrier Receipt"))}</td>
-            <td colSpan={3}><strong>{display(value(rows, "Signed on Behalf"))}</strong></td>
+            <td colSpan={5} className="preserve-linebreaks">{display(value(rows, "Freight & Charges"))}</td>
           </tr>
           <tr>
-            <td colSpan={5}><strong>PLACE AND DATE OF ISSUE</strong><br />{display(value(rows, "Place and Date of Issue"))}</td>
-            <td colSpan={5}><strong>SHIPPED ON BOARD DATE</strong><br />{display(value(rows, "Shipped on Board Date"))}</td>
+            <td colSpan={2}><strong>DECLARED VALUE</strong> <span>(only applicable if Ad Valorem charges paid – see Clause 7.3)</span><br />{display(value(rows, "Declared Value"))}</td>
+            <td colSpan={3}><strong>CARRIER&apos;S RECEIPT</strong> <span>(No. of Cntrs or Pkgs rcvd by Carrier – see Clause 14.1)</span><br />{display(value(rows, "Carrier Receipt"))}</td>
+            <td colSpan={5} rowSpan={2}><strong>SIGNED on behalf of the Carrier MSC Mediterranean Shipping Company S.A.</strong></td>
+          </tr>
+          <tr>
+            <td colSpan={2}><strong>PLACE AND DATE OF ISSUE</strong><br />{display(value(rows, "Place and Date of Issue"))}</td>
+            <td colSpan={3}><strong>SHIPPED ON BOARD DATE</strong><br />{display(value(rows, "Shipped on Board Date"))}</td>
           </tr>
         </tbody>
       </table>
@@ -1643,33 +1647,9 @@ function BillOfLadingPrintView({ output, documentId }: Props) {
 }
 
 function BillOfLadingPrintViewWithTemplate({ output, documentId, isFinal, templateLayout }: Props) {
-  const template = useMemo(() => {
-    const fromPayload = parseIccTemplate(templateLayout);
-    if (fromPayload) {
-      return fromPayload;
-    }
-    return readTemplateFromStorage(BILL_OF_LADING_TEMPLATE_STORAGE_KEY);
-  }, [templateLayout]);
-
-  if (!template) {
-    return <BillOfLadingPrintView output={output} documentId={documentId} isFinal={isFinal} />;
-  }
-
-  return (
-    <>
-      <GenericTemplatePrintView
-        rows={flattenRows(output)}
-        documentId={documentId}
-        template={template}
-        isFinal={isFinal}
-        cellValueFor={billOfLadingCellValue}
-        tableSectionConfig={{
-          cargo_table: { columnIds: BILL_OF_LADING_CARGO_COLUMN_IDS, rowPlaceholderId: "bl_cargo_row" },
-        }}
-      />
-      <BillOfLadingRiderPages output={output} />
-    </>
-  );
+  void isFinal;
+  void templateLayout;
+  return <BillOfLadingPrintView output={output} documentId={documentId} />;
 }
 
 function PackingListIccPrintView({ output, documentId, isFinal }: Props) {
