@@ -58,6 +58,21 @@ const DEFAULT_SECTIONS: TemplateSection[] = [
     ],
   },
   {
+    id: "transport_charge",
+    label: "Transport Charge",
+    description: "Way bill transport charge line.",
+    x: 0,
+    y: 0,
+    w: 12,
+    h: 8,
+    minH: 8,
+    cells: [
+      { id: "wb_transport_label", label: "Transport Charge Label", x: 0, y: 0, w: 6, h: 2 },
+      { id: "wb_transport_per_quantal", label: "Transport Charge Per Quantal", x: 6, y: 0, w: 3, h: 2 },
+      { id: "wb_transport_total", label: "Transport Charge Total", x: 9, y: 0, w: 3, h: 2 },
+    ],
+  },
+  {
     id: "containers",
     label: "Containers",
     description: "Container and seal numbers.",
@@ -96,4 +111,3 @@ export function WayBillTemplatePage() {
     />
   );
 }
-

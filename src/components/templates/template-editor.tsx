@@ -107,6 +107,37 @@ function readTemplate(storageKey: string): PersistedTemplate | null {
   }
 }
 
+function savedDesignStorageKey(storageKey: string) {
+  return `${storageKey}.__saved_design`;
+}
+
+function hydrateTemplatePayload(
+  stored: PersistedTemplate,
+): { sections: TemplateSection[]; availableFields: Record<string, TemplateGridCell[]>; snapshot: string; spacerCounter: number } {
+  const spacerCounter = stored.spacerCounter ?? 1;
+  const storedCols = maxTemplateCols(stored.sections);
+  const needsScale = storedCols > 0 && storedCols <= 12;
+  const nextSections = needsScale ? scaleSections12To24(stored.sections) : stored.sections;
+  const nextAvailable = stored.availableFields ?? {};
+  const scaledAvailable = needsScale
+    ? Object.fromEntries(Object.entries(nextAvailable).map(([key, list]) => [key, list.map((cell) => ({ ...cell, x: cell.x * 2, w: cell.w * 2 }))]))
+    : nextAvailable;
+  const normalizedSections = relayoutSections(nextSections);
+  const normalizedAvailable = normalizeAvailableFields(scaledAvailable);
+
+  return {
+    sections: normalizedSections,
+    availableFields: normalizedAvailable,
+    snapshot: serializeTemplate({
+      version: 1,
+      sections: normalizedSections,
+      availableFields: normalizedAvailable,
+      spacerCounter,
+    }),
+    spacerCounter,
+  };
+}
+
 function scaleSections12To24(sections12: TemplateSection[]): TemplateSection[] {
   return sections12.map((section) => ({
     ...section,
@@ -554,6 +585,7 @@ export function TemplateEditor({
   const [showGrid, setShowGrid] = useState(true);
   const spacerCounterRef = useRef(1);
   const [savedSnapshot, setSavedSnapshot] = useState("");
+  const [savedDesignSnapshot, setSavedDesignSnapshot] = useState("");
 
   const currentSnapshot = useMemo(() => serializeTemplate({
     version: 1,
@@ -572,32 +604,25 @@ export function TemplateEditor({
   useEffect(() => {
     const stored = readTemplate(storageKey);
     if (stored) {
-      spacerCounterRef.current = stored.spacerCounter ?? 1;
-      const storedCols = maxTemplateCols(stored.sections);
-      const needsScale = storedCols > 0 && storedCols <= 12;
-      const nextSections = needsScale ? scaleSections12To24(stored.sections) : stored.sections;
-      const nextAvailable = stored.availableFields ?? {};
-      const scaledAvailable = needsScale
-        ? Object.fromEntries(Object.entries(nextAvailable).map(([k, list]) => [k, list.map((c) => ({ ...c, x: c.x * 2, w: c.w * 2 }))]))
-        : nextAvailable;
-
-      setSections(relayoutSections(nextSections));
-      setAvailableFields(normalizeAvailableFields(scaledAvailable));
-      setSavedSnapshot(serializeTemplate({
+      const hydrated = hydrateTemplatePayload(stored);
+      spacerCounterRef.current = hydrated.spacerCounter;
+      setSections(hydrated.sections);
+      setAvailableFields(hydrated.availableFields);
+      setSavedSnapshot(hydrated.snapshot);
+    } else {
+      const baseline = serializeTemplate({
         version: 1,
-        sections: relayoutSections(nextSections),
-        availableFields: normalizeAvailableFields(scaledAvailable),
-        spacerCounter: spacerCounterRef.current,
-      }));
-      return;
+        sections: relayoutSections(scaleSections12To24(defaultSections12Col)),
+        availableFields: {},
+        spacerCounter: 1,
+      });
+      setSavedSnapshot(baseline);
     }
-    const baseline = serializeTemplate({
-      version: 1,
-      sections: relayoutSections(scaleSections12To24(defaultSections12Col)),
-      availableFields: {},
-      spacerCounter: 1,
-    });
-    setSavedSnapshot(baseline);
+
+    const storedDesign = readTemplate(savedDesignStorageKey(storageKey));
+    if (storedDesign) {
+      setSavedDesignSnapshot(hydrateTemplatePayload(storedDesign).snapshot);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -692,6 +717,20 @@ export function TemplateEditor({
     toast.success("Template saved.");
   }, [availableFields, sections, storageKey, toast]);
 
+  const saveTemplateDesign = useCallback(() => {
+    if (typeof window === "undefined") return;
+    const payload: PersistedTemplate = {
+      version: 1,
+      sections,
+      availableFields: normalizeAvailableFields(availableFields),
+      spacerCounter: spacerCounterRef.current,
+    };
+    const snapshot = serializeTemplate(payload);
+    window.localStorage.setItem(savedDesignStorageKey(storageKey), snapshot);
+    setSavedDesignSnapshot(snapshot);
+    toast.success("Template design saved.");
+  }, [availableFields, sections, storageKey, toast]);
+
   const resetTemplate = useCallback(() => {
     spacerCounterRef.current = 1;
     setAvailableFields({});
@@ -702,28 +741,31 @@ export function TemplateEditor({
   const discardChanges = useCallback(() => {
     const stored = readTemplate(storageKey);
     if (stored) {
-      spacerCounterRef.current = stored.spacerCounter ?? 1;
-      const storedCols = maxTemplateCols(stored.sections);
-      const needsScale = storedCols > 0 && storedCols <= 12;
-      const nextSections = needsScale ? scaleSections12To24(stored.sections) : stored.sections;
-      const nextAvailable = stored.availableFields ?? {};
-      const scaledAvailable = needsScale
-        ? Object.fromEntries(Object.entries(nextAvailable).map(([k, list]) => [k, list.map((c) => ({ ...c, x: c.x * 2, w: c.w * 2 }))]))
-        : nextAvailable;
-      setSections(relayoutSections(nextSections));
-      setAvailableFields(normalizeAvailableFields(scaledAvailable));
-      setSavedSnapshot(serializeTemplate({
-        version: 1,
-        sections: relayoutSections(nextSections),
-        availableFields: normalizeAvailableFields(scaledAvailable),
-        spacerCounter: spacerCounterRef.current,
-      }));
+      const hydrated = hydrateTemplatePayload(stored);
+      spacerCounterRef.current = hydrated.spacerCounter;
+      setSections(hydrated.sections);
+      setAvailableFields(hydrated.availableFields);
+      setSavedSnapshot(hydrated.snapshot);
       toast.info("Discarded unsaved changes.");
       return;
     }
     resetTemplate();
     toast.info("Discarded unsaved changes.");
   }, [resetTemplate, storageKey, toast]);
+
+  const loadSavedTemplateDesign = useCallback(() => {
+    const storedDesign = readTemplate(savedDesignStorageKey(storageKey));
+    if (!storedDesign) {
+      toast.error("No saved template design found.");
+      return;
+    }
+    const hydrated = hydrateTemplatePayload(storedDesign);
+    spacerCounterRef.current = hydrated.spacerCounter;
+    setSections(hydrated.sections);
+    setAvailableFields(hydrated.availableFields);
+    setSavedDesignSnapshot(hydrated.snapshot);
+    toast.info("Loaded saved template design.");
+  }, [storageKey, toast]);
 
   return (
     <section className="page-shell">
@@ -739,6 +781,12 @@ export function TemplateEditor({
             </Link>
             <button type="button" onClick={() => setShowGrid((v) => !v)} className="secondary">
               {showGrid ? "Hide Grid" : "Show Grid"}
+            </button>
+            <button type="button" onClick={loadSavedTemplateDesign} className="secondary" disabled={!savedDesignSnapshot}>
+              Load Saved Design
+            </button>
+            <button type="button" onClick={saveTemplateDesign} className="secondary">
+              Save Design
             </button>
             <button type="button" onClick={resetTemplate} className="secondary">Reset Template</button>
             <button type="button" onClick={discardChanges} className="secondary" disabled={!isDirty}>Discard</button>

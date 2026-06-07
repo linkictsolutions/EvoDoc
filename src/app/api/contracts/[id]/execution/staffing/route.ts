@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import {
-  buildDefaultStaffingInstructionRows,
+  applyCalculatedStaffingWeights,
   deriveFinalStaffingRows,
   normalizeStaffingPayload,
   syncStaffingInstructionRows,
@@ -10,6 +10,7 @@ import { fail, getRequestId, ok } from "@/lib/api/response";
 import {
   appendAuditLog,
   getBookingsSheet,
+  getContract,
   resolveContractId,
   getStaffingSheet,
   upsertStaffingSheet,
@@ -30,18 +31,22 @@ export async function GET(
 
     const contractId = await resolveContractId(orgId, contractIdentifier);
     await requireActor(orgId, ["admin", "editor", "viewer"]);
-    const [bookings, staffing] = await Promise.all([
+    const [bookings, staffing, contract] = await Promise.all([
       getBookingsSheet(orgId, contractId).catch(() => undefined),
       getStaffingSheet(orgId, contractId).catch(() => undefined),
+      getContract(orgId, contractId),
     ]);
 
-    const instructionRows = syncStaffingInstructionRows(bookings, staffing?.instructionRows);
+    const instructionRows = applyCalculatedStaffingWeights(
+      syncStaffingInstructionRows(bookings, staffing?.instructionRows),
+      contract,
+    );
     const payload = staffing
       ? { ...staffing, instructionRows }
       : {
           orgId,
           contractId,
-          instructionRows: buildDefaultStaffingInstructionRows(bookings),
+          instructionRows,
           createdAt: new Date(0).toISOString(),
           updatedAt: new Date(0).toISOString(),
         };
@@ -67,8 +72,14 @@ export async function POST(
     const normalized = normalizeStaffingPayload({ ...body, contractId: contractIdentifier });
     const contractId = await resolveContractId(normalized.staffing.orgId, normalized.staffing.contractId);
     const resolvedPayload = normalizeStaffingPayload({ ...body, contractId });
+    const contract = await getContract(resolvedPayload.staffing.orgId, contractId);
+    const instructionRows = applyCalculatedStaffingWeights(resolvedPayload.staffing.instructionRows, contract);
+    const staffingPayload = {
+      ...resolvedPayload.staffing,
+      instructionRows,
+    };
     const actor = await requireActor(normalized.staffing.orgId, ["admin", "editor"]);
-    const targetPath = await upsertStaffingSheet(resolvedPayload.staffing.orgId, contractId, resolvedPayload.staffing);
+    const targetPath = await upsertStaffingSheet(resolvedPayload.staffing.orgId, contractId, staffingPayload);
 
     await appendAuditLog(
       resolvedPayload.staffing.orgId,
@@ -76,7 +87,7 @@ export async function POST(
       "execution.staffing.updated",
       targetPath,
       null,
-      resolvedPayload.staffing,
+      staffingPayload,
       requestId,
     );
 

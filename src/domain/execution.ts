@@ -19,6 +19,8 @@ import type {
   VehicleKind,
 } from "@/types/models";
 
+type StaffingContractWeightsSource = Pick<Contract, "terms" | "derived">;
+
 function cleanOptional(value?: string): string | undefined {
   const normalized = value?.trim();
   return normalized ? normalized : undefined;
@@ -154,6 +156,65 @@ function toInstructionRow(entry: BookingEntry): StaffingInstructionRow {
     sealNumber: entry.sealNumber,
     tareWeightKg: entry.tareWeightKg,
   };
+}
+
+function distributeWeight(total: number, count: number): number[] {
+  if (!Number.isFinite(total) || total <= 0 || count <= 0) {
+    return Array.from({ length: Math.max(0, count) }, () => 0);
+  }
+
+  const base = roundWeight(total / count);
+  const values = Array.from({ length: count }, () => base);
+  const allocated = roundWeight(base * Math.max(0, count - 1));
+  values[count - 1] = roundWeight(total - allocated);
+  return values;
+}
+
+export function applyCalculatedStaffingWeights(
+  rows: StaffingInstructionRow[],
+  contract?: StaffingContractWeightsSource,
+): StaffingInstructionRow[] {
+  if (rows.length === 0) {
+    return rows;
+  }
+
+  const parity = contract
+    ? computeContractExcelParity(contract.terms)
+    : undefined;
+  const totalGrossWeightKg = contract?.derived?.grossWeightKg ?? parity?.grossWeightKg ?? 0;
+  const targetIndexes = rows
+    .map((row, index) => (typeof row.tareWeightKg === "number" && Number.isFinite(row.tareWeightKg) ? index : -1))
+    .filter((index) => index >= 0);
+  const effectiveIndexes = targetIndexes.length > 0
+    ? targetIndexes
+    : rows.map((_, index) => index);
+  const grossShares = distributeWeight(totalGrossWeightKg, effectiveIndexes.length);
+  const shareByIndex = new Map(effectiveIndexes.map((index, offset) => [index, grossShares[offset] ?? 0]));
+
+  return rows.map((row, index) => {
+    const tareWeightKg = typeof row.tareWeightKg === "number" && Number.isFinite(row.tareWeightKg)
+      ? roundWeight(row.tareWeightKg)
+      : undefined;
+
+    if (!shareByIndex.has(index)) {
+      return {
+        ...row,
+        firstWeightKg: tareWeightKg,
+        secondWeightKg: undefined,
+        netWeightKg: undefined,
+      };
+    }
+
+    const secondWeightKg = roundWeight(shareByIndex.get(index) ?? 0);
+    const netWeightKg = roundWeight(Math.max(0, secondWeightKg - (tareWeightKg ?? 0)));
+
+    return {
+      ...row,
+      firstWeightKg: tareWeightKg,
+      secondWeightKg,
+      netWeightKg,
+    };
+  });
 }
 
 export function buildDefaultStaffingInstructionRows(bookings?: BookingsSheet): StaffingInstructionRow[] {

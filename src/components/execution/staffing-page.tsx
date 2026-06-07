@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
 import { computeContractExcelParity } from "@/domain/excel-parity";
-import { collectSealOptions, deriveFinalStaffingRows } from "@/domain/execution";
+import { applyCalculatedStaffingWeights, collectSealOptions, deriveFinalStaffingRows } from "@/domain/execution";
 import type { BookingsSheet, Contract, StaffingFinalRow, StaffingSheet } from "@/types/models";
 import { CenteredLoader } from "@/components/ui/centered-loader";
 import { useToast } from "@/components/ui/toast";
@@ -14,6 +14,10 @@ type StaffingPayload = StaffingSheet & { finalRows: StaffingFinalRow[] };
 type ContractDetailResponse = {
   contract: Pick<Contract, "terms" | "derived">;
 };
+
+function formatWeightValue(value?: number) {
+  return typeof value === "number" && Number.isFinite(value) ? value.toFixed(3) : "-";
+}
 
 export function StaffingPage({ contractId }: { contractId: string }) {
   const toast = useToast();
@@ -36,9 +40,15 @@ export function StaffingPage({ contractId }: { contractId: string }) {
         apiClient<StaffingPayload>(`/api/contracts/${contractId}/execution/staffing?orgId=${DEFAULT_ORG_ID}`),
         apiClient<ContractDetailResponse>(`/api/contracts/${contractId}?orgId=${DEFAULT_ORG_ID}`),
       ]);
+      const instructionRows = applyCalculatedStaffingWeights(staffingData.instructionRows, contractData.contract);
+      const nextForm = {
+        ...staffingData,
+        instructionRows,
+        finalRows: deriveFinalStaffingRows({ ...staffingData, instructionRows }),
+      };
       setBookings(bookingsData);
-      setForm(staffingData);
-      lastSavedRowsRef.current = staffingData.instructionRows;
+      setForm(nextForm);
+      lastSavedRowsRef.current = instructionRows;
       setHighlightDirty(false);
       setContract(contractData.contract);
     } catch (loadError) {
@@ -103,17 +113,19 @@ export function StaffingPage({ contractId }: { contractId: string }) {
           return row;
         }
 
-        if (["tareWeightKg", "firstWeightKg", "secondWeightKg", "netWeightKg"].includes(String(key))) {
+        if (["tareWeightKg"].includes(String(key))) {
           return { ...row, [key]: value === "" ? undefined : Number(value) };
         }
 
         return { ...row, [key]: value };
       });
 
+      const nextRows = applyCalculatedStaffingWeights(instructionRows, contract ?? undefined);
+
       return {
         ...current,
-        instructionRows,
-        finalRows: deriveFinalStaffingRows({ ...current, instructionRows }),
+        instructionRows: nextRows,
+        finalRows: deriveFinalStaffingRows({ ...current, instructionRows: nextRows }),
       };
     });
   }
@@ -242,10 +254,10 @@ export function StaffingPage({ contractId }: { contractId: string }) {
                       {certOptions.map((certNo) => <option key={certNo} value={certNo}>{certNo}</option>)}
                     </select>
                   </td>
-                  <td>{row.tareWeightKg ?? "-"}</td>
-                  <td><input className={controlClass} type="number" step="0.001" value={row.firstWeightKg ?? ""} onChange={(event) => updateRow(index, "firstWeightKg", event.target.value)} /></td>
-                  <td><input className={controlClass} type="number" step="0.001" value={row.secondWeightKg ?? ""} onChange={(event) => updateRow(index, "secondWeightKg", event.target.value)} /></td>
-                  <td><input className={controlClass} type="number" step="0.001" value={row.netWeightKg ?? ""} onChange={(event) => updateRow(index, "netWeightKg", event.target.value)} /></td>
+                  <td>{formatWeightValue(row.tareWeightKg)}</td>
+                  <td>{formatWeightValue(row.firstWeightKg)}</td>
+                  <td>{formatWeightValue(row.secondWeightKg)}</td>
+                  <td>{formatWeightValue(row.netWeightKg)}</td>
                   <td><input className={controlClass} value={row.doNumber ?? ""} onChange={(event) => updateRow(index, "doNumber", event.target.value)} /></td>
                 </tr>
               ))}

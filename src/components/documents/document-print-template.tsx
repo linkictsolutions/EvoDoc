@@ -952,6 +952,9 @@ const WAY_BILL_CELL_LABEL_MAP: Record<string, string> = {
   wb_bags: "No of Bag",
   wb_gross: "Gross Weight",
   wb_net: "Net Weight",
+  wb_transport_label: "Transport Charge Label",
+  wb_transport_per_quantal: "Transport Charge Per Quantal",
+  wb_transport_total: "Transport Charge Total",
   wb_container_1: "Container No 1",
   wb_seal_1: "Seal No 1",
   wb_container_2: "Container No 2",
@@ -2294,8 +2297,8 @@ function WayBillPrintView({ output, documentId }: Props) {
             <tbody>
               <tr>
                 <th>{display(value(activeRows, "Transport Charge Label"))}</th>
-                <td>{display(value(activeRows, "Transport Charge Per Quantal Label"))}</td>
-                <td>{display(value(activeRows, "Transport Charge Total Label"))}</td>
+                <td>{display(value(activeRows, "Transport Charge Per Quantal"))}</td>
+                <td>{display(value(activeRows, "Transport Charge Total"))}</td>
               </tr>
             </tbody>
           </table>

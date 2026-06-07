@@ -36,8 +36,8 @@ export interface WayBillDriverTab {
   grossWeight: string;
   netWeight: string;
   transportChargeLabel: string;
-  transportChargePerQuantalLabel: string;
-  transportChargeTotalLabel: string;
+  transportChargePerQuantal: string;
+  transportChargeTotal: string;
   containerNo1: string;
   sealNo1: string;
   containerNo2: string;
@@ -85,6 +85,11 @@ function formatNumber(value: number, digits = 3): string {
 function formatWeight(value: number): string {
   const normalized = formatNumber(value);
   return normalized ? `${normalized} KG` : "";
+}
+
+function formatAmount(value: number): string {
+  const normalized = formatNumber(value, 2);
+  return normalized || "";
 }
 
 function hasAssignedVehicle(row?: StaffingFinalRow): boolean {
@@ -265,9 +270,16 @@ export function buildWayBillSample(args: {
 
       const assignedVehicles = Number(hasAssignedVehicle(pair.truck)) + Number(hasAssignedVehicle(pair.trailer));
       const shipmentUnits = assignedVehicles > 0 ? assignedVehicles : 1;
+      const shipmentNetWeightKg = perContainerNetWeight * shipmentUnits;
+      const transportChargeTotalValue = parity.quantityKg > 0
+        ? (parity.totalPrice * shipmentNetWeightKg) / parity.quantityKg
+        : 0;
+      const transportChargePerQuantalValue = shipmentNetWeightKg > 0
+        ? transportChargeTotalValue / (shipmentNetWeightKg / 100)
+        : 0;
       const noOfBag = formatNumber(perContainerBags * shipmentUnits);
       const grossWeight = formatWeight(perContainerGrossWeight * shipmentUnits);
-      const netWeight = formatWeight(perContainerNetWeight * shipmentUnits);
+      const netWeight = formatWeight(shipmentNetWeightKg);
 
       const tabSuffix = truckNo || trailerNo || String(index + 1);
 
@@ -297,8 +309,8 @@ export function buildWayBillSample(args: {
         grossWeight,
         netWeight,
         transportChargeLabel: "The Truck carry the above mentioned Transport at ETH Birr",
-        transportChargePerQuantalLabel: "per quantal",
-        transportChargeTotalLabel: "total Birr",
+        transportChargePerQuantal: `${formatAmount(transportChargePerQuantalValue)} per quantal`.trim(),
+        transportChargeTotal: `total Birr ${formatAmount(transportChargeTotalValue)}`.trim(),
         containerNo1: clean(pair.truck?.containerNumber),
         sealNo1: clean(pair.truck?.sealNumber),
         containerNo2: clean(pair.trailer?.containerNumber),
