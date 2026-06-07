@@ -121,7 +121,7 @@ function buildCargoDescription(args: {
 
   return {
     description,
-    marks: clean(args.billOfLading.cargoMarksText) || joinParts([
+    marks: clean(finalFields.bagMarking) || joinParts([
       clean(args.companyConfiguration.sellerName),
       "PRODUCE OF ETHIOPIA",
       clean(args.contract.terms.quality),

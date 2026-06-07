@@ -1760,9 +1760,27 @@ tbody tr:hover {
   text-align: left;
 }
 
+.bl-meta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem;
+  align-items: start;
+}
+
+.bl-meta-title {
+  font-size: 0.55rem;
+  line-height: 1.08;
+  font-weight: 700;
+}
+
 .bl-meta-values {
   margin-top: 0.08rem;
   font-weight: 700;
+}
+
+.bl-meta-count {
+  font-size: 0.82rem;
+  line-height: 1.05;
 }
 
 .bl-empty-cell {
@@ -1772,6 +1790,40 @@ tbody tr:hover {
 .bl-banner-cell {
   text-align: center;
   font-size: 0.68rem;
+}
+
+.bl-label-small {
+  display: block;
+  font-size: 0.56rem;
+  line-height: 1.12;
+  font-weight: 700;
+}
+
+.bl-label-small span {
+  font-weight: 400;
+}
+
+.bl-subsection-label {
+  margin-top: 0.28rem;
+}
+
+.bl-value-large {
+  display: block;
+  font-size: 0.76rem;
+  line-height: 1.14;
+  font-weight: 400;
+}
+
+.bl-value-gap {
+  margin-top: 0.18rem;
+}
+
+.bl-header-note {
+  display: inline-block;
+  margin-top: 0.16rem;
+  font-size: 0.52rem;
+  line-height: 1.08;
+  font-weight: 400;
 }
 
 .bl-cargo-marks,
@@ -1789,6 +1841,13 @@ tbody tr:hover {
 .bl-legal-cell {
   font-size: 0.58rem;
   line-height: 1.12;
+}
+
+.bl-signed-cell {
+  font-size: 0.5rem;
+  line-height: 1.08;
+  font-weight: 400;
+  vertical-align: bottom;
 }
 
 .page-break-before {
@@ -2675,6 +2734,17 @@ tbody tr:hover {
     font-size: 0.56rem;
   }
 
+  .bl-meta-title,
+  .bl-label-small,
+  .bl-header-note {
+    font-size: 0.46rem;
+  }
+
+  .bl-meta-count,
+  .bl-value-large {
+    font-size: 0.62rem;
+  }
+
   .bl-cargo-marks,
   .bl-cargo-description {
     font-size: 0.54rem;
@@ -2688,6 +2758,11 @@ tbody tr:hover {
   .bl-legal-cell {
     font-size: 0.48rem;
     line-height: 1.04;
+  }
+
+  .bl-signed-cell {
+    font-size: 0.42rem;
+    line-height: 1.02;
   }
 
   .page-break-before {

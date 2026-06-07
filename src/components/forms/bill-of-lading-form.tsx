@@ -30,7 +30,6 @@ const schema = z.object({
   declaredValue: z.string().optional(),
   freightAndChargesText: z.string().optional(),
   measurement: z.string().optional(),
-  cargoMarksText: z.string().optional(),
   descriptionOverride: z.string().optional(),
   riderDescriptionsText: z.string().optional(),
 });
@@ -118,7 +117,6 @@ export function BillOfLadingForm({
       declaredValue: "",
       freightAndChargesText: "",
       measurement: "",
-      cargoMarksText: "",
       descriptionOverride: "",
       riderDescriptionsText: "",
     },
@@ -200,7 +198,6 @@ export function BillOfLadingForm({
           declaredValue: bill.declaredValue ?? "",
           freightAndChargesText: bill.freightAndChargesText ?? "",
           measurement: bill.measurement ?? "",
-          cargoMarksText: bill.cargoMarksText ?? "",
           descriptionOverride: bill.descriptionOverride ?? "",
           riderDescriptionsText: serializeRiderDescriptions(bill.riderDescriptions),
         };
@@ -262,7 +259,6 @@ export function BillOfLadingForm({
             declaredValue: form.declaredValue,
             freightAndChargesText: form.freightAndChargesText,
             measurement: form.measurement,
-            cargoMarksText: form.cargoMarksText,
             descriptionOverride: form.descriptionOverride,
             riderDescriptions: parseRiderDescriptions(form.riderDescriptionsText),
           },
@@ -385,10 +381,6 @@ export function BillOfLadingForm({
         <label className="span-all">
           Freight and Charges Text
           <textarea className={dirtyControlClass("freightAndChargesText")} rows={4} {...register("freightAndChargesText")} />
-        </label>
-        <label className="span-all">
-          Cargo Marks Text
-          <textarea className={dirtyControlClass("cargoMarksText")} rows={4} {...register("cargoMarksText")} />
         </label>
         <label className="span-all">
           Description Override
