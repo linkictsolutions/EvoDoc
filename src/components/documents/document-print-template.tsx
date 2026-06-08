@@ -1482,7 +1482,8 @@ function billOfLadingRiderPages(output: DocumentOutputSnapshot): ReactNode[] {
         <colgroup>
           <col style={{ width: "20%" }} />
           <col style={{ width: "18%" }} />
-          <col style={{ width: "36.2%" }} />
+          <col style={{ width: "19%" }} />
+          <col style={{ width: "17.2%" }} />
           <col style={{ width: "12.6%" }} />
           <col style={{ width: "13.2%" }} />
         </colgroup>
@@ -1507,7 +1508,7 @@ function billOfLadingRiderPages(output: DocumentOutputSnapshot): ReactNode[] {
                 </div>
               </div>
             </td>
-            <td colSpan={2} className="bl-rider-meta-cell">
+            <td colSpan={3} className="bl-rider-meta-cell">
               <div className="bl-rider-meta-line">
                 <span className="bl-rider-meta-title">BILL OF LADING No.</span>
                 <span className="bl-rider-meta-value">{display(page["Bill of Lading No"])}</span>
@@ -1517,23 +1518,23 @@ function billOfLadingRiderPages(output: DocumentOutputSnapshot): ReactNode[] {
             </td>
           </tr>
           <tr>
-            <td colSpan={5} className="bl-banner-cell"><strong>PARTICULARS FURNISHED BY THE SHIPPER – NOT CHECKED BY CARRIER – CARRIER NOT RESPONSIBLE (see Clause 14)</strong></td>
+            <td colSpan={6} className="bl-banner-cell"><strong>PARTICULARS FURNISHED BY THE SHIPPER – NOT CHECKED BY CARRIER – CARRIER NOT RESPONSIBLE (see Clause 14)</strong></td>
           </tr>
           <tr>
             <td className="bl-column-heading bl-rider-heading-cell">Container Numbers, Seal Numbers and Marks</td>
-            <td colSpan={2} className="bl-column-heading bl-rider-heading-cell">Description of Packages and Goods<br /><span className="bl-clause-note">(Continued on attached Bill of Lading Rider page(s), if applicable)</span></td>
+            <td colSpan={3} className="bl-column-heading bl-rider-heading-cell">Description of Packages and Goods<br /><span className="bl-clause-note">(Continued on attached Bill of Lading Rider page(s), if applicable)</span></td>
             <td className="bl-column-heading bl-rider-heading-cell">Gross Cargo Weight</td>
             <td className="bl-column-heading bl-rider-heading-cell">Measurement</td>
           </tr>
           <tr className="bl-goods-fill-row bl-rider-fill-row">
             <td className="preserve-linebreaks" />
-            <td colSpan={2} className="preserve-linebreaks" />
+            <td colSpan={3} className="preserve-linebreaks" />
             <td className="bl-rider-side-value" />
             <td className="bl-rider-side-value" />
           </tr>
           <tr className="bl-rider-footer-row">
             <td colSpan={2}><span className="bl-label-lite">PLACE AND DATE OF ISSUE</span><br /><span className="bl-field-value bl-field-value-spaced">{display(page["Place and Date of Issue"])}</span></td>
-            <td><span className="bl-label-lite">SHIPPED ON BOARD DATE</span><br /><span className="bl-field-value bl-field-value-spaced">{display(page["Shipped on Board Date"])}</span></td>
+            <td colSpan={2}><span className="bl-label-lite">SHIPPED ON BOARD DATE</span><br /><span className="bl-field-value bl-field-value-spaced">{display(page["Shipped on Board Date"])}</span></td>
             <td colSpan={2}><span className="bl-label-lite">SIGNED on behalf of the Carrier MSC Mediterranean Shipping Company S.A.</span></td>
           </tr>
         </tbody>
