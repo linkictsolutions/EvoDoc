@@ -1511,10 +1511,10 @@ function billOfLadingRiderPages(output: DocumentOutputSnapshot): ReactNode[] {
             <td className="bl-column-heading bl-rider-heading-cell">Measurement</td>
           </tr>
           <tr className="bl-goods-fill-row bl-rider-fill-row">
-            <td className="preserve-linebreaks">{display(page["Container Numbers, Seal Numbers and Marks"])}</td>
-            <td colSpan={2} className="preserve-linebreaks">{display(page["Rider Description"])}</td>
-            <td className="bl-rider-side-value">{display(page["Gross Cargo Weight"])}</td>
-            <td className="bl-rider-side-value">{display(page["Measurement"])}</td>
+            <td className="preserve-linebreaks" />
+            <td colSpan={2} className="preserve-linebreaks" />
+            <td className="bl-rider-side-value" />
+            <td className="bl-rider-side-value" />
           </tr>
           <tr className="bl-rider-footer-row">
             <td colSpan={2}><span className="bl-label-lite">PLACE AND DATE OF ISSUE</span><br /><span className="bl-field-value bl-field-value-spaced">{display(page["Place and Date of Issue"])}</span></td>
@@ -1550,10 +1550,24 @@ function billOfLadingPrintPages({ output, documentId }: Props): ReactNode[] {
         </colgroup>
         <tbody>
           <tr>
-            <td colSpan={4} rowSpan={2} className="bl-header-cell">
-              <strong>MEDITERRANEAN SHIPPING COMPANY S.A.</strong>
-              <br />
-              <span className="bl-subhead">SCAC Code: MSCU</span>
+            <td colSpan={4} rowSpan={2} className="bl-header-cell bl-main-brand-cell">
+              <div className="bl-main-brand-header">
+                <span className="bl-msc-logo-slot">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/msc-logo.png"
+                    alt="MSC logo"
+                    className="bl-msc-logo"
+                    onError={(event) => {
+                      event.currentTarget.style.visibility = "hidden";
+                    }}
+                  />
+                </span>
+                <div className="bl-main-brand-copy">
+                  <strong>MEDITERRANEAN SHIPPING COMPANY S.A.</strong>
+                  <span className="bl-subhead">SCAC Code: MSCU</span>
+                </div>
+              </div>
             </td>
             <td colSpan={6} className="bl-empty-cell bl-bill-type-cell">{billTypeLabel}</td>
           </tr>

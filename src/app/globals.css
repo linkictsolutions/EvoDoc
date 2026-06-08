@@ -1787,6 +1787,57 @@ tbody tr:hover {
   line-height: 1.12;
 }
 
+.bl-main-brand-cell {
+  background: #fff200;
+  padding: 0.28rem 0.45rem;
+  vertical-align: middle;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.bl-main-brand-header {
+  display: flex;
+  align-items: center;
+  gap: 0.78rem;
+  min-height: 4.2rem;
+}
+
+.bl-msc-logo {
+  width: 3.7rem;
+  height: 3.2rem;
+  object-fit: contain;
+  flex: 0 0 auto;
+}
+
+.bl-main-brand-copy {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.bl-main-brand-copy strong {
+  font-size: 0.92rem;
+  line-height: 1.05;
+  letter-spacing: 0.01em;
+}
+
+.bl-main-brand-copy .bl-subhead {
+  align-self: flex-end;
+  margin-top: 1.1rem;
+  margin-right: 2.1rem;
+}
+
+.bl-msc-logo-slot {
+  display: flex;
+  width: 3.7rem;
+  height: 3.2rem;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+}
+
 .bl-subhead {
   font-size: 0.68rem;
 }
@@ -1825,7 +1876,7 @@ tbody tr:hover {
   display: flex;
   align-items: baseline;
   justify-content: flex-start;
-  gap: 0.24rem;
+  gap: 0.58rem;
 }
 
 .bl-rider-meta-title {
