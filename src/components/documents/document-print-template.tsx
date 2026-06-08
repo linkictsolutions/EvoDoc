@@ -1634,7 +1634,7 @@ function BillOfLadingPrintView({ output, documentId }: Props) {
             <td colSpan={5} rowSpan={2} className="preserve-linebreaks bl-legal-cell">{display(value(rows, "Legal Text"))}</td>
           </tr>
           <tr>
-            <td colSpan={5} className="preserve-linebreaks">{display(value(rows, "Freight & Charges"))}</td>
+            <td colSpan={5} className="preserve-linebreaks bl-followup-cell">{display(value(rows, "Freight & Charges"))}</td>
           </tr>
           <tr>
             <td colSpan={2}><span className="bl-label-lite">DECLARED VALUE</span> <span className="bl-clause-text">(only applicable if Ad Valorem charges paid – see Clause 7.3)</span><br /><span className="bl-field-value bl-field-value-spaced">{display(value(rows, "Declared Value"))}</span></td>
