@@ -1747,6 +1747,8 @@ tbody tr:hover {
   font-size: 0.56rem;
   line-height: 1.08;
   font-weight: 400;
+  text-align: center;
+  vertical-align: middle;
 }
 
 .bl-table strong {
@@ -1821,7 +1823,7 @@ tbody tr:hover {
 }
 
 .bl-field-value-spaced {
-  margin-top: 0.22rem;
+  margin-top: 0.42rem;
 }
 
 .bl-cargo-marks,
@@ -1837,8 +1839,8 @@ tbody tr:hover {
 }
 
 .bl-legal-cell {
-  font-size: 0.5rem;
-  line-height: 1.1;
+  font-size: 0.56rem;
+  line-height: 1.08;
 }
 
 .page-break-before {
@@ -2739,7 +2741,7 @@ tbody tr:hover {
   }
 
   .bl-field-value-spaced {
-    margin-top: 0.18rem;
+    margin-top: 0.28rem;
   }
 
   .bl-cargo-marks,
@@ -2753,7 +2755,7 @@ tbody tr:hover {
   }
 
   .bl-legal-cell {
-    font-size: 0.42rem;
+    font-size: 0.46rem;
     line-height: 1.04;
   }
 
