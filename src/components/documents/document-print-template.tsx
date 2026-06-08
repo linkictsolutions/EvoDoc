@@ -1521,137 +1521,139 @@ function BillOfLadingPrintView({ output, documentId }: Props) {
   const referenceType = display(value(rows, "Reference Type")) || "Shipper Ref.";
 
   return (
-    <article className="print-sheet bl-sheet">
-      <table className="print-table bl-table">
-        <colgroup>
-          <col style={{ width: "20%" }} />
-          <col style={{ width: "10%" }} />
-          <col style={{ width: "4%" }} />
-          <col style={{ width: "16%" }} />
-          <col style={{ width: "10%" }} />
-          <col style={{ width: "2%" }} />
-          <col style={{ width: "10%" }} />
-          <col style={{ width: "6%" }} />
-          <col style={{ width: "11%" }} />
-          <col style={{ width: "11%" }} />
-        </colgroup>
-        <tbody>
-          <tr>
-            <td colSpan={4} rowSpan={2} className="bl-header-cell">
-              <strong>MEDITERRANEAN SHIPPING COMPANY S.A.</strong>
-              <br />
-              <span className="bl-subhead">SCAC Code: MSCU</span>
-            </td>
-            <td colSpan={6} className="bl-empty-cell bl-bill-type-cell">{billTypeLabel}</td>
-          </tr>
-          <tr>
-            <td colSpan={3} className="bl-meta-cell">
-              <div className="bl-meta-grid">
-                <div>
-                  <div className="bl-meta-label">NO. ORIGINAL BILL</div>
-                  <div className="bl-meta-values">{display(value(rows, "Bill No"))}</div>
+    <>
+      <article className="print-sheet bl-sheet">
+        <table className="print-table bl-table">
+          <colgroup>
+            <col style={{ width: "20%" }} />
+            <col style={{ width: "10%" }} />
+            <col style={{ width: "4%" }} />
+            <col style={{ width: "16%" }} />
+            <col style={{ width: "10%" }} />
+            <col style={{ width: "2%" }} />
+            <col style={{ width: "10%" }} />
+            <col style={{ width: "6%" }} />
+            <col style={{ width: "11%" }} />
+            <col style={{ width: "11%" }} />
+          </colgroup>
+          <tbody>
+            <tr>
+              <td colSpan={4} rowSpan={2} className="bl-header-cell">
+                <strong>MEDITERRANEAN SHIPPING COMPANY S.A.</strong>
+                <br />
+                <span className="bl-subhead">SCAC Code: MSCU</span>
+              </td>
+              <td colSpan={6} className="bl-empty-cell bl-bill-type-cell">{billTypeLabel}</td>
+            </tr>
+            <tr>
+              <td colSpan={3} className="bl-meta-cell">
+                <div className="bl-meta-grid">
+                  <div>
+                    <div className="bl-meta-label">NO. ORIGINAL BILL</div>
+                    <div className="bl-meta-values">{display(value(rows, "Bill No"))}</div>
+                  </div>
+                  <div>
+                    <div className="bl-meta-label">NO. COPY BILLS</div>
+                    <div className="bl-meta-values">{display(value(rows, "No. Copy Bills"))}</div>
+                  </div>
                 </div>
-                <div>
-                  <div className="bl-meta-label">NO. COPY BILLS</div>
-                  <div className="bl-meta-values">{display(value(rows, "No. Copy Bills"))}</div>
-                </div>
-              </div>
-            </td>
-            <td colSpan={3} className="bl-meta-cell">
-              <div className="bl-meta-label">NO. OF RIDER PAGES</div>
-              <div className="bl-meta-values">{display(value(rows, "No. Rider Pages"))}</div>
-            </td>
-          </tr>
-          <tr>
-            <td colSpan={4} className="preserve-linebreaks">
-              <span className="bl-label-lite">SHIPPER:</span>
-              <br />
-              <span className="bl-field-value bl-field-value-spaced">{display(value(rows, "Shipper"))}</span>
-            </td>
-            <td colSpan={6} rowSpan={3} className="preserve-linebreaks">
-              <span className="bl-label-lite">CARRIER&apos;S AGENTS ENDORSEMENTS: </span>
-              <span className="bl-clause-text">(Include Agent(s) at POD)</span>
-              <br />
-              <span className="bl-field-value bl-field-value-spaced">{display(value(rows, "Carrier Agents Endorsements"))}</span>
-              {display(value(rows, "Notify 2")) ? (
-                <>
-                  <br />
-                  <span className="bl-label-lite">NOTIFY-II</span>
-                  <br />
-                  <span className="bl-field-value bl-field-value-spaced">{display(value(rows, "Notify 2"))}</span>
-                </>
-              ) : null}
-              {display(value(rows, "Notify 3")) ? (
-                <>
-                  <br />
-                  <span className="bl-label-lite">NOTIFY 3:</span>
-                  <br />
-                  <span className="bl-field-value bl-field-value-spaced">{display(value(rows, "Notify 3"))}</span>
-                </>
-              ) : null}
-            </td>
-          </tr>
-          <tr>
-            <td colSpan={4} className="preserve-linebreaks">
-              <span className="bl-label-lite">CONSIGNEE:</span> <span className="bl-clause-text">This B/L is not negotiable unless marked “To Order” or “To Order of…” here.</span>
-              <br />
-              <span className="bl-field-value bl-field-value-spaced">{display(value(rows, "Consignee"))}</span>
-            </td>
-          </tr>
-          <tr>
-            <td colSpan={4} className="preserve-linebreaks">
-              <span className="bl-label-lite">NOTIFY PARTIES:</span> <span className="bl-clause-text">(No responsibility shall attach to the Carrier or to his Agent for failure to notify – see Clause 20)</span>
-              <br />
-              <span className="bl-field-value bl-field-value-spaced">{display(value(rows, "Notify Parties"))}</span>
-            </td>
-          </tr>
-          <tr>
-            <td colSpan={3}><span className="bl-label-lite">VESSEL &amp; VOYAGE NO. </span><span className="bl-clause-text">(see Clauses 8 &amp; 9)</span></td>
-            <td colSpan={3}><span className="bl-label-lite">PORT OF LOADING</span></td>
-            <td colSpan={4}><span className="bl-label-lite">PLACE OF RECEIPT: </span><span className="bl-clause-text">(Combined Transport ONLY – see Clauses 1 &amp; 5.2)</span></td>
-          </tr>
-          <tr>
-            <td colSpan={3}><span className="bl-label-lite">{referenceType}</span><br /><span className="bl-field-value bl-field-value-spaced">{display(value(rows, "Reference Value"))}</span></td>
-            <td colSpan={3}><span className="bl-label-lite">PORT OF DISCHARGE </span><br /><span className="bl-field-value bl-field-value-spaced">{display(value(rows, "Port of Discharge"))}</span></td>
-            <td colSpan={4}><span className="bl-label-lite">PLACE OF DELIVERY: </span><span className="bl-clause-text">(Combined Transport ONLY – see Clauses 1 &amp; 5.2)</span><br /><span className="bl-field-value bl-field-value-spaced">{display(value(rows, "Place of Delivery"))}</span></td>
-          </tr>
-          <tr>
-            <td colSpan={10} className="bl-banner-cell"><strong>PARTICULARS FURNISHED BY THE SHIPPER – NOT CHECKED BY CARRIER – CARRIER NOT RESPONSIBLE (see Clause 14)</strong></td>
-          </tr>
-          <tr>
-            <th colSpan={1} className="bl-column-heading">Container Numbers, Seal Numbers and Marks</th>
-            <th colSpan={7} className="bl-column-heading">Description of Packages and Goods<br /><span className="bl-clause-note">(Continued on attached Bill of Lading Rider page(s), if applicable)</span></th>
-            <th colSpan={1} className="bl-column-heading">Gross Cargo Weight</th>
-            <th colSpan={1} className="bl-column-heading">Measurement</th>
-          </tr>
-          <tr>
-            <td colSpan={1} className="preserve-linebreaks bl-cargo-marks">{display(value(rows, "Container Numbers, Seal Numbers and Marks"))}</td>
-            <td colSpan={7} className="preserve-linebreaks bl-cargo-description">{display(value(rows, "Description of Packages and Goods"))}</td>
-            <td colSpan={1} className="bl-number-cell">{display(value(rows, "Gross Cargo Weight"))}</td>
-            <td colSpan={1} className="bl-number-cell">{display(value(rows, "Measurement"))}</td>
-          </tr>
-          <tr>
-            <td colSpan={5} className="preserve-linebreaks bl-freight-block">
-              <div className="bl-freight-intro-cell"><span className="bl-label-lite">FREIGHT &amp; CHARGES</span> <span className="bl-clause-text">Cargo shall not be delivered unless Freight &amp; Charges are paid (see Clause 16)</span></div>
-              <div className="bl-followup-cell">{display(value(rows, "Freight & Charges"))}</div>
-            </td>
-            <td colSpan={5} className="preserve-linebreaks bl-legal-cell">{display(value(rows, "Legal Text"))}</td>
-          </tr>
-          <tr>
-            <td colSpan={2}><span className="bl-label-lite">DECLARED VALUE</span> <span className="bl-clause-text">(only applicable if Ad Valorem charges paid – see Clause 7.3)</span><br /><span className="bl-field-value bl-field-value-spaced">{display(value(rows, "Declared Value"))}</span></td>
-            <td colSpan={3}><span className="bl-label-lite">CARRIER&apos;S RECEIPT</span> <span className="bl-clause-text">(No. of Cntrs or Pkgs rcvd by Carrier – see Clause 14.1)</span><br /><span className="bl-field-value bl-field-value-spaced">{display(value(rows, "Carrier Receipt"))}</span></td>
-            <td colSpan={5} rowSpan={2}><span className="bl-label-lite">SIGNED on behalf of the Carrier MSC Mediterranean Shipping Company S.A.</span></td>
-          </tr>
-          <tr>
-            <td colSpan={2}><span className="bl-label-lite">PLACE AND DATE OF ISSUE</span><br /><span className="bl-field-value bl-field-value-spaced">{display(value(rows, "Place and Date of Issue"))}</span></td>
-            <td colSpan={3}><span className="bl-label-lite">SHIPPED ON BOARD DATE</span><br /><span className="bl-field-value bl-field-value-spaced">{display(value(rows, "Shipped on Board Date"))}</span></td>
-          </tr>
-        </tbody>
-      </table>
+              </td>
+              <td colSpan={3} className="bl-meta-cell">
+                <div className="bl-meta-label">NO. OF RIDER PAGES</div>
+                <div className="bl-meta-values">{display(value(rows, "No. Rider Pages"))}</div>
+              </td>
+            </tr>
+            <tr>
+              <td colSpan={4} className="preserve-linebreaks">
+                <span className="bl-label-lite">SHIPPER:</span>
+                <br />
+                <span className="bl-field-value bl-field-value-spaced">{display(value(rows, "Shipper"))}</span>
+              </td>
+              <td colSpan={6} rowSpan={3} className="preserve-linebreaks">
+                <span className="bl-label-lite">CARRIER&apos;S AGENTS ENDORSEMENTS: </span>
+                <span className="bl-clause-text">(Include Agent(s) at POD)</span>
+                <br />
+                <span className="bl-field-value bl-field-value-spaced">{display(value(rows, "Carrier Agents Endorsements"))}</span>
+                {display(value(rows, "Notify 2")) ? (
+                  <>
+                    <br />
+                    <span className="bl-label-lite">NOTIFY-II</span>
+                    <br />
+                    <span className="bl-field-value bl-field-value-spaced">{display(value(rows, "Notify 2"))}</span>
+                  </>
+                ) : null}
+                {display(value(rows, "Notify 3")) ? (
+                  <>
+                    <br />
+                    <span className="bl-label-lite">NOTIFY 3:</span>
+                    <br />
+                    <span className="bl-field-value bl-field-value-spaced">{display(value(rows, "Notify 3"))}</span>
+                  </>
+                ) : null}
+              </td>
+            </tr>
+            <tr>
+              <td colSpan={4} className="preserve-linebreaks">
+                <span className="bl-label-lite">CONSIGNEE:</span> <span className="bl-clause-text">This B/L is not negotiable unless marked “To Order” or “To Order of…” here.</span>
+                <br />
+                <span className="bl-field-value bl-field-value-spaced">{display(value(rows, "Consignee"))}</span>
+              </td>
+            </tr>
+            <tr>
+              <td colSpan={4} className="preserve-linebreaks">
+                <span className="bl-label-lite">NOTIFY PARTIES:</span> <span className="bl-clause-text">(No responsibility shall attach to the Carrier or to his Agent for failure to notify – see Clause 20)</span>
+                <br />
+                <span className="bl-field-value bl-field-value-spaced">{display(value(rows, "Notify Parties"))}</span>
+              </td>
+            </tr>
+            <tr>
+              <td colSpan={3}><span className="bl-label-lite">VESSEL &amp; VOYAGE NO. </span><span className="bl-clause-text">(see Clauses 8 &amp; 9)</span></td>
+              <td colSpan={3}><span className="bl-label-lite">PORT OF LOADING</span></td>
+              <td colSpan={4}><span className="bl-label-lite">PLACE OF RECEIPT: </span><span className="bl-clause-text">(Combined Transport ONLY – see Clauses 1 &amp; 5.2)</span></td>
+            </tr>
+            <tr>
+              <td colSpan={3}><span className="bl-label-lite">{referenceType}</span><br /><span className="bl-field-value bl-field-value-spaced">{display(value(rows, "Reference Value"))}</span></td>
+              <td colSpan={3}><span className="bl-label-lite">PORT OF DISCHARGE </span><br /><span className="bl-field-value bl-field-value-spaced">{display(value(rows, "Port of Discharge"))}</span></td>
+              <td colSpan={4}><span className="bl-label-lite">PLACE OF DELIVERY: </span><span className="bl-clause-text">(Combined Transport ONLY – see Clauses 1 &amp; 5.2)</span><br /><span className="bl-field-value bl-field-value-spaced">{display(value(rows, "Place of Delivery"))}</span></td>
+            </tr>
+            <tr>
+              <td colSpan={10} className="bl-banner-cell"><strong>PARTICULARS FURNISHED BY THE SHIPPER – NOT CHECKED BY CARRIER – CARRIER NOT RESPONSIBLE (see Clause 14)</strong></td>
+            </tr>
+            <tr>
+              <th colSpan={1} className="bl-column-heading">Container Numbers, Seal Numbers and Marks</th>
+              <th colSpan={7} className="bl-column-heading">Description of Packages and Goods<br /><span className="bl-clause-note">(Continued on attached Bill of Lading Rider page(s), if applicable)</span></th>
+              <th colSpan={1} className="bl-column-heading">Gross Cargo Weight</th>
+              <th colSpan={1} className="bl-column-heading">Measurement</th>
+            </tr>
+            <tr>
+              <td colSpan={1} className="preserve-linebreaks bl-cargo-marks">{display(value(rows, "Container Numbers, Seal Numbers and Marks"))}</td>
+              <td colSpan={7} className="preserve-linebreaks bl-cargo-description">{display(value(rows, "Description of Packages and Goods"))}</td>
+              <td colSpan={1} className="bl-number-cell">{display(value(rows, "Gross Cargo Weight"))}</td>
+              <td colSpan={1} className="bl-number-cell">{display(value(rows, "Measurement"))}</td>
+            </tr>
+            <tr>
+              <td colSpan={5} className="preserve-linebreaks bl-freight-block">
+                <div className="bl-freight-intro-cell"><span className="bl-label-lite">FREIGHT &amp; CHARGES</span> <span className="bl-clause-text">Cargo shall not be delivered unless Freight &amp; Charges are paid (see Clause 16)</span></div>
+                <div className="bl-followup-cell">{display(value(rows, "Freight & Charges"))}</div>
+              </td>
+              <td colSpan={5} className="preserve-linebreaks bl-legal-cell">{display(value(rows, "Legal Text"))}</td>
+            </tr>
+            <tr>
+              <td colSpan={2}><span className="bl-label-lite">DECLARED VALUE</span> <span className="bl-clause-text">(only applicable if Ad Valorem charges paid – see Clause 7.3)</span><br /><span className="bl-field-value bl-field-value-spaced">{display(value(rows, "Declared Value"))}</span></td>
+              <td colSpan={3}><span className="bl-label-lite">CARRIER&apos;S RECEIPT</span> <span className="bl-clause-text">(No. of Cntrs or Pkgs rcvd by Carrier – see Clause 14.1)</span><br /><span className="bl-field-value bl-field-value-spaced">{display(value(rows, "Carrier Receipt"))}</span></td>
+              <td colSpan={5} rowSpan={2}><span className="bl-label-lite">SIGNED on behalf of the Carrier MSC Mediterranean Shipping Company S.A.</span></td>
+            </tr>
+            <tr>
+              <td colSpan={2}><span className="bl-label-lite">PLACE AND DATE OF ISSUE</span><br /><span className="bl-field-value bl-field-value-spaced">{display(value(rows, "Place and Date of Issue"))}</span></td>
+              <td colSpan={3}><span className="bl-label-lite">SHIPPED ON BOARD DATE</span><br /><span className="bl-field-value bl-field-value-spaced">{display(value(rows, "Shipped on Board Date"))}</span></td>
+            </tr>
+          </tbody>
+        </table>
 
-      <p className="permit-doc-id">Document ID: {documentId}</p>
+        <p className="permit-doc-id">Document ID: {documentId}</p>
+      </article>
       <BillOfLadingRiderPages output={output} />
-    </article>
+    </>
   );
 }
 

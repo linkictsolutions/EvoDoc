@@ -1863,7 +1863,7 @@ tbody tr:hover {
 .bl-table td.bl-legal-cell {
   font-size: 0.46rem;
   line-height: 1.08;
-  padding-bottom: 1.1rem;
+  padding-bottom: 3.85rem;
 }
 
 .bl-freight-block {
@@ -1893,6 +1893,8 @@ tbody tr:hover {
 .bl-rider-sheet {
   width: min(980px, 100%);
   margin: 0 auto;
+  min-height: 297mm;
+  display: block;
   break-before: page;
   page-break-before: always;
   break-inside: avoid;
@@ -2820,7 +2822,7 @@ tbody tr:hover {
   .bl-table td.bl-legal-cell {
     font-size: 0.46rem;
     line-height: 1.04;
-    padding-bottom: 0.85rem;
+    padding-bottom: 3rem;
   }
 
   .bl-freight-block {
@@ -2837,6 +2839,12 @@ tbody tr:hover {
   }
 
   .page-break-before {
+    break-before: page;
+    page-break-before: always;
+  }
+
+  .bl-rider-sheet {
+    min-height: 297mm;
     break-before: page;
     page-break-before: always;
   }
