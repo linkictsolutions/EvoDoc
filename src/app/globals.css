@@ -1958,6 +1958,11 @@ tbody tr:hover {
   flex: 1 1 auto;
 }
 
+.bl-rider-footer-row,
+.bl-rider-footer-row td {
+  height: auto;
+}
+
 .bl-rider-side-value {
   text-align: left;
   white-space: pre-wrap;
@@ -2953,7 +2958,6 @@ tbody tr:hover {
   }
 
   .bl-rider-sheet {
-    min-height: 297mm;
     height: 100%;
     break-before: page;
     page-break-before: always;
