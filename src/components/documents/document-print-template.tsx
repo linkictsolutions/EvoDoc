@@ -1498,13 +1498,13 @@ function billOfLadingRiderPages(output: DocumentOutputSnapshot): ReactNode[] {
             <td colSpan={5} className="bl-banner-cell"><strong>PARTICULARS FURNISHED BY THE SHIPPER – NOT CHECKED BY CARRIER – CARRIER NOT RESPONSIBLE (see Clause 14)</strong></td>
           </tr>
           <tr>
-            <th className="bl-column-heading">Container Numbers, Seal Numbers and Marks</th>
-            <th colSpan={2} className="bl-column-heading">Description of Packages and Goods<br /><span className="bl-clause-note">(Continued on attached Bill of Lading Rider page(s), if applicable)</span></th>
-            <th className="bl-column-heading">Gross Cargo Weight</th>
-            <th className="bl-column-heading">Measurement</th>
+            <td className="bl-column-heading bl-rider-heading-cell">Container Numbers, Seal Numbers and Marks</td>
+            <td colSpan={2} className="bl-column-heading bl-rider-heading-cell">Description of Packages and Goods<br /><span className="bl-clause-note">(Continued on attached Bill of Lading Rider page(s), if applicable)</span></td>
+            <td className="bl-column-heading bl-rider-heading-cell">Gross Cargo Weight</td>
+            <td className="bl-column-heading bl-rider-heading-cell">Measurement</td>
           </tr>
           <tr className="bl-goods-fill-row bl-rider-fill-row">
-            <td>&nbsp;</td>
+            <td className="preserve-linebreaks">{display(page["Container Numbers, Seal Numbers and Marks"])}</td>
             <td colSpan={2} className="preserve-linebreaks">{display(page["Rider Description"])}</td>
             <td className="bl-rider-side-value">{display(page["Gross Cargo Weight"])}</td>
             <td className="bl-rider-side-value">{display(page["Measurement"])}</td>

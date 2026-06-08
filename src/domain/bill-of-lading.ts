@@ -222,7 +222,10 @@ export interface BillOfLadingSample {
     index: number;
     totalPages: number;
     billNo: string;
+    marks: string;
     description: string;
+    grossCargoWeight: string;
+    measurement: string;
     placeAndDateOfIssue: string;
     shippedOnBoardDate: string;
   }>;
@@ -320,7 +323,10 @@ export function buildBillOfLadingSample(args: {
       index: index + 1,
       totalPages,
       billNo: clean(bill.billNo) || clean(args.bookings?.billOfLadingNumber),
+      marks: cargo.marks,
       description,
+      grossCargoWeight: cargo.grossCargoWeight,
+      measurement: cargo.measurement,
       placeAndDateOfIssue: clean(bill.placeAndDateOfIssue),
       shippedOnBoardDate: formatDate(clean(bill.shippedOnBoardDate) || clean(args.contract.banking.latestShipmentDate)),
     })),

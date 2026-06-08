@@ -695,7 +695,10 @@ export function mapDocumentOutput(
               rows: sectionRowsFromRecord({
                 "Bill of Lading No": page.billNo,
                 "Rider Page Label": `RIDER PAGE ${page.index + 1} OF ${page.totalPages}`,
+                "Container Numbers, Seal Numbers and Marks": page.marks,
                 "Rider Description": page.description,
+                "Gross Cargo Weight": page.grossCargoWeight,
+                Measurement: page.measurement,
                 "Place and Date of Issue": page.placeAndDateOfIssue,
                 "Shipped on Board Date": page.shippedOnBoardDate,
               }),
