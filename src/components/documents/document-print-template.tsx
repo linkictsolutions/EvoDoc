@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type CSSProperties, type ReactNode } from "react";
+import { Children, useMemo, useState, type CSSProperties, type ReactNode } from "react";
 import { resolveCompanyConfiguration } from "@/domain/company-configuration";
 import type { DocumentInputSnapshot, DocumentOutputSnapshot, DocumentType } from "@/types/models";
 
@@ -1476,7 +1476,7 @@ function BillOfLadingRiderPages({ output }: { output: DocumentOutputSnapshot }) 
   return (
     <>
       {grouped.map((page, index) => (
-        <article key={`bl-rider-${index + 1}`} className="print-sheet bl-rider-sheet page-break-before">
+        <article key={`bl-rider-${index + 1}`} className="print-sheet bl-rider-sheet">
           <table className="print-table icc-table">
             <tbody>
               <tr>
@@ -2792,40 +2792,46 @@ function DocumentPrintPageFrame(
     "--brand-footer-height": `${footerHeightMm}mm`,
   } as CSSProperties;
 
+  const pages = Children.toArray(children);
+
   return (
-    <article className="document-branded-page" style={style}>
-      {showHeader ? (
-        <div className="document-brand-slot document-brand-slot-top">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={branding.header.imageDataUrl}
-            alt="Document header"
-            style={{
-              objectFit: branding.header.fit,
-              objectPosition: `${branding.header.positionXPercent}% ${branding.header.positionYPercent}%`,
-            }}
-          />
-        </div>
-      ) : null}
+    <>
+      {pages.map((page, index) => (
+        <article key={`document-page-${index + 1}`} className="document-branded-page" style={style}>
+          {showHeader ? (
+            <div className="document-brand-slot document-brand-slot-top">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={branding.header.imageDataUrl}
+                alt="Document header"
+                style={{
+                  objectFit: branding.header.fit,
+                  objectPosition: `${branding.header.positionXPercent}% ${branding.header.positionYPercent}%`,
+                }}
+              />
+            </div>
+          ) : null}
 
-      <div className="document-branded-content">
-        {children}
-      </div>
+          <div className="document-branded-content">
+            {page}
+          </div>
 
-      {showFooter ? (
-        <div className="document-brand-slot document-brand-slot-bottom">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={branding.footer.imageDataUrl}
-            alt="Document footer"
-            style={{
-              objectFit: branding.footer.fit,
-              objectPosition: `${branding.footer.positionXPercent}% ${branding.footer.positionYPercent}%`,
-            }}
-          />
-        </div>
-      ) : null}
-    </article>
+          {showFooter ? (
+            <div className="document-brand-slot document-brand-slot-bottom">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={branding.footer.imageDataUrl}
+                alt="Document footer"
+                style={{
+                  objectFit: branding.footer.fit,
+                  objectPosition: `${branding.footer.positionXPercent}% ${branding.footer.positionYPercent}%`,
+                }}
+              />
+            </div>
+          ) : null}
+        </article>
+      ))}
+    </>
   );
 }
 
