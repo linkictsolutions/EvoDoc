@@ -1827,7 +1827,7 @@ tbody tr:hover {
 .bl-main-brand-copy .bl-subhead {
   align-self: flex-end;
   margin-top: 0.82rem;
-  margin-right: 2.1rem;
+  margin-right: calc(2.1rem + 8ch);
 }
 
 .bl-msc-logo-slot {

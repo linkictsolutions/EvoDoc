@@ -1572,7 +1572,7 @@ function billOfLadingPrintPages({ output, documentId }: Props): ReactNode[] {
             <td colSpan={5} className="bl-empty-cell bl-bill-type-cell">{billTypeLabel}</td>
           </tr>
           <tr>
-            <td colSpan={2} className="bl-meta-cell">
+            <td colSpan={3} className="bl-meta-cell">
               <div className="bl-meta-grid">
                 <div>
                   <div className="bl-meta-label">NO. ORIGINAL BILL</div>
@@ -1584,7 +1584,7 @@ function billOfLadingPrintPages({ output, documentId }: Props): ReactNode[] {
                 </div>
               </div>
             </td>
-            <td colSpan={3} className="bl-meta-cell">
+            <td colSpan={2} className="bl-meta-cell">
               <div className="bl-meta-label">NO. OF RIDER PAGES</div>
               <div className="bl-meta-values">{display(value(rows, "No. Rider Pages"))}</div>
             </td>
