@@ -387,10 +387,6 @@ export function BillOfLadingForm({
           <textarea className={dirtyControlClass("freightAndChargesText")} rows={4} {...register("freightAndChargesText")} />
         </label>
         <label className="span-all">
-          Cargo Marks Text
-          <textarea className={dirtyControlClass("cargoMarksText")} rows={4} {...register("cargoMarksText")} />
-        </label>
-        <label className="span-all">
           Description Override
           <textarea className={dirtyControlClass("descriptionOverride")} rows={5} {...register("descriptionOverride")} />
         </label>

@@ -30,6 +30,41 @@ function joinParts(parts: string[], separator = " "): string {
   return parts.map((part) => part.trim()).filter(Boolean).join(separator);
 }
 
+function dedupe(values: string[]): string[] {
+  return Array.from(new Set(values.filter(Boolean)));
+}
+
+function buildContainerSealMarks(args: {
+  bookings?: BookingsSheet;
+  staffingRows: StaffingFinalRow[];
+  fullMarking: string;
+}) {
+  const staffingPairs = args.staffingRows
+    .map((row) => ({
+      container: clean(row.containerNumber),
+      seals: dedupe([clean(row.sealNumber)]),
+    }))
+    .filter((entry) => entry.container || entry.seals.length > 0);
+
+  const bookingPairs = (args.bookings?.entries ?? [])
+    .map((entry) => ({
+      container: clean(entry.containerNumber),
+      seals: dedupe([clean(entry.sealNumber), clean(entry.secondSealNumber)]),
+    }))
+    .filter((entry) => entry.container || entry.seals.length > 0);
+
+  const sourcePairs = staffingPairs.length > 0 ? staffingPairs : bookingPairs;
+  const lines = sourcePairs.map((entry) => {
+    const parts = [
+      entry.container ? `Container No: ${entry.container}` : "",
+      entry.seals.length > 0 ? `Seal No: ${entry.seals.join(", ")}` : "",
+    ].filter(Boolean);
+    return parts.join(" | ");
+  }).filter(Boolean);
+
+  return [lines.join("\n"), args.fullMarking].filter(Boolean).join("\n\n");
+}
+
 function fallbackBillOfLading(
   value: BillOfLadingInfo | undefined,
 ): Required<Pick<BillOfLadingInfo, "billType" | "shipperReferenceType">> & BillOfLadingInfo {
@@ -106,6 +141,16 @@ function buildCargoDescription(args: {
   const icoPrefix = clean(args.companyConfiguration.icoReferencePrefix);
   const containerSummary = `${Math.max(1, parity.containerCount)} X 20 FT FCL/FCL`;
   const grossWeight = `${parity.grossWeightKg.toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 })}KG`;
+  const fullMarking = clean(finalFields.bagMarking) || joinParts([
+    clean(args.companyConfiguration.sellerName),
+    "PRODUCE OF ETHIOPIA",
+    clean(args.contract.terms.quality),
+    `CROP: ${clean(finalFields.cropYear)}`,
+    `COUNTRY OF ORIGIN: ${clean(finalFields.origin)}`,
+    certRange ? `CERT NO: ${certRange}` : "",
+    icoPrefix && certRange ? `ICO NO: ${icoPrefix}/${certRange}` : "",
+    `NET WEIGHT: ${clean(String(args.contract.terms.bagWeightKg))}KG`,
+  ], "\n");
   const description = clean(args.billOfLading.descriptionOverride) || joinParts([
     `${args.contract.terms.quantityBags} BAGS OF ${args.contract.terms.bagWeightKg} KGS NET`,
     clean(finalFields.description),
@@ -121,16 +166,11 @@ function buildCargoDescription(args: {
 
   return {
     description,
-    marks: clean(args.billOfLading.cargoMarksText) || joinParts([
-      clean(args.companyConfiguration.sellerName),
-      "PRODUCE OF ETHIOPIA",
-      clean(args.contract.terms.quality),
-      `CROP: ${clean(finalFields.cropYear)}`,
-      `COUNTRY OF ORIGIN: ${clean(finalFields.origin)}`,
-      certRange ? `CERT NO: ${certRange}` : "",
-      icoPrefix && certRange ? `ICO NO: ${icoPrefix}/${certRange}` : "",
-      `NET WEIGHT: ${clean(String(args.contract.terms.bagWeightKg))}KG`,
-    ], "\n"),
+    marks: buildContainerSealMarks({
+      bookings: args.bookings,
+      staffingRows: args.staffingRows,
+      fullMarking,
+    }),
     grossCargoWeight: grossWeight,
     measurement: clean(args.billOfLading.measurement),
     certRange,
