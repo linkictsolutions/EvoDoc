@@ -1821,11 +1821,12 @@ tbody tr:hover {
   font-size: 0.92rem;
   line-height: 1.05;
   letter-spacing: 0.01em;
+  white-space: nowrap;
 }
 
 .bl-main-brand-copy .bl-subhead {
   align-self: flex-end;
-  margin-top: 1.1rem;
+  margin-top: 0.82rem;
   margin-right: 2.1rem;
 }
 

@@ -1550,7 +1550,7 @@ function billOfLadingPrintPages({ output, documentId }: Props): ReactNode[] {
         </colgroup>
         <tbody>
           <tr>
-            <td colSpan={4} rowSpan={2} className="bl-header-cell bl-main-brand-cell">
+            <td colSpan={5} rowSpan={2} className="bl-header-cell bl-main-brand-cell">
               <div className="bl-main-brand-header">
                 <span className="bl-msc-logo-slot">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -1569,10 +1569,10 @@ function billOfLadingPrintPages({ output, documentId }: Props): ReactNode[] {
                 </div>
               </div>
             </td>
-            <td colSpan={6} className="bl-empty-cell bl-bill-type-cell">{billTypeLabel}</td>
+            <td colSpan={5} className="bl-empty-cell bl-bill-type-cell">{billTypeLabel}</td>
           </tr>
           <tr>
-            <td colSpan={3} className="bl-meta-cell">
+            <td colSpan={2} className="bl-meta-cell">
               <div className="bl-meta-grid">
                 <div>
                   <div className="bl-meta-label">NO. ORIGINAL BILL</div>
