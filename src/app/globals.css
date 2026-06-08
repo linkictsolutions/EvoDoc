@@ -2656,6 +2656,10 @@ tbody tr:hover {
 }
 
 @media print {
+  :root {
+    --print-page-inset: 4mm;
+  }
+
   @page {
     size: A4 portrait;
     margin: 0;
@@ -2709,8 +2713,8 @@ tbody tr:hover {
   }
 
   .document-print-page {
-    width: 210mm;
-    min-height: 297mm;
+    width: calc(210mm - (var(--print-page-inset) * 2));
+    min-height: calc(297mm - (var(--print-page-inset) * 2));
     margin: 0;
     padding: 0;
     display: block;
@@ -2718,9 +2722,9 @@ tbody tr:hover {
 
   .document-print-root {
     position: relative;
-    width: 210mm;
-    min-height: 297mm;
-    margin: 0;
+    width: calc(210mm - (var(--print-page-inset) * 2));
+    min-height: calc(297mm - (var(--print-page-inset) * 2));
+    margin: var(--print-page-inset) auto;
     inset: auto;
   }
 
@@ -2732,12 +2736,13 @@ tbody tr:hover {
   }
 
   .document-branded-page {
-    width: 210mm;
-    min-height: 297mm;
-    height: 297mm;
+    width: calc(210mm - (var(--print-page-inset) * 2));
+    min-height: calc(297mm - (var(--print-page-inset) * 2));
+    height: calc(297mm - (var(--print-page-inset) * 2));
     margin: 0;
     box-shadow: none;
     overflow: hidden;
+    box-sizing: border-box;
     break-inside: avoid-page;
     page-break-inside: avoid;
     break-after: auto;
@@ -2819,7 +2824,7 @@ tbody tr:hover {
     padding: 0.12rem;
     font-size: 0.68rem;
     line-height: 1.12;
-    min-height: calc(297mm - var(--brand-header-height, 0mm) - var(--brand-footer-height, 0mm));
+    min-height: calc(297mm - (var(--print-page-inset) * 2) - var(--brand-header-height, 0mm) - var(--brand-footer-height, 0mm));
     height: 100%;
   }
 
