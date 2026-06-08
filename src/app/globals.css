@@ -1897,8 +1897,12 @@ tbody tr:hover {
   font-weight: 400;
 }
 
+.bl-rider-page-title {
+  margin-top: 0.62rem;
+}
+
 .bl-rider-page-line {
-  margin-top: 0.18rem;
+  margin-top: 0.38rem;
   margin-left: 0.72rem;
   font-size: 0.58rem;
   line-height: 1.08;
@@ -2951,8 +2955,12 @@ tbody tr:hover {
     gap: 0.16rem;
   }
 
+  .bl-rider-page-title {
+    margin-top: 0.5rem;
+  }
+
   .bl-rider-page-line {
-    margin-top: 0.12rem;
+    margin-top: 0.32rem;
     margin-left: 0.56rem;
     font-size: 0.48rem;
   }

@@ -1512,7 +1512,7 @@ function billOfLadingRiderPages(output: DocumentOutputSnapshot): ReactNode[] {
                 <span className="bl-rider-meta-title">BILL OF LADING No.</span>
                 <span className="bl-rider-meta-value">{display(page["Bill of Lading No"])}</span>
               </div>
-              <div className="bl-rider-meta-title">RIDER PAGE</div>
+              <div className="bl-rider-meta-title bl-rider-page-title">RIDER PAGE</div>
               <div className="bl-rider-page-line">{riderPageText ? `Page ${riderPageText.toLowerCase()}` : ""}</div>
             </td>
           </tr>
