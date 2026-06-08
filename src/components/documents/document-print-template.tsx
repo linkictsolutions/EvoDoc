@@ -1541,9 +1541,9 @@ function billOfLadingPrintPages({ output, documentId }: Props): ReactNode[] {
           <col style={{ width: "10%" }} />
           <col style={{ width: "4%" }} />
           <col style={{ width: "16%" }} />
-          <col style={{ width: "10%" }} />
+          <col style={{ width: "7%" }} />
           <col style={{ width: "2%" }} />
-          <col style={{ width: "10%" }} />
+          <col style={{ width: "13%" }} />
           <col style={{ width: "6%" }} />
           <col style={{ width: "11%" }} />
           <col style={{ width: "11%" }} />
