@@ -1825,7 +1825,7 @@ tbody tr:hover {
   display: flex;
   align-items: baseline;
   justify-content: flex-start;
-  gap: 0.18rem;
+  gap: 0.28rem;
 }
 
 .bl-rider-meta-title {
@@ -1843,7 +1843,7 @@ tbody tr:hover {
 
 .bl-rider-page-line {
   margin-top: 0.18rem;
-  margin-left: 0.34rem;
+  margin-left: 0.56rem;
   font-size: 0.58rem;
   line-height: 1.08;
   font-weight: 400;
@@ -1955,13 +1955,15 @@ tbody tr:hover {
   width: 100%;
   min-height: 0;
   height: auto;
-  flex: 1 1 auto;
+  flex: 1 1 0;
 }
 
 .bl-rider-footer-table {
   width: 100%;
   margin-top: -1px;
-  flex: 0 0 auto;
+  min-height: 0 !important;
+  height: auto !important;
+  flex: 0 0 auto !important;
 }
 
 .bl-rider-side-value {
@@ -2890,12 +2892,12 @@ tbody tr:hover {
   }
 
   .bl-rider-meta-line {
-    gap: 0.12rem;
+    gap: 0.2rem;
   }
 
   .bl-rider-page-line {
     margin-top: 0.12rem;
-    margin-left: 0.24rem;
+    margin-left: 0.42rem;
     font-size: 0.48rem;
   }
 
