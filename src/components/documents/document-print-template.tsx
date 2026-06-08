@@ -1506,8 +1506,8 @@ function billOfLadingRiderPages(output: DocumentOutputSnapshot): ReactNode[] {
           <tr className="bl-goods-fill-row bl-rider-fill-row">
             <td>&nbsp;</td>
             <td colSpan={2} className="preserve-linebreaks">{display(page["Rider Description"])}</td>
-            <td>&nbsp;</td>
-            <td>&nbsp;</td>
+            <td className="bl-rider-side-value">{display(page["Gross Cargo Weight"])}</td>
+            <td className="bl-rider-side-value">{display(page["Measurement"])}</td>
           </tr>
           <tr>
             <td colSpan={2}><span className="bl-label-lite">PLACE AND DATE OF ISSUE</span><br /><span className="bl-field-value bl-field-value-spaced">{display(page["Place and Date of Issue"])}</span></td>

@@ -1760,6 +1760,9 @@ tbody tr:hover {
 .bl-table th {
   background: #fff;
   font-weight: 700;
+  box-shadow: none;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
 }
 
 .bl-table th.bl-column-heading {
@@ -1946,6 +1949,11 @@ tbody tr:hover {
   width: 100%;
   height: 100%;
   flex: 1 1 auto;
+}
+
+.bl-rider-side-value {
+  text-align: left;
+  white-space: pre-wrap;
 }
 
 .bl-goods-fill-row {
@@ -2829,6 +2837,8 @@ tbody tr:hover {
 
   .bl-rider-sheet {
     padding: 0.12rem;
+    min-height: calc(297mm - (var(--print-page-inset) * 2) - var(--brand-header-height, 0mm) - var(--brand-footer-height, 0mm));
+    height: 100%;
     box-sizing: border-box;
   }
 
