@@ -1544,7 +1544,7 @@ function billOfLadingRiderPages(output: DocumentOutputSnapshot): ReactNode[] {
   });
 }
 
-function billOfLadingPrintPages({ output, documentId }: Props): ReactNode[] {
+function billOfLadingPrintPages({ output }: Props): ReactNode[] {
   const rows = flattenRows(output);
   const billTypeLabel = display(value(rows, "Bill Type")) || "ORIGINAL BILL No.";
   const referenceType = display(value(rows, "Reference Type")) || "Shipper Ref.";
@@ -1691,8 +1691,6 @@ function billOfLadingPrintPages({ output, documentId }: Props): ReactNode[] {
           </tr>
         </tbody>
       </table>
-
-      <p className="permit-doc-id">Document ID: {documentId}</p>
     </article>,
     ...billOfLadingRiderPages(output),
   ];

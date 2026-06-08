@@ -2020,11 +2020,11 @@ tbody tr:hover {
 
 .bl-rider-footer-row,
 .bl-rider-footer-row td {
-  height: 2.1rem;
+  height: 2.7rem;
 }
 
 .bl-rider-footer-row td {
-  padding-bottom: 1.2rem;
+  padding-bottom: 1.65rem;
   vertical-align: top;
 }
 
@@ -2988,7 +2988,7 @@ tbody tr:hover {
   }
 
   .bl-rider-footer-row td {
-    padding-bottom: 1rem;
+    padding-bottom: 1.4rem;
   }
 
   .bl-freight-intro-cell {
