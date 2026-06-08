@@ -2024,6 +2024,7 @@ tbody tr:hover {
 }
 
 .bl-rider-footer-row td {
+  padding-bottom: 0.95rem;
   vertical-align: top;
 }
 
@@ -2984,6 +2985,10 @@ tbody tr:hover {
 
   .bl-field-value-spaced {
     margin-top: 0.2rem;
+  }
+
+  .bl-rider-footer-row td {
+    padding-bottom: 0.78rem;
   }
 
   .bl-freight-intro-cell {
