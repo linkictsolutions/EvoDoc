@@ -1817,7 +1817,7 @@ tbody tr:hover {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 0.8rem;
+  gap: 0.38rem;
 }
 
 .bl-rider-meta-title {
@@ -2816,11 +2816,16 @@ tbody tr:hover {
   }
 
   .bl-sheet {
-    padding: 0;
+    padding: 0.12rem;
     font-size: 0.68rem;
     line-height: 1.12;
     min-height: calc(297mm - var(--brand-header-height, 0mm) - var(--brand-footer-height, 0mm));
     height: 100%;
+  }
+
+  .bl-rider-sheet {
+    padding: 0.12rem;
+    box-sizing: border-box;
   }
 
   .bl-table th,
@@ -2849,7 +2854,7 @@ tbody tr:hover {
   }
 
   .bl-rider-meta-line {
-    gap: 0.5rem;
+    gap: 0.24rem;
   }
 
   .bl-rider-page-line {
