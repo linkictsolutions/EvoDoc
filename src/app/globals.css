@@ -2657,7 +2657,7 @@ tbody tr:hover {
 
 @media print {
   :root {
-    --print-page-inset: 4mm;
+    --print-page-inset: 6mm;
   }
 
   @page {
@@ -2667,9 +2667,9 @@ tbody tr:hover {
 
   html,
   body {
-    width: 210mm;
-    min-height: 297mm;
-    height: 297mm;
+    width: auto;
+    min-height: auto;
+    height: auto;
     background: #fff;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
@@ -2713,8 +2713,8 @@ tbody tr:hover {
   }
 
   .document-print-page {
-    width: calc(210mm - (var(--print-page-inset) * 2));
-    min-height: calc(297mm - (var(--print-page-inset) * 2));
+    width: auto;
+    min-height: auto;
     margin: 0;
     padding: 0;
     display: block;
@@ -2722,9 +2722,9 @@ tbody tr:hover {
 
   .document-print-root {
     position: relative;
-    width: calc(210mm - (var(--print-page-inset) * 2));
-    min-height: calc(297mm - (var(--print-page-inset) * 2));
-    margin: var(--print-page-inset) auto;
+    width: auto;
+    min-height: auto;
+    margin: 0;
     inset: auto;
   }
 
@@ -2739,7 +2739,7 @@ tbody tr:hover {
     width: calc(210mm - (var(--print-page-inset) * 2));
     min-height: calc(297mm - (var(--print-page-inset) * 2));
     height: calc(297mm - (var(--print-page-inset) * 2));
-    margin: 0;
+    margin: var(--print-page-inset) auto;
     box-shadow: none;
     overflow: hidden;
     box-sizing: border-box;
@@ -2816,8 +2816,7 @@ tbody tr:hover {
   }
 
   .permit-doc-id {
-    margin-top: 0.28rem;
-    font-size: 0.62rem;
+    display: none !important;
   }
 
   .bl-sheet {
