@@ -1476,7 +1476,7 @@ function BillOfLadingRiderPages({ output }: { output: DocumentOutputSnapshot }) 
   return (
     <>
       {grouped.map((page, index) => (
-        <article key={`bl-rider-${index + 1}`} className="print-sheet icc-sheet page-break-before">
+        <article key={`bl-rider-${index + 1}`} className="print-sheet bl-rider-sheet page-break-before">
           <table className="print-table icc-table">
             <tbody>
               <tr>

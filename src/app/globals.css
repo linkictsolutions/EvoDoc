@@ -1863,6 +1863,7 @@ tbody tr:hover {
 .bl-table td.bl-legal-cell {
   font-size: 0.46rem;
   line-height: 1.08;
+  padding-bottom: 1.1rem;
 }
 
 .bl-freight-block {
@@ -1878,11 +1879,24 @@ tbody tr:hover {
   padding-top: 0.08rem;
   margin-top: 0.08rem;
   border-top: 1px solid #2b2b2b;
+  margin-left: -0.18rem;
+  margin-right: -0.18rem;
+  padding-left: 0.18rem;
+  padding-right: 0.18rem;
 }
 
 .page-break-before {
   break-before: page;
   page-break-before: always;
+}
+
+.bl-rider-sheet {
+  width: min(980px, 100%);
+  margin: 0 auto;
+  break-before: page;
+  page-break-before: always;
+  break-inside: avoid;
+  page-break-inside: avoid;
 }
 
 .quality-certificate-sheet {
@@ -2806,6 +2820,7 @@ tbody tr:hover {
   .bl-table td.bl-legal-cell {
     font-size: 0.46rem;
     line-height: 1.04;
+    padding-bottom: 0.85rem;
   }
 
   .bl-freight-block {
@@ -2815,6 +2830,10 @@ tbody tr:hover {
   .bl-followup-cell {
     padding-top: 0.06rem;
     margin-top: 0.06rem;
+    margin-left: -0.12rem;
+    margin-right: -0.12rem;
+    padding-left: 0.12rem;
+    padding-right: 0.12rem;
   }
 
   .page-break-before {
