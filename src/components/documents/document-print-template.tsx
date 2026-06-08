@@ -1473,20 +1473,29 @@ function billOfLadingRiderPages(output: DocumentOutputSnapshot): ReactNode[] {
     return [];
   }
 
-  return grouped.map((page, index) => (
+  return grouped.map((page, index) => {
+    const riderPageText = display(page["Rider Page Label"]).replace(/^RIDER PAGE\s*/i, "").trim();
+
+    return (
     <article key={`bl-rider-${index + 1}`} className="print-sheet bl-rider-sheet">
-      <table className="print-table icc-table bl-rider-table">
+      <table className="print-table bl-table bl-rider-table">
         <tbody>
           <tr>
-            <td colSpan={3}><strong>MEDITERRANEAN SHIPPING COMPANY S.A.</strong><br />SCAC Code: MSCU</td>
-            <td colSpan={2} className="table-align-right">
-              <strong>BILL OF LADING No.</strong><br />
-              {display(page["Bill of Lading No"])}<br />
-              {display(page["Rider Page Label"])}
+            <td colSpan={3} className="bl-header-cell">
+              <strong>MEDITERRANEAN SHIPPING COMPANY S.A.</strong><br />
+              <span className="bl-subhead">SCAC Code: MSCU</span>
+            </td>
+            <td colSpan={2} className="bl-rider-meta-cell">
+              <div className="bl-rider-meta-line">
+                <span className="bl-rider-meta-title">BILL OF LADING No.</span>
+                <span className="bl-rider-meta-value">{display(page["Bill of Lading No"])}</span>
+              </div>
+              <div className="bl-rider-meta-title">RIDER PAGE</div>
+              <div className="bl-rider-page-line">{riderPageText ? `Page ${riderPageText.toLowerCase()}` : ""}</div>
             </td>
           </tr>
           <tr>
-            <td colSpan={5}><strong>PARTICULARS FURNISHED BY THE SHIPPER – NOT CHECKED BY CARRIER – CARRIER NOT RESPONSIBLE (see Clause 14)</strong></td>
+            <td colSpan={5} className="bl-banner-cell"><strong>PARTICULARS FURNISHED BY THE SHIPPER – NOT CHECKED BY CARRIER – CARRIER NOT RESPONSIBLE (see Clause 14)</strong></td>
           </tr>
           <tr>
             <th className="bl-column-heading">Container Numbers, Seal Numbers and Marks</th>
@@ -1508,7 +1517,8 @@ function billOfLadingRiderPages(output: DocumentOutputSnapshot): ReactNode[] {
         </tbody>
       </table>
     </article>
-  ));
+    );
+  });
 }
 
 function billOfLadingPrintPages({ output, documentId }: Props): ReactNode[] {

@@ -1808,6 +1808,38 @@ tbody tr:hover {
   font-weight: 400;
 }
 
+.bl-rider-meta-cell {
+  text-align: left;
+  vertical-align: top;
+}
+
+.bl-rider-meta-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.bl-rider-meta-title {
+  display: block;
+  font-size: 0.72rem;
+  line-height: 1.08;
+  font-weight: 700;
+}
+
+.bl-rider-meta-value {
+  font-size: 0.72rem;
+  line-height: 1.08;
+  font-weight: 400;
+}
+
+.bl-rider-page-line {
+  margin-top: 0.18rem;
+  font-size: 0.58rem;
+  line-height: 1.08;
+  font-weight: 400;
+}
+
 .bl-empty-cell {
   background: #fff;
 }
@@ -2809,6 +2841,20 @@ tbody tr:hover {
 
   .bl-bill-type-cell {
     font-size: 0.6rem;
+  }
+
+  .bl-rider-meta-title,
+  .bl-rider-meta-value {
+    font-size: 0.6rem;
+  }
+
+  .bl-rider-meta-line {
+    gap: 0.5rem;
+  }
+
+  .bl-rider-page-line {
+    margin-top: 0.12rem;
+    font-size: 0.48rem;
   }
 
   .bl-meta-label,
