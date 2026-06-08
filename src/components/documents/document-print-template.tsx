@@ -1517,22 +1517,13 @@ function billOfLadingRiderPages(output: DocumentOutputSnapshot): ReactNode[] {
             <td className="bl-rider-side-value">{display(page["Measurement"])}</td>
           </tr>
         </tbody>
-      </table>
-      <table className="print-table bl-table bl-rider-footer-table">
-        <colgroup>
-          <col style={{ width: "20%" }} />
-          <col style={{ width: "24%" }} />
-          <col style={{ width: "24%" }} />
-          <col style={{ width: "16%" }} />
-          <col style={{ width: "16%" }} />
-        </colgroup>
-        <tbody>
+        <tfoot>
           <tr>
             <td colSpan={2}><span className="bl-label-lite">PLACE AND DATE OF ISSUE</span><br /><span className="bl-field-value bl-field-value-spaced">{display(page["Place and Date of Issue"])}</span></td>
             <td><span className="bl-label-lite">SHIPPED ON BOARD DATE</span><br /><span className="bl-field-value bl-field-value-spaced">{display(page["Shipped on Board Date"])}</span></td>
             <td colSpan={2}><span className="bl-label-lite">SIGNED on behalf of the Carrier MSC Mediterranean Shipping Company S.A.</span></td>
           </tr>
-        </tbody>
+        </tfoot>
       </table>
     </article>
     );
