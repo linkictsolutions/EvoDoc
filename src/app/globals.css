@@ -1623,6 +1623,7 @@ tbody tr:hover {
 .document-branded-content {
   padding-top: var(--brand-header-height, 0mm);
   padding-bottom: var(--brand-footer-height, 0mm);
+  box-sizing: border-box;
 }
 
 .document-brand-slot {
@@ -1765,12 +1766,16 @@ tbody tr:hover {
   print-color-adjust: exact;
 }
 
-.bl-table th.bl-column-heading {
+.bl-table .bl-column-heading {
   font-size: 0.56rem;
   font-weight: 700;
   line-height: 1.08;
   text-align: center;
   vertical-align: middle;
+  background: #fff !important;
+  box-shadow: none !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
 }
 
 .bl-table strong {
@@ -2773,7 +2778,8 @@ tbody tr:hover {
 
   .document-branded-content {
     height: 100%;
-    overflow: hidden;
+    overflow: visible;
+    box-sizing: border-box;
   }
 
   .icc-sheet {
@@ -2892,7 +2898,7 @@ tbody tr:hover {
     font-size: 0.46rem;
   }
 
-  .bl-table th.bl-column-heading {
+  .bl-table .bl-column-heading {
     font-size: 0.4rem;
     font-weight: 700;
   }

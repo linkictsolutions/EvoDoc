@@ -1625,16 +1625,16 @@ function billOfLadingPrintPages({ output, documentId }: Props): ReactNode[] {
             <td colSpan={10} className="bl-banner-cell"><strong>PARTICULARS FURNISHED BY THE SHIPPER – NOT CHECKED BY CARRIER – CARRIER NOT RESPONSIBLE (see Clause 14)</strong></td>
           </tr>
           <tr>
-            <th colSpan={1} className="bl-column-heading">Container Numbers, Seal Numbers and Marks</th>
-            <th colSpan={7} className="bl-column-heading">Description of Packages and Goods<br /><span className="bl-clause-note">(Continued on attached Bill of Lading Rider page(s), if applicable)</span></th>
-            <th colSpan={1} className="bl-column-heading">Gross Cargo Weight</th>
-            <th colSpan={1} className="bl-column-heading">Measurement</th>
+            <td colSpan={1} className="bl-column-heading bl-rider-heading-cell">Container Numbers, Seal Numbers and Marks</td>
+            <td colSpan={7} className="bl-column-heading bl-rider-heading-cell">Description of Packages and Goods<br /><span className="bl-clause-note">(Continued on attached Bill of Lading Rider page(s), if applicable)</span></td>
+            <td colSpan={1} className="bl-column-heading bl-rider-heading-cell">Gross Cargo Weight</td>
+            <td colSpan={1} className="bl-column-heading bl-rider-heading-cell">Measurement</td>
           </tr>
           <tr className="bl-goods-fill-row">
             <td colSpan={1} className="preserve-linebreaks bl-cargo-marks">{display(value(rows, "Container Numbers, Seal Numbers and Marks"))}</td>
             <td colSpan={7} className="preserve-linebreaks bl-cargo-description">{display(value(rows, "Description of Packages and Goods"))}</td>
-            <td colSpan={1} className="bl-number-cell">{display(value(rows, "Gross Cargo Weight"))}</td>
-            <td colSpan={1} className="bl-number-cell">{display(value(rows, "Measurement"))}</td>
+            <td colSpan={1} className="bl-rider-side-value">{display(value(rows, "Gross Cargo Weight"))}</td>
+            <td colSpan={1} className="bl-rider-side-value">{display(value(rows, "Measurement"))}</td>
           </tr>
           <tr>
             <td colSpan={5} className="preserve-linebreaks bl-freight-block">
