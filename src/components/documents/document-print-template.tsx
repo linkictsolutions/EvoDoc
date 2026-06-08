@@ -1482,9 +1482,9 @@ function billOfLadingRiderPages(output: DocumentOutputSnapshot): ReactNode[] {
         <colgroup>
           <col style={{ width: "20%" }} />
           <col style={{ width: "18%" }} />
-          <col style={{ width: "19%" }} />
-          <col style={{ width: "21%" }} />
-          <col style={{ width: "22%" }} />
+          <col style={{ width: "36.2%" }} />
+          <col style={{ width: "12.6%" }} />
+          <col style={{ width: "13.2%" }} />
         </colgroup>
         <tbody>
           <tr>

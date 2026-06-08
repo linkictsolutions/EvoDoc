@@ -1886,7 +1886,7 @@ tbody tr:hover {
 
 .bl-rider-meta-title {
   display: block;
-  font-size: 0.72rem;
+  font-size: 0.92rem;
   line-height: 1.08;
   font-weight: 700;
 }
@@ -2016,7 +2016,11 @@ tbody tr:hover {
 
 .bl-rider-footer-row,
 .bl-rider-footer-row td {
-  height: auto;
+  height: 1.45rem;
+}
+
+.bl-rider-footer-row td {
+  vertical-align: top;
 }
 
 .bl-rider-side-value {
@@ -2939,7 +2943,6 @@ tbody tr:hover {
     font-size: 0.6rem;
   }
 
-  .bl-rider-meta-title,
   .bl-rider-meta-value {
     font-size: 0.6rem;
   }
