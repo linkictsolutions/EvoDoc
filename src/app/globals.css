@@ -1795,6 +1795,24 @@ tbody tr:hover {
   print-color-adjust: exact;
 }
 
+.bl-rider-brand-cell {
+  background: #fff;
+  padding: 0.18rem 0.3rem;
+}
+
+.bl-rider-brand-cell .bl-main-brand-header {
+  min-height: 3.1rem;
+}
+
+.bl-rider-brand-cell .bl-main-brand-copy strong {
+  font-size: 0.72rem;
+}
+
+.bl-rider-brand-cell .bl-main-brand-copy .bl-subhead {
+  margin-top: 0.46rem;
+  margin-right: calc(1.2rem + 8ch);
+}
+
 .bl-main-brand-header {
   display: flex;
   align-items: center;

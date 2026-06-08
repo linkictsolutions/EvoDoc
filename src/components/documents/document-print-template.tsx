@@ -1481,16 +1481,31 @@ function billOfLadingRiderPages(output: DocumentOutputSnapshot): ReactNode[] {
       <table className="print-table bl-table bl-rider-table">
         <colgroup>
           <col style={{ width: "20%" }} />
-          <col style={{ width: "24%" }} />
-          <col style={{ width: "24%" }} />
           <col style={{ width: "16%" }} />
           <col style={{ width: "16%" }} />
+          <col style={{ width: "24%" }} />
+          <col style={{ width: "24%" }} />
         </colgroup>
         <tbody>
           <tr>
-            <td colSpan={3} className="bl-header-cell">
-              <strong>MEDITERRANEAN SHIPPING COMPANY S.A.</strong><br />
-              <span className="bl-subhead">SCAC Code: MSCU</span>
+            <td colSpan={3} className="bl-header-cell bl-main-brand-cell bl-rider-brand-cell">
+              <div className="bl-main-brand-header">
+                <span className="bl-msc-logo-slot">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/msc-logo.png"
+                    alt="MSC logo"
+                    className="bl-msc-logo"
+                    onError={(event) => {
+                      event.currentTarget.style.visibility = "hidden";
+                    }}
+                  />
+                </span>
+                <div className="bl-main-brand-copy">
+                  <strong>MEDITERRANEAN SHIPPING COMPANY S.A.</strong>
+                  <span className="bl-subhead">SCAC Code: MSCU</span>
+                </div>
+              </div>
             </td>
             <td colSpan={2} className="bl-rider-meta-cell">
               <div className="bl-rider-meta-line">
