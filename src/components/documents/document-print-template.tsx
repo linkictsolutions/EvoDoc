@@ -1475,7 +1475,7 @@ function billOfLadingRiderPages(output: DocumentOutputSnapshot): ReactNode[] {
 
   return grouped.map((page, index) => (
     <article key={`bl-rider-${index + 1}`} className="print-sheet bl-rider-sheet">
-      <table className="print-table icc-table">
+      <table className="print-table icc-table bl-rider-table">
         <tbody>
           <tr>
             <td colSpan={3}><strong>MEDITERRANEAN SHIPPING COMPANY S.A.</strong><br />SCAC Code: MSCU</td>
@@ -1494,7 +1494,7 @@ function billOfLadingRiderPages(output: DocumentOutputSnapshot): ReactNode[] {
             <th className="bl-column-heading">Gross Cargo Weight</th>
             <th className="bl-column-heading">Measurement</th>
           </tr>
-          <tr>
+          <tr className="bl-goods-fill-row bl-rider-fill-row">
             <td>&nbsp;</td>
             <td colSpan={2} className="preserve-linebreaks">{display(page["Rider Description"])}</td>
             <td>&nbsp;</td>
@@ -1620,7 +1620,7 @@ function billOfLadingPrintPages({ output, documentId }: Props): ReactNode[] {
             <th colSpan={1} className="bl-column-heading">Gross Cargo Weight</th>
             <th colSpan={1} className="bl-column-heading">Measurement</th>
           </tr>
-          <tr>
+          <tr className="bl-goods-fill-row">
             <td colSpan={1} className="preserve-linebreaks bl-cargo-marks">{display(value(rows, "Container Numbers, Seal Numbers and Marks"))}</td>
             <td colSpan={7} className="preserve-linebreaks bl-cargo-description">{display(value(rows, "Description of Packages and Goods"))}</td>
             <td colSpan={1} className="bl-number-cell">{display(value(rows, "Gross Cargo Weight"))}</td>
