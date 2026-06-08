@@ -1479,6 +1479,13 @@ function billOfLadingRiderPages(output: DocumentOutputSnapshot): ReactNode[] {
     return (
     <article key={`bl-rider-${index + 1}`} className="print-sheet bl-rider-sheet">
       <table className="print-table bl-table bl-rider-table">
+        <colgroup>
+          <col style={{ width: "20%" }} />
+          <col style={{ width: "24%" }} />
+          <col style={{ width: "24%" }} />
+          <col style={{ width: "16%" }} />
+          <col style={{ width: "16%" }} />
+        </colgroup>
         <tbody>
           <tr>
             <td colSpan={3} className="bl-header-cell">
@@ -1509,6 +1516,17 @@ function billOfLadingRiderPages(output: DocumentOutputSnapshot): ReactNode[] {
             <td className="bl-rider-side-value">{display(page["Gross Cargo Weight"])}</td>
             <td className="bl-rider-side-value">{display(page["Measurement"])}</td>
           </tr>
+        </tbody>
+      </table>
+      <table className="print-table bl-table bl-rider-footer-table">
+        <colgroup>
+          <col style={{ width: "20%" }} />
+          <col style={{ width: "24%" }} />
+          <col style={{ width: "24%" }} />
+          <col style={{ width: "16%" }} />
+          <col style={{ width: "16%" }} />
+        </colgroup>
+        <tbody>
           <tr>
             <td colSpan={2}><span className="bl-label-lite">PLACE AND DATE OF ISSUE</span><br /><span className="bl-field-value bl-field-value-spaced">{display(page["Place and Date of Issue"])}</span></td>
             <td><span className="bl-label-lite">SHIPPED ON BOARD DATE</span><br /><span className="bl-field-value bl-field-value-spaced">{display(page["Shipped on Board Date"])}</span></td>
