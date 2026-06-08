@@ -1630,7 +1630,7 @@ function BillOfLadingPrintView({ output, documentId }: Props) {
             <td colSpan={1} className="bl-number-cell">{display(value(rows, "Measurement"))}</td>
           </tr>
           <tr>
-            <td colSpan={5}><span className="bl-label-lite">FREIGHT &amp; CHARGES</span> <span className="bl-clause-text">Cargo shall not be delivered unless Freight &amp; Charges are paid (see Clause 16)</span></td>
+            <td colSpan={5} className="bl-freight-intro-cell"><span className="bl-label-lite">FREIGHT &amp; CHARGES</span> <span className="bl-clause-text">Cargo shall not be delivered unless Freight &amp; Charges are paid (see Clause 16)</span></td>
             <td colSpan={5} rowSpan={2} className="preserve-linebreaks bl-legal-cell">{display(value(rows, "Legal Text"))}</td>
           </tr>
           <tr>

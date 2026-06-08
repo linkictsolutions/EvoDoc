@@ -1827,7 +1827,7 @@ tbody tr:hover {
 }
 
 .bl-field-value-spaced {
-  margin-top: 0.16rem;
+  margin-top: 0.26rem;
 }
 
 .bl-cargo-marks,
@@ -1847,8 +1847,12 @@ tbody tr:hover {
   line-height: 1.08;
 }
 
+.bl-freight-intro-cell {
+  padding-bottom: 0.02rem;
+}
+
 .bl-followup-cell {
-  padding-top: 0.02rem;
+  padding-top: 0;
 }
 
 .page-break-before {
@@ -2753,7 +2757,11 @@ tbody tr:hover {
   }
 
   .bl-field-value-spaced {
-    margin-top: 0.12rem;
+    margin-top: 0.2rem;
+  }
+
+  .bl-freight-intro-cell {
+    padding-bottom: 0;
   }
 
   .bl-cargo-marks,
