@@ -1481,10 +1481,10 @@ function billOfLadingRiderPages(output: DocumentOutputSnapshot): ReactNode[] {
       <table className="print-table bl-table bl-rider-table">
         <colgroup>
           <col style={{ width: "20%" }} />
-          <col style={{ width: "16%" }} />
-          <col style={{ width: "16%" }} />
-          <col style={{ width: "24%" }} />
-          <col style={{ width: "24%" }} />
+          <col style={{ width: "18%" }} />
+          <col style={{ width: "19%" }} />
+          <col style={{ width: "21%" }} />
+          <col style={{ width: "22%" }} />
         </colgroup>
         <tbody>
           <tr>
