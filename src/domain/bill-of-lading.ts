@@ -286,7 +286,9 @@ export function buildBillOfLadingSample(args: {
       noOfRiderPages: String(riderPages.length),
       billNo: clean(bill.billNo) || clean(args.bookings?.billOfLadingNumber),
       referenceType: bill.shipperReferenceType,
-      referenceValue: clean(bill.shipperReferenceValue) || clean(args.bookings?.bookingNumber),
+      referenceValue: bill.shipperReferenceType === "Booking Ref"
+        ? clean(args.bookings?.bookingNumber) || clean(bill.shipperReferenceValue)
+        : clean(bill.shipperReferenceValue) || clean(args.bookings?.bookingNumber),
     },
     parties: {
       shipper: joinParts([clean(companyConfiguration.sellerName), clean(companyConfiguration.sellerAddress)], "\n"),

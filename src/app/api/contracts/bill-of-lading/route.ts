@@ -6,10 +6,12 @@ import { fail, getRequestId, ok } from "@/lib/api/response";
 import {
   appendAuditLog,
   getContract,
+  getContractSourceInput,
   resolveContractId,
   upsertContract,
   upsertContractSourceInput,
 } from "@/lib/repositories/firestore-repository";
+import type { AttachmentRef } from "@/types/models";
 
 export async function POST(request: NextRequest) {
   const requestId = getRequestId();
@@ -21,6 +23,20 @@ export async function POST(request: NextRequest) {
     const normalized = validateAndNormalizeBillOfLadingPayload(body);
     const resolvedContractId = await resolveContractId(parsed.orgId, parsed.contractId);
     const existing = await getContract(parsed.orgId, resolvedContractId);
+    let preservedAttachments: AttachmentRef[] = parsed.attachments ?? [];
+
+    if (parsed.attachments === undefined) {
+      try {
+        const existingSource = await getContractSourceInput<{ attachments?: AttachmentRef[] }>(
+          parsed.orgId,
+          resolvedContractId,
+          "bill_of_lading_sheet",
+        );
+        preservedAttachments = Array.isArray(existingSource.payload?.attachments) ? existingSource.payload.attachments : [];
+      } catch {
+        preservedAttachments = [];
+      }
+    }
 
     const mergedBillOfLading = {
       ...existing.billOfLading,
@@ -52,7 +68,7 @@ export async function POST(request: NextRequest) {
       "bill_of_lading_sheet",
       {
         ...normalized.billOfLading,
-        attachments: parsed.attachments ?? [],
+        attachments: preservedAttachments,
       },
       actor.uid,
       requestId,

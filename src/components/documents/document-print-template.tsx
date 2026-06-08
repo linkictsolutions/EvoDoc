@@ -1518,6 +1518,7 @@ function BillOfLadingRiderPages({ output }: { output: DocumentOutputSnapshot }) 
 function BillOfLadingPrintView({ output, documentId }: Props) {
   const rows = flattenRows(output);
   const billType = display(value(rows, "Bill Type")).replace(/\s+No\.\s*$/i, "").trim() || "ORIGINAL BILL";
+  const referenceType = display(value(rows, "Reference Type")) || "Shipper Ref.";
 
   return (
     <article className="print-sheet bl-sheet">
@@ -1605,7 +1606,7 @@ function BillOfLadingPrintView({ output, documentId }: Props) {
             </td>
           </tr>
           <tr>
-            <td colSpan={3}><span className="bl-label-lite">VESSEL &amp; VOYAGE NO. </span><span className="bl-clause-text">(see Clauses 8 &amp; 9)</span></td>
+            <td colSpan={3}><span className="bl-label-lite">{referenceType}</span></td>
             <td colSpan={3}><span className="bl-label-lite">PORT OF LOADING</span></td>
             <td colSpan={4}><span className="bl-label-lite">PLACE OF RECEIPT: </span><span className="bl-clause-text">(Combined Transport ONLY – see Clauses 1 &amp; 5.2)</span></td>
           </tr>
@@ -1630,11 +1631,11 @@ function BillOfLadingPrintView({ output, documentId }: Props) {
             <td colSpan={1} className="bl-number-cell">{display(value(rows, "Measurement"))}</td>
           </tr>
           <tr>
-            <td colSpan={5} className="bl-freight-intro-cell"><span className="bl-label-lite">FREIGHT &amp; CHARGES</span> <span className="bl-clause-text">Cargo shall not be delivered unless Freight &amp; Charges are paid (see Clause 16)</span></td>
-            <td colSpan={5} rowSpan={2} className="preserve-linebreaks bl-legal-cell">{display(value(rows, "Legal Text"))}</td>
-          </tr>
-          <tr>
-            <td colSpan={5} className="preserve-linebreaks bl-followup-cell">{display(value(rows, "Freight & Charges"))}</td>
+            <td colSpan={5} className="preserve-linebreaks bl-freight-block">
+              <div className="bl-freight-intro-cell"><span className="bl-label-lite">FREIGHT &amp; CHARGES</span> <span className="bl-clause-text">Cargo shall not be delivered unless Freight &amp; Charges are paid (see Clause 16)</span></div>
+              <div className="bl-followup-cell">{display(value(rows, "Freight & Charges"))}</div>
+            </td>
+            <td colSpan={5} className="preserve-linebreaks bl-legal-cell">{display(value(rows, "Legal Text"))}</td>
           </tr>
           <tr>
             <td colSpan={2}><span className="bl-label-lite">DECLARED VALUE</span> <span className="bl-clause-text">(only applicable if Ad Valorem charges paid – see Clause 7.3)</span><br /><span className="bl-field-value bl-field-value-spaced">{display(value(rows, "Declared Value"))}</span></td>

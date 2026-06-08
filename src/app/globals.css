@@ -1594,6 +1594,18 @@ tbody tr:hover {
   gap: 1rem;
 }
 
+.print-preview-bill-controls {
+  display: flex;
+  gap: 0.75rem;
+  align-items: end;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
+
+.print-preview-bill-controls label {
+  min-width: 13rem;
+}
+
 .document-print-root {
   width: min(980px, 100%);
   margin: 0 auto;
@@ -1847,12 +1859,17 @@ tbody tr:hover {
   line-height: 1.08;
 }
 
+.bl-freight-block {
+  padding-top: 0.08rem;
+  vertical-align: top;
+}
+
 .bl-freight-intro-cell {
-  padding-bottom: 0.02rem;
+  padding-bottom: 0;
 }
 
 .bl-followup-cell {
-  padding-top: 0;
+  padding-top: 0.04rem;
 }
 
 .page-break-before {
@@ -2777,6 +2794,10 @@ tbody tr:hover {
   .bl-table td.bl-legal-cell {
     font-size: 0.46rem;
     line-height: 1.04;
+  }
+
+  .bl-freight-block {
+    padding-top: 0.04rem;
   }
 
   .bl-followup-cell {
