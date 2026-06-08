@@ -1743,7 +1743,7 @@ tbody tr:hover {
   font-weight: 700;
 }
 
-.bl-column-heading {
+.bl-table th.bl-column-heading {
   font-size: 0.56rem;
   line-height: 1.08;
   font-weight: 400;
@@ -1776,12 +1776,14 @@ tbody tr:hover {
 }
 
 .bl-meta-label {
+  display: block;
   font-size: 0.52rem;
   line-height: 1.05;
   font-weight: 400;
 }
 
 .bl-meta-values {
+  display: block;
   margin-top: 0.12rem;
   font-size: 0.7rem;
   font-weight: 400;
@@ -1797,6 +1799,7 @@ tbody tr:hover {
 }
 
 .bl-label-lite {
+  display: block;
   font-size: 0.56rem;
   line-height: 1.1;
   font-weight: 400;
@@ -1817,13 +1820,14 @@ tbody tr:hover {
 }
 
 .bl-field-value {
+  display: block;
   font-size: 0.7rem;
   line-height: 1.14;
   font-weight: 400;
 }
 
 .bl-field-value-spaced {
-  margin-top: 0.42rem;
+  margin-top: 0.48rem;
 }
 
 .bl-cargo-marks,
@@ -1838,8 +1842,8 @@ tbody tr:hover {
   white-space: nowrap;
 }
 
-.bl-legal-cell {
-  font-size: 0.56rem;
+.bl-table td.bl-legal-cell {
+  font-size: 0.46rem;
   line-height: 1.08;
 }
 
@@ -2730,9 +2734,12 @@ tbody tr:hover {
   .bl-meta-label,
   .bl-label-lite,
   .bl-clause-text,
-  .bl-clause-note,
-  .bl-column-heading {
+  .bl-clause-note {
     font-size: 0.46rem;
+  }
+
+  .bl-table th.bl-column-heading {
+    font-size: 0.4rem;
   }
 
   .bl-meta-values,
@@ -2741,7 +2748,7 @@ tbody tr:hover {
   }
 
   .bl-field-value-spaced {
-    margin-top: 0.28rem;
+    margin-top: 0.36rem;
   }
 
   .bl-cargo-marks,
@@ -2754,7 +2761,7 @@ tbody tr:hover {
     font-size: 0.55rem;
   }
 
-  .bl-legal-cell {
+  .bl-table td.bl-legal-cell {
     font-size: 0.46rem;
     line-height: 1.04;
   }
