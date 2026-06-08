@@ -1517,7 +1517,7 @@ function BillOfLadingRiderPages({ output }: { output: DocumentOutputSnapshot }) 
 
 function BillOfLadingPrintView({ output, documentId }: Props) {
   const rows = flattenRows(output);
-  const billType = display(value(rows, "Bill Type")).replace(/\s+No\.\s*$/i, "").trim() || "ORIGINAL BILL";
+  const billTypeLabel = display(value(rows, "Bill Type")) || "ORIGINAL BILL No.";
   const referenceType = display(value(rows, "Reference Type")) || "Shipper Ref.";
 
   return (
@@ -1542,13 +1542,13 @@ function BillOfLadingPrintView({ output, documentId }: Props) {
               <br />
               <span className="bl-subhead">SCAC Code: MSCU</span>
             </td>
-            <td colSpan={6} className="bl-empty-cell">&nbsp;</td>
+            <td colSpan={6} className="bl-empty-cell bl-bill-type-cell">{billTypeLabel}</td>
           </tr>
           <tr>
             <td colSpan={3} className="bl-meta-cell">
               <div className="bl-meta-grid">
                 <div>
-                  <div className="bl-meta-label">NO. {billType}</div>
+                  <div className="bl-meta-label">NO. ORIGINAL BILL</div>
                   <div className="bl-meta-values">{display(value(rows, "Bill No"))}</div>
                 </div>
                 <div>
@@ -1606,12 +1606,12 @@ function BillOfLadingPrintView({ output, documentId }: Props) {
             </td>
           </tr>
           <tr>
-            <td colSpan={3}><span className="bl-label-lite">{referenceType}</span></td>
+            <td colSpan={3}><span className="bl-label-lite">VESSEL &amp; VOYAGE NO. </span><span className="bl-clause-text">(see Clauses 8 &amp; 9)</span></td>
             <td colSpan={3}><span className="bl-label-lite">PORT OF LOADING</span></td>
             <td colSpan={4}><span className="bl-label-lite">PLACE OF RECEIPT: </span><span className="bl-clause-text">(Combined Transport ONLY – see Clauses 1 &amp; 5.2)</span></td>
           </tr>
           <tr>
-            <td colSpan={3}><span className="bl-field-value bl-field-value-spaced">{display(value(rows, "Reference Value"))}</span></td>
+            <td colSpan={3}><span className="bl-label-lite">{referenceType}</span><br /><span className="bl-field-value bl-field-value-spaced">{display(value(rows, "Reference Value"))}</span></td>
             <td colSpan={3}><span className="bl-label-lite">PORT OF DISCHARGE </span><br /><span className="bl-field-value bl-field-value-spaced">{display(value(rows, "Port of Discharge"))}</span></td>
             <td colSpan={4}><span className="bl-label-lite">PLACE OF DELIVERY: </span><span className="bl-clause-text">(Combined Transport ONLY – see Clauses 1 &amp; 5.2)</span><br /><span className="bl-field-value bl-field-value-spaced">{display(value(rows, "Place of Delivery"))}</span></td>
           </tr>

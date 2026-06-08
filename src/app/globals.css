@@ -1805,6 +1805,12 @@ tbody tr:hover {
   background: #fff;
 }
 
+.bl-bill-type-cell {
+  font-size: 0.72rem;
+  font-weight: 400;
+  vertical-align: middle;
+}
+
 .bl-banner-cell {
   text-align: center;
   font-size: 0.68rem;
@@ -1869,7 +1875,9 @@ tbody tr:hover {
 }
 
 .bl-followup-cell {
-  padding-top: 0.04rem;
+  padding-top: 0.08rem;
+  margin-top: 0.08rem;
+  border-top: 1px solid #2b2b2b;
 }
 
 .page-break-before {
@@ -2756,6 +2764,10 @@ tbody tr:hover {
     font-size: 0.56rem;
   }
 
+  .bl-bill-type-cell {
+    font-size: 0.6rem;
+  }
+
   .bl-meta-label,
   .bl-label-lite,
   .bl-clause-text,
@@ -2801,7 +2813,8 @@ tbody tr:hover {
   }
 
   .bl-followup-cell {
-    padding-top: 0;
+    padding-top: 0.06rem;
+    margin-top: 0.06rem;
   }
 
   .page-break-before {
