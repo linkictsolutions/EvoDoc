@@ -45,10 +45,10 @@ const sections: NavSection[] = [
       },
       {
         href: "/app/documents",
-        label: "Reports",
-        description: "Preview generated outputs and reports.",
-        short: "RP",
-        glyph: "R",
+        label: "Documents",
+        description: "Find generated document work by contract.",
+        short: "DC",
+        glyph: "D",
         matchPrefix: "/app/documents",
       },
     ],
@@ -84,140 +84,12 @@ const sections: NavSection[] = [
   },
 ];
 
-function buildContractSections(contractId: string): NavSection[] {
-  return [
-    {
-      title: "Contract",
-      items: [
-        {
-          href: "/app/contracts",
-          label: "All Contracts",
-          description: "Return to contract registry.",
-          short: "LS",
-          glyph: "L",
-          matchPrefix: "/app/contracts",
-          exact: true,
-        },
-        {
-          href: `/app/contracts/${contractId}`,
-          label: "Overview",
-          description: "Snapshot, progress, and next actions.",
-          short: "OV",
-          glyph: "O",
-          matchPrefix: `/app/contracts/${contractId}`,
-          exact: true,
-        },
-        {
-          href: `/app/contracts/${contractId}/activity`,
-          label: "Activity",
-          description: "Audit trail and workflow history.",
-          short: "AC",
-          glyph: "A",
-          matchPrefix: `/app/contracts/${contractId}/activity`,
-        },
-      ],
-    },
-    {
-      title: "Source Documents",
-      items: [
-        {
-          href: `/app/contracts/${contractId}/inputs/contract`,
-          label: "Contract",
-          description: "Commercial terms and pricing.",
-          short: "CT",
-          glyph: "C",
-          matchPrefix: `/app/contracts/${contractId}/inputs/contract`,
-        },
-        {
-          href: `/app/contracts/${contractId}/inputs/shipping-instruction`,
-          label: "Shipping",
-          description: "Route and party instructions.",
-          short: "SI",
-          glyph: "S",
-          matchPrefix: `/app/contracts/${contractId}/inputs/shipping-instruction`,
-        },
-        {
-          href: `/app/contracts/${contractId}/inputs/bank-lc`,
-          label: "Bank & LC",
-          description: "LC and bank details.",
-          short: "LC",
-          glyph: "B",
-          matchPrefix: `/app/contracts/${contractId}/inputs/bank-lc`,
-        },
-        {
-          href: `/app/contracts/${contractId}/resolved-values`,
-          label: "Resolved",
-          description: "Final precedence output.",
-          short: "RV",
-          glyph: "F",
-          matchPrefix: `/app/contracts/${contractId}/resolved-values`,
-        },
-      ],
-    },
-    {
-      title: "Execution",
-      items: [
-        {
-          href: `/app/contracts/${contractId}/execution/bookings`,
-          label: "Bookings",
-          description: "Containers, seals, and vehicles.",
-          short: "BK",
-          glyph: "K",
-          matchPrefix: `/app/contracts/${contractId}/execution/bookings`,
-        },
-        {
-          href: `/app/contracts/${contractId}/execution/staffing`,
-          label: "Staffing",
-          description: "Weights and certificate data.",
-          short: "ST",
-          glyph: "T",
-          matchPrefix: `/app/contracts/${contractId}/execution/staffing`,
-        },
-        {
-          href: `/app/contracts/${contractId}/execution/processing`,
-          label: "Processing",
-          description: "Station and moisture details.",
-          short: "PR",
-          glyph: "P",
-          matchPrefix: `/app/contracts/${contractId}/execution/processing`,
-        },
-      ],
-    },
-    {
-      title: "Bill of Lading",
-      items: [
-        {
-          href: `/app/contracts/${contractId}/inputs/bill-of-lading`,
-          label: "MSC B/L",
-          description: "Carrier-specific bill details and rider overrides.",
-          short: "BL",
-          glyph: "L",
-          matchPrefix: `/app/contracts/${contractId}/inputs/bill-of-lading`,
-        },
-      ],
-    },
-    {
-      title: "Outputs",
-      items: [
-        {
-          href: `/app/contracts/${contractId}/documents`,
-          label: "Documents",
-          description: "Document generation and revisions.",
-          short: "DC",
-          glyph: "D",
-          matchPrefix: `/app/contracts/${contractId}/documents`,
-        },
-      ],
-    },
-  ];
-}
-
 function isActive(pathname: string, item: NavItem): boolean {
   if (item.exact) {
     return pathname === item.href;
   }
 
-  return pathname === item.href || pathname.startsWith(item.matchPrefix);
+  return pathname === item.href || pathname.startsWith(`${item.matchPrefix}/`);
 }
 
 function toolbarCopy(pathname: string): { title: string; subtitle: string } {
@@ -233,6 +105,13 @@ function toolbarCopy(pathname: string): { title: string; subtitle: string } {
     return {
       title: "Contracts",
       subtitle: "Manage contract records and open their operational workspaces.",
+    };
+  }
+
+  if (pathname.startsWith("/app/documents")) {
+    return {
+      title: "Documents",
+      subtitle: "Find generated document workflows through their parent contracts.",
     };
   }
 
@@ -402,7 +281,7 @@ export function AppSidebar({ children }: { children: ReactNode }) {
   const pathnameSegments = pathname.split("/").filter(Boolean);
   const candidateContractId = pathnameSegments[0] === "app" && pathnameSegments[1] === "contracts" ? pathnameSegments[2] : null;
   const contractId = candidateContractId && candidateContractId !== "new" ? candidateContractId : null;
-  const navSections = contractId ? buildContractSections(contractId) : sections;
+  const navSections = sections;
   const toolbar = toolbarCopy(pathname);
   const [collapsed, setCollapsed] = useState(false);
   const [hasHydrated, setHasHydrated] = useState(false);
@@ -471,7 +350,7 @@ export function AppSidebar({ children }: { children: ReactNode }) {
           {contractId && !collapsed ? (
             <div className="contract-context-pill">
               <strong>Contract {contractId.slice(0, 10)}</strong>
-              <small>Contextual workspace navigation is active.</small>
+              <small>Open in the workspace below.</small>
             </div>
           ) : null}
 

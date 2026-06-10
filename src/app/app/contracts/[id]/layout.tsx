@@ -1,7 +1,14 @@
 import type { ReactNode } from "react";
+import { ContractWorkspaceFrame } from "@/components/layout/contract-workspace-nav";
 
 export default async function ContractWorkspaceLayout(
-  { children }: { children: ReactNode; params: Promise<{ id: string }> },
+  { children, params }: { children: ReactNode; params: Promise<{ id: string }> },
 ) {
-  return children;
+  const { id } = await params;
+
+  return (
+    <ContractWorkspaceFrame contractId={id}>
+      {children}
+    </ContractWorkspaceFrame>
+  );
 }
