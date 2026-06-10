@@ -1617,12 +1617,16 @@ function billOfLadingPrintPages({ output }: Props): ReactNode[] {
               {display(value(rows, "Notify 2")) ? (
                 <>
                   <br />
+                  <span className="bl-label-lite">NOTIFY II:</span>
+                  <br />
                   <span className="bl-field-value bl-field-value-spaced">{display(value(rows, "Notify 2"))}</span>
                 </>
               ) : null}
               {display(value(rows, "Notify 3")) ? (
                 <>
                   <br />
+                  <br />
+                  <span className="bl-label-lite">NOTIFY III:</span>
                   <br />
                   <span className="bl-field-value bl-field-value-spaced">{display(value(rows, "Notify 3"))}</span>
                 </>

@@ -11,7 +11,7 @@ import { useToast } from "@/components/ui/toast";
 import { useUnsavedChangesGuard } from "@/components/ui/use-unsaved-changes-guard";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
-import type { AttachmentRef, CompanyConfiguration, Contract } from "@/types/models";
+import type { AttachmentRef, BillOfLadingInfo, CompanyConfiguration, Contract } from "@/types/models";
 
 const schema = z.object({
   contractId: z.string().min(1, "Contract number is required"),
@@ -162,7 +162,8 @@ export function BillOfLadingForm({
         const source = data.sourceInputs?.find(
           (input) => input.id === "bill_of_lading_sheet" || input.sourceType === "bill_of_lading_sheet",
         );
-        const storedAttachments = (source?.payload as { attachments?: AttachmentRef[] } | undefined)?.attachments ?? [];
+        const sourceBill = source?.payload as (Partial<BillOfLadingInfo> & { attachments?: AttachmentRef[] }) | undefined;
+        const storedAttachments = sourceBill?.attachments ?? [];
         const nextAttachments = Array.isArray(storedAttachments) ? storedAttachments : [];
         setAttachments(nextAttachments);
         setSavedContractId(contractIdentifier);
@@ -178,8 +179,8 @@ export function BillOfLadingForm({
           notify3: bill.notify3 ?? "",
           cargoMarksText: bill.cargoMarksText ?? "",
           descriptionOverride: bill.descriptionOverride ?? "",
-          movementType: bill.movementType ?? movementTypes[0] ?? "",
-          freightParty: bill.freightParty ?? "",
+          movementType: bill.movementType ?? sourceBill?.movementType ?? movementTypes[0] ?? "",
+          freightParty: bill.freightParty ?? sourceBill?.freightParty ?? "",
         };
 
         reset(nextForm, { keepDirty: false, keepTouched: false });
