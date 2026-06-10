@@ -163,15 +163,18 @@ function activeContractWorkspaceKey(pathname: string, contractId: string): strin
   return "overview";
 }
 
+function activeContractWorkspaceLabel(pathname: string, contractId: string): string | null {
+  const activeKey = activeContractWorkspaceKey(pathname, contractId);
+  return contractWorkspaceItems.find((item) => item.key === activeKey)?.label ?? null;
+}
+
 function SidebarIcon({ name }: { name: SidebarIconName }) {
   if (name === "contracts") {
     return (
       <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-        <path d="M7 3.75h7l3 3v13.5H7z" />
-        <path d="M14 3.75v3h3" />
-        <path d="M9.75 10h4.5" />
-        <path d="M9.75 13h4.5" />
-        <path d="M9.75 16h2.5" />
+        <path d="M4.75 7.75h5.15l1.6 2h7.75v8.5H4.75z" />
+        <path d="M4.75 7.75v-2h5.1l1.6 2h7.8v2" />
+        <path d="M7.5 13h9" />
       </svg>
     );
   }
@@ -190,15 +193,8 @@ function SidebarIcon({ name }: { name: SidebarIconName }) {
   if (name === "settings") {
     return (
       <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-        <path d="M12 8.25a3.75 3.75 0 1 0 0 7.5 3.75 3.75 0 0 0 0-7.5z" />
-        <path d="M4.75 12h2" />
-        <path d="M17.25 12h2" />
-        <path d="M12 4.75v2" />
-        <path d="M12 17.25v2" />
-        <path d="m6.9 6.9 1.4 1.4" />
-        <path d="m15.7 15.7 1.4 1.4" />
-        <path d="m17.1 6.9-1.4 1.4" />
-        <path d="m8.3 15.7-1.4 1.4" />
+        <path d="M12 8.75a3.25 3.25 0 1 0 0 6.5 3.25 3.25 0 0 0 0-6.5z" />
+        <path d="m18.2 13.35 1.45 1.15-1.75 3.05-1.72-.7a7.2 7.2 0 0 1-1.35.78l-.25 1.82h-3.5l-.25-1.82a7.2 7.2 0 0 1-1.35-.78l-1.72.7-1.75-3.05 1.45-1.15a7.5 7.5 0 0 1 0-1.56l-1.45-1.15 1.75-3.05 1.72.7c.42-.32.87-.58 1.35-.78l.25-1.82h3.5l.25 1.82c.48.2.93.46 1.35.78l1.72-.7 1.75 3.05-1.45 1.15a7.5 7.5 0 0 1 0 1.56z" />
       </svg>
     );
   }
@@ -227,8 +223,10 @@ function SidebarIcon({ name }: { name: SidebarIconName }) {
 
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <path d="M5 12.5 10 17l9-10" />
-      <path d="M5 17h14" />
+      <path d="M4.75 5.25h6.1v6.1h-6.1z" />
+      <path d="M13.15 5.25h6.1v4.6h-6.1z" />
+      <path d="M4.75 13.15h6.1v5.6h-6.1z" />
+      <path d="M13.15 12.15h6.1v6.6h-6.1z" />
     </svg>
   );
 }
@@ -464,6 +462,7 @@ export function AppSidebar({ children }: { children: ReactNode }) {
 
   const breadcrumbs = buildBreadcrumbsWithContext(pathname, documentFamilyQuery);
   const contractWorkspaceKey = contractId ? activeContractWorkspaceKey(pathname, contractId) : null;
+  const contractWorkspaceLabel = contractId ? activeContractWorkspaceLabel(pathname, contractId) : null;
 
   return (
     <ToastProvider>
@@ -491,17 +490,25 @@ export function AppSidebar({ children }: { children: ReactNode }) {
 
           <nav className="app-sidebar-nav">
             {navSections.map((section) => (
-              <section key={section.title} className="app-sidebar-section">
+              <section key={section.title} className="app-sidebar-section" data-section-title={section.title}>
                 {!collapsed ? <p className="app-sidebar-heading">{section.title}</p> : null}
                 <div className="app-sidebar-links">
                   {section.items.map((item) => {
-                    const showContractWorkspace = contractId && item.href === "/app/contracts" && !collapsed;
+                    const isContractsLink = item.href === "/app/contracts";
+                    const showContractWorkspace = contractId && isContractsLink && !collapsed;
+                    const showCollapsedContractWorkspace = contractId && isContractsLink && collapsed;
+                    const isCurrentItem = isActive(pathname, item);
 
                     return (
-                      <div key={item.href} className="app-sidebar-link-group">
+                      <div
+                        key={item.href}
+                        className={clsx("app-sidebar-link-group", showCollapsedContractWorkspace && "has-collapsed-flyout")}
+                      >
                         <Link
                           href={item.href}
-                          className={clsx("app-sidebar-link", isActive(pathname, item) && "active")}
+                          className={clsx("app-sidebar-link", isCurrentItem && "active")}
+                          data-label={item.label}
+                          data-active-label={isCurrentItem ? item.label : undefined}
                           title={collapsed ? item.label : undefined}
                           onClick={() => setMobileOpen(false)}
                         >
@@ -518,6 +525,29 @@ export function AppSidebar({ children }: { children: ReactNode }) {
 
                         {showContractWorkspace ? (
                           <div className="app-contract-nav" aria-label="Contract Workspace">
+                            <div className="app-contract-nav-heading">
+                              <strong>Contract Workspace</strong>
+                              <small>Contract {contractId.slice(0, 10)}</small>
+                            </div>
+                            {contractWorkspaceItems.map((workspaceItem, index) => (
+                              <Link
+                                key={workspaceItem.key}
+                                href={workspaceItem.href(contractId)}
+                                className={clsx("app-contract-nav-link", contractWorkspaceKey === workspaceItem.key && "active")}
+                                onClick={() => setMobileOpen(false)}
+                              >
+                                <span className="app-contract-nav-index">{index + 1}</span>
+                                <span>
+                                  <strong>{workspaceItem.label}</strong>
+                                  <small>{workspaceItem.hint}</small>
+                                </span>
+                              </Link>
+                            ))}
+                          </div>
+                        ) : null}
+
+                        {showCollapsedContractWorkspace ? (
+                          <div className="app-contract-nav-flyout" aria-label="Contract Workspace">
                             <div className="app-contract-nav-heading">
                               <strong>Contract Workspace</strong>
                               <small>Contract {contractId.slice(0, 10)}</small>
@@ -560,7 +590,9 @@ export function AppSidebar({ children }: { children: ReactNode }) {
             </button>
             <div>
               <p className="app-toolbar-title">{toolbar.title}</p>
-              <p className="app-toolbar-subtitle">{toolbar.subtitle}</p>
+              <p className="app-toolbar-subtitle">
+                {collapsed && contractWorkspaceLabel ? `${toolbar.subtitle} Current step: ${contractWorkspaceLabel}.` : toolbar.subtitle}
+              </p>
               <nav className="app-breadcrumbs" aria-label="Breadcrumb">
                 {breadcrumbs.map((crumb, index) => {
                   const isLast = index === breadcrumbs.length - 1;
