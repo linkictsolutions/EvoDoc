@@ -384,6 +384,11 @@ tbody tr:hover {
   gap: 0.35rem;
 }
 
+.app-sidebar-link-group {
+  display: grid;
+  gap: 0.42rem;
+}
+
 .app-sidebar-link {
   display: flex;
   align-items: center;
@@ -440,8 +445,93 @@ tbody tr:hover {
   justify-content: center;
   border-radius: 11px;
   background: rgba(255, 255, 255, 0.12);
+}
+
+.app-sidebar-badge svg {
+  width: 1.08rem;
+  height: 1.08rem;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+
+.app-contract-nav {
+  display: grid;
+  gap: 0.32rem;
+  margin-left: 1rem;
+  padding: 0.35rem 0 0.35rem 0.65rem;
+  border-left: 1px solid rgba(216, 230, 248, 0.2);
+}
+
+.app-contract-nav-heading {
+  display: grid;
+  gap: 0.08rem;
+  padding: 0.1rem 0.35rem 0.28rem;
+}
+
+.app-contract-nav-heading strong {
+  color: rgba(244, 248, 255, 0.94);
+  font-size: 0.76rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.app-contract-nav-heading small {
+  color: rgba(216, 230, 248, 0.68);
+  font-size: 0.68rem;
+}
+
+.app-contract-nav-link {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.42rem 0.48rem;
+  border-radius: 10px;
+  color: rgba(235, 244, 255, 0.82);
+  text-decoration: none;
+  border: 1px solid transparent;
+}
+
+.app-contract-nav-link:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(179, 203, 231, 0.16);
+}
+
+.app-contract-nav-link.active {
+  background: rgba(18, 154, 141, 0.18);
+  border-color: rgba(148, 220, 211, 0.42);
+  color: #f6fbff;
+}
+
+.app-contract-nav-link > span:last-child {
+  display: grid;
+  gap: 0.08rem;
+}
+
+.app-contract-nav-link strong {
+  font-size: 0.78rem;
+  line-height: 1.18;
+}
+
+.app-contract-nav-link small {
+  color: rgba(216, 230, 248, 0.64);
+  font-size: 0.66rem;
+  line-height: 1.25;
+}
+
+.app-contract-nav-index {
+  min-width: 1.35rem;
+  height: 1.35rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(244, 248, 255, 0.84);
   font-family: var(--font-mono), monospace;
-  font-size: 0.8rem;
+  font-size: 0.65rem;
   font-weight: 700;
 }
 

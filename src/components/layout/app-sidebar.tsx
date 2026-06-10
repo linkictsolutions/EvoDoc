@@ -7,12 +7,14 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { ToastProvider } from "@/components/ui/toast";
 
+type SidebarIconName = "overview" | "contracts" | "documents" | "settings" | "buyers" | "templates";
+
 type NavItem = {
   href: string;
   label: string;
   description: string;
   short: string;
-  glyph: string;
+  icon: SidebarIconName;
   matchPrefix: string;
   exact?: boolean;
 };
@@ -21,6 +23,45 @@ type NavSection = {
   title: string;
   items: NavItem[];
 };
+
+const contractWorkspaceItems = [
+  {
+    key: "overview",
+    label: "Overview",
+    hint: "Snapshot and next actions.",
+    href: (id: string) => `/app/contracts/${id}`,
+  },
+  {
+    key: "inputs",
+    label: "Source Documents",
+    hint: "Contract, shipping, bank & LC, and MSC B/L.",
+    href: (id: string) => `/app/contracts/${id}/inputs`,
+  },
+  {
+    key: "resolved",
+    label: "Resolved Values",
+    hint: "Final precedence layer.",
+    href: (id: string) => `/app/contracts/${id}/resolved-values`,
+  },
+  {
+    key: "execution",
+    label: "Execution",
+    hint: "Bookings, staffing, and processing.",
+    href: (id: string) => `/app/contracts/${id}/execution`,
+  },
+  {
+    key: "documents",
+    label: "Documents",
+    hint: "Generate and review revisions.",
+    href: (id: string) => `/app/contracts/${id}/documents`,
+  },
+  {
+    key: "activity",
+    label: "Activity",
+    hint: "Audit trail and workflow events.",
+    href: (id: string) => `/app/contracts/${id}/activity`,
+  },
+];
 
 const sections: NavSection[] = [
   {
@@ -31,7 +72,7 @@ const sections: NavSection[] = [
         label: "Overview",
         description: "Workspace summary and next steps.",
         short: "OV",
-        glyph: "O",
+        icon: "overview",
         matchPrefix: "/app",
         exact: true,
       },
@@ -40,7 +81,7 @@ const sections: NavSection[] = [
         label: "Contracts",
         description: "Primary operational records and workspaces.",
         short: "CT",
-        glyph: "C",
+        icon: "contracts",
         matchPrefix: "/app/contracts",
       },
       {
@@ -48,7 +89,7 @@ const sections: NavSection[] = [
         label: "Documents",
         description: "Find generated document work by contract.",
         short: "DC",
-        glyph: "D",
+        icon: "documents",
         matchPrefix: "/app/documents",
       },
     ],
@@ -61,7 +102,7 @@ const sections: NavSection[] = [
         label: "Company Config",
         description: "Organization defaults and export constants.",
         short: "CO",
-        glyph: "G",
+        icon: "settings",
         matchPrefix: "/app/masters/company-configuration",
       },
       {
@@ -69,7 +110,7 @@ const sections: NavSection[] = [
         label: "Buyers",
         description: "Buyer records reused across contracts.",
         short: "CU",
-        glyph: "B",
+        icon: "buyers",
         matchPrefix: "/app/masters/customers",
       },
       {
@@ -77,7 +118,7 @@ const sections: NavSection[] = [
         label: "Templates",
         description: "Document layout templates per organization.",
         short: "TP",
-        glyph: "T",
+        icon: "templates",
         matchPrefix: "/app/masters/templates",
       },
     ],
@@ -90,6 +131,106 @@ function isActive(pathname: string, item: NavItem): boolean {
   }
 
   return pathname === item.href || pathname.startsWith(`${item.matchPrefix}/`);
+}
+
+function activeContractWorkspaceKey(pathname: string, contractId: string): string {
+  const base = `/app/contracts/${contractId}`;
+
+  if (pathname === base) {
+    return "overview";
+  }
+
+  if (pathname.startsWith(`${base}/inputs`)) {
+    return "inputs";
+  }
+
+  if (pathname.startsWith(`${base}/resolved-values`)) {
+    return "resolved";
+  }
+
+  if (pathname.startsWith(`${base}/execution`) || pathname.startsWith(`${base}/shipments`)) {
+    return "execution";
+  }
+
+  if (pathname.startsWith(`${base}/documents`)) {
+    return "documents";
+  }
+
+  if (pathname.startsWith(`${base}/activity`)) {
+    return "activity";
+  }
+
+  return "overview";
+}
+
+function SidebarIcon({ name }: { name: SidebarIconName }) {
+  if (name === "contracts") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M7 3.75h7l3 3v13.5H7z" />
+        <path d="M14 3.75v3h3" />
+        <path d="M9.75 10h4.5" />
+        <path d="M9.75 13h4.5" />
+        <path d="M9.75 16h2.5" />
+      </svg>
+    );
+  }
+
+  if (name === "documents") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M7 4.75h10v14.5H7z" />
+        <path d="M9.75 8.5h4.5" />
+        <path d="M9.75 11.75h4.5" />
+        <path d="M9.75 15h3" />
+      </svg>
+    );
+  }
+
+  if (name === "settings") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M12 8.25a3.75 3.75 0 1 0 0 7.5 3.75 3.75 0 0 0 0-7.5z" />
+        <path d="M4.75 12h2" />
+        <path d="M17.25 12h2" />
+        <path d="M12 4.75v2" />
+        <path d="M12 17.25v2" />
+        <path d="m6.9 6.9 1.4 1.4" />
+        <path d="m15.7 15.7 1.4 1.4" />
+        <path d="m17.1 6.9-1.4 1.4" />
+        <path d="m8.3 15.7-1.4 1.4" />
+      </svg>
+    );
+  }
+
+  if (name === "buyers") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M9.5 11.25a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
+        <path d="M4.75 19.25a4.75 4.75 0 0 1 9.5 0" />
+        <path d="M15.75 8.75a2.5 2.5 0 0 1 0 5" />
+        <path d="M16.75 15.75a4 4 0 0 1 2.5 3.5" />
+      </svg>
+    );
+  }
+
+  if (name === "templates") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M5.75 5.75h12.5v12.5H5.75z" />
+        <path d="M8.75 8.75h3" />
+        <path d="M8.75 12h6.5" />
+        <path d="M8.75 15.25h4.5" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M5 12.5 10 17l9-10" />
+      <path d="M5 17h14" />
+    </svg>
+  );
 }
 
 function toolbarCopy(pathname: string): { title: string; subtitle: string } {
@@ -322,6 +463,7 @@ export function AppSidebar({ children }: { children: ReactNode }) {
   }, [pathname]);
 
   const breadcrumbs = buildBreadcrumbsWithContext(pathname, documentFamilyQuery);
+  const contractWorkspaceKey = contractId ? activeContractWorkspaceKey(pathname, contractId) : null;
 
   return (
     <ToastProvider>
@@ -347,35 +489,58 @@ export function AppSidebar({ children }: { children: ReactNode }) {
             </button>
           </div>
 
-          {contractId && !collapsed ? (
-            <div className="contract-context-pill">
-              <strong>Contract {contractId.slice(0, 10)}</strong>
-              <small>Open in the workspace below.</small>
-            </div>
-          ) : null}
-
           <nav className="app-sidebar-nav">
             {navSections.map((section) => (
               <section key={section.title} className="app-sidebar-section">
                 {!collapsed ? <p className="app-sidebar-heading">{section.title}</p> : null}
                 <div className="app-sidebar-links">
-                  {section.items.map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={clsx("app-sidebar-link", isActive(pathname, item) && "active")}
-                      title={collapsed ? item.label : undefined}
-                      onClick={() => setMobileOpen(false)}
-                    >
-                      <span className="app-sidebar-badge" aria-hidden>{item.glyph}</span>
-                      {!collapsed ? (
-                        <span className="app-sidebar-link-copy">
-                          <strong>{item.label} <span className="app-sidebar-link-short">{item.short}</span></strong>
-                          <small>{item.description}</small>
-                        </span>
-                      ) : null}
-                    </Link>
-                  ))}
+                  {section.items.map((item) => {
+                    const showContractWorkspace = contractId && item.href === "/app/contracts" && !collapsed;
+
+                    return (
+                      <div key={item.href} className="app-sidebar-link-group">
+                        <Link
+                          href={item.href}
+                          className={clsx("app-sidebar-link", isActive(pathname, item) && "active")}
+                          title={collapsed ? item.label : undefined}
+                          onClick={() => setMobileOpen(false)}
+                        >
+                          <span className="app-sidebar-badge" aria-hidden>
+                            <SidebarIcon name={item.icon} />
+                          </span>
+                          {!collapsed ? (
+                            <span className="app-sidebar-link-copy">
+                              <strong>{item.label} <span className="app-sidebar-link-short">{item.short}</span></strong>
+                              <small>{item.description}</small>
+                            </span>
+                          ) : null}
+                        </Link>
+
+                        {showContractWorkspace ? (
+                          <div className="app-contract-nav" aria-label="Contract Workspace">
+                            <div className="app-contract-nav-heading">
+                              <strong>Contract Workspace</strong>
+                              <small>Contract {contractId.slice(0, 10)}</small>
+                            </div>
+                            {contractWorkspaceItems.map((workspaceItem, index) => (
+                              <Link
+                                key={workspaceItem.key}
+                                href={workspaceItem.href(contractId)}
+                                className={clsx("app-contract-nav-link", contractWorkspaceKey === workspaceItem.key && "active")}
+                                onClick={() => setMobileOpen(false)}
+                              >
+                                <span className="app-contract-nav-index">{index + 1}</span>
+                                <span>
+                                  <strong>{workspaceItem.label}</strong>
+                                  <small>{workspaceItem.hint}</small>
+                                </span>
+                              </Link>
+                            ))}
+                          </div>
+                        ) : null}
+                      </div>
+                    );
+                  })}
                 </div>
               </section>
             ))}
