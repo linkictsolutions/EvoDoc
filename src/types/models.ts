@@ -142,6 +142,7 @@ export interface CompanyConfiguration extends Timestamped {
   deliveryTerms: string[];
   priceUoms: string[];
   packagingUnits: string[];
+  movementTypes: string[];
   documentBranding: DocumentBrandingSettings;
   bulkReferenceKg: number;
   packagingDefinitions: PackagingDefinition[];
@@ -269,6 +270,8 @@ export interface BillOfLadingInfo {
   measurement?: string;
   cargoMarksText?: string;
   descriptionOverride?: string;
+  movementType?: string;
+  freightParty?: string;
   riderDescriptions?: string[];
 }
 

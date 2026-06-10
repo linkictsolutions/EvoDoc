@@ -32,6 +32,7 @@ type CompanyConfigurationFormState = {
   deliveryTerms: string[];
   priceUoms: string[];
   packagingUnits: string[];
+  movementTypes: string[];
   documentBranding: DocumentBrandingSettings;
   bulkReferenceKg: string;
   packagingDefinitions: PackagingDefinition[];
@@ -71,6 +72,7 @@ function toFormState(configuration: CompanyConfiguration): CompanyConfigurationF
     deliveryTerms: configuration.deliveryTerms,
     priceUoms: configuration.priceUoms,
     packagingUnits: packagingUnits.length > 0 ? packagingUnits : ["Bag of 60Kg"],
+    movementTypes: configuration.movementTypes,
     documentBranding: configuration.documentBranding,
     bulkReferenceKg: String(configuration.bulkReferenceKg),
     packagingDefinitions: configuration.packagingDefinitions,
@@ -611,6 +613,49 @@ export function CompanyConfigurationPage() {
     });
   }
 
+  function updateMovementType(index: number, value: string) {
+    setForm((current) => {
+      if (!current) {
+        return current;
+      }
+
+      const nextTypes = current.movementTypes.map((type, typeIndex) => (
+        typeIndex === index ? value : type
+      ));
+
+      return {
+        ...current,
+        movementTypes: nextTypes,
+      };
+    });
+  }
+
+  function addMovementType() {
+    setForm((current) => {
+      if (!current) {
+        return current;
+      }
+
+      return {
+        ...current,
+        movementTypes: [...current.movementTypes, ""],
+      };
+    });
+  }
+
+  function removeMovementType(index: number) {
+    setForm((current) => {
+      if (!current || current.movementTypes.length <= 1) {
+        return current;
+      }
+
+      return {
+        ...current,
+        movementTypes: current.movementTypes.filter((_, typeIndex) => typeIndex !== index),
+      };
+    });
+  }
+
   function updateBrandingSlot(
     slot: "header" | "footer",
     key: "heightMm" | "fit" | "positionXPercent" | "positionYPercent" | "imageDataUrl",
@@ -687,6 +732,7 @@ export function CompanyConfigurationPage() {
       || form.placeOfIssue.trim().length === 0
       || !Number.isFinite(bulkReferenceKg)
       || bulkReferenceKg <= 0
+      || form.movementTypes.some((type) => type.trim().length === 0)
       || form.packagingDefinitions.some((definition) => (
         definition.label.trim().length === 0
         || definition.uom.trim().length === 0
@@ -918,6 +964,48 @@ export function CompanyConfigurationPage() {
               <div className="row-actions mt-sm">
                 <button type="button" className="button-secondary" onClick={addPaymentTerm}>
                   Add Payment Term
+                </button>
+              </div>
+            </div>
+
+            <div className="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th style={{ width: "72px" }}>#</th>
+                    <th>Movement Type</th>
+                    <th style={{ width: "130px" }}>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {form.movementTypes.map((type, index) => (
+                    <tr key={`movement-type-${index + 1}`}>
+                      <td>{index + 1}</td>
+                      <td>
+                        <input
+                          className={attemptedSubmit && type.trim().length === 0 ? "field-error-control" : dirtyControlClass("movementTypes")}
+                          value={type}
+                          onChange={(event) => updateMovementType(index, event.target.value)}
+                          required
+                        />
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          className="button-secondary"
+                          onClick={() => removeMovementType(index)}
+                          disabled={form.movementTypes.length <= 1}
+                        >
+                          Remove
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="row-actions mt-sm">
+                <button type="button" className="button-secondary" onClick={addMovementType}>
+                  Add Movement Type
                 </button>
               </div>
             </div>

@@ -193,13 +193,12 @@ function SidebarIcon({ name }: { name: SidebarIconName }) {
   if (name === "settings") {
     return (
       <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-        <circle cx="12" cy="12" r="3" />
-        <path d="M12 4.75v2" />
-        <path d="M12 17.25v2" />
-        <path d="M5.72 8.38 7.45 9.4" />
-        <path d="m16.55 14.6 1.73 1.02" />
-        <path d="m18.28 8.38-1.73 1.02" />
-        <path d="m7.45 14.6-1.73 1.02" />
+        <path d="M5.75 7.25h12.5" />
+        <path d="M5.75 12h12.5" />
+        <path d="M5.75 16.75h12.5" />
+        <circle cx="9" cy="7.25" r="1.45" />
+        <circle cx="15" cy="12" r="1.45" />
+        <circle cx="11" cy="16.75" r="1.45" />
       </svg>
     );
   }
@@ -521,7 +520,9 @@ export function AppSidebar({ children }: { children: ReactNode }) {
               aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             >
               <svg className="sidebar-toggle-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                <path d="m9 6 6 6-6 6" />
+                <rect x="4.75" y="5.25" width="14.5" height="13.5" rx="3" />
+                <path d="M9.25 5.5v13" />
+                <path className="sidebar-toggle-arrow" d="m14 9.25 2.75 2.75L14 14.75" />
               </svg>
             </button>
           </div>

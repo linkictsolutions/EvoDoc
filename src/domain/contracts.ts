@@ -45,6 +45,10 @@ function cleanOptional(value?: string): string | undefined {
   return normalized ? normalized : undefined;
 }
 
+function cleanClearable(value?: string): string | undefined {
+  return value === undefined ? undefined : value.trim();
+}
+
 function stripUndefinedDeep<T>(value: T): T {
   if (Array.isArray(value)) {
     return value
@@ -294,7 +298,9 @@ export function validateAndNormalizeBillOfLadingPayload(
       freightAndChargesText: cleanOptional(parsed.billOfLading.freightAndChargesText),
       measurement: cleanOptional(parsed.billOfLading.measurement),
       cargoMarksText: cleanOptional(parsed.billOfLading.cargoMarksText),
-      descriptionOverride: cleanOptional(parsed.billOfLading.descriptionOverride),
+      descriptionOverride: cleanClearable(parsed.billOfLading.descriptionOverride),
+      movementType: cleanOptional(parsed.billOfLading.movementType),
+      freightParty: cleanOptional(parsed.billOfLading.freightParty),
       riderDescriptions: splitRiderDescriptions.length > 0 ? splitRiderDescriptions : undefined,
     },
   };

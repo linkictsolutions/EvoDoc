@@ -15,19 +15,42 @@ function clean(value: string | undefined | null): string {
   return normalized && normalized !== "-" ? normalized : "";
 }
 
-function formatDate(value: string | undefined): string {
-  if (!value) {
-    return "";
-  }
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) {
-    return clean(value);
-  }
-  return parsed.toLocaleDateString("en-GB");
-}
-
 function joinParts(parts: string[], separator = " "): string {
   return parts.map((part) => part.trim()).filter(Boolean).join(separator);
+}
+
+function buildDefaultGoodsDescription(args: {
+  contract: Contract;
+  finalDescription: string;
+  parity: ReturnType<typeof computeContractExcelParity>;
+  containerSummary: string;
+}) {
+  return joinParts([
+    `${args.contract.terms.quantityBags} BAGS OF ${args.contract.terms.bagWeightKg} KGS NET`,
+    clean(args.finalDescription),
+    `TOTAL QUANTITY: ${args.parity.quantityMt.toFixed(0)}MT`,
+    args.containerSummary,
+    `NET WEIGHT: ${args.parity.quantityKg.toLocaleString()} KGS`,
+    `GROSS WEIGHT: ${args.parity.grossWeightKg.toLocaleString()} KGS`,
+    `CONTRACT NO:${clean(args.contract.contractNumber)}`,
+    clean(args.contract.banking.lcNumber) ? `DOCUMENTARY CREDIT NUMBER:${clean(args.contract.banking.lcNumber)}` : "",
+  ], " ");
+}
+
+function appendBillOfLadingDescriptionDetails(args: {
+  baseDescription: string;
+  companyConfiguration: CompanyConfiguration;
+  contract: Contract;
+  billOfLading: BillOfLadingInfo;
+}) {
+  const details = [
+    clean(args.companyConfiguration.defaultHsCode) ? `HS CODE NO: ${clean(args.companyConfiguration.defaultHsCode)}` : "",
+    clean(args.contract.shipping.serviceContract) ? `SERVICE CONTRACT NUMBER: ${clean(args.contract.shipping.serviceContract)}` : "",
+    clean(args.billOfLading.movementType) ? `MOVEMENT TYPE: ${clean(args.billOfLading.movementType)}` : "",
+    clean(args.billOfLading.freightParty) ? `FREIGHT PARTY: ${clean(args.billOfLading.freightParty)}` : "",
+  ].filter(Boolean);
+
+  return [args.baseDescription, ...details].filter(Boolean).join("\n\n");
 }
 
 function dedupe(values: string[]): string[] {
@@ -151,18 +174,19 @@ function buildCargoDescription(args: {
     icoPrefix && certRange ? `ICO NO: ${icoPrefix}/${certRange}` : "",
     `NET WEIGHT: ${clean(String(args.contract.terms.bagWeightKg))}KG`,
   ], "\n");
-  const description = clean(args.billOfLading.descriptionOverride) || joinParts([
-    `${args.contract.terms.quantityBags} BAGS OF ${args.contract.terms.bagWeightKg} KGS NET`,
-    clean(finalFields.description),
-    `TOTAL QUANTITY: ${parity.quantityMt.toFixed(0)}MT`,
-    `${containerSummary}`,
-    `NET WEIGHT: ${parity.quantityKg.toLocaleString()} KGS`,
-    `GROSS WEIGHT: ${parity.grossWeightKg.toLocaleString()} KGS`,
-    `HS CODE NO ${clean(args.companyConfiguration.defaultHsCode)}`,
-    `CONTRACT NO:${clean(args.contract.contractNumber)}`,
-    clean(args.contract.banking.lcNumber) ? `DOCUMENTARY CREDIT NUMBER:${clean(args.contract.banking.lcNumber)}` : "",
-    clean(args.contract.shipping.serviceContract) ? `SERVICE CONTRACT NUMBER:${clean(args.contract.shipping.serviceContract)}` : "",
-  ], " ");
+  const defaultDescription = buildDefaultGoodsDescription({
+    contract: args.contract,
+    finalDescription: finalFields.description,
+    parity,
+    containerSummary,
+  });
+  const baseDescription = clean(args.billOfLading.descriptionOverride) || defaultDescription;
+  const description = appendBillOfLadingDescriptionDetails({
+    baseDescription,
+    companyConfiguration: args.companyConfiguration,
+    contract: args.contract,
+    billOfLading: args.billOfLading,
+  });
 
   return {
     description,
@@ -172,7 +196,7 @@ function buildCargoDescription(args: {
       fullMarking,
     }),
     grossCargoWeight: grossWeight,
-    measurement: clean(args.billOfLading.measurement),
+    measurement: containerSummary,
     certRange,
   };
 }
@@ -277,7 +301,7 @@ export function buildBillOfLadingSample(args: {
     bookings: args.bookings,
     staffingRows: args.staffingRows,
   });
-  const riderPages = splitIntoRiderPages(cargo.description, bill.riderDescriptions ?? []);
+  const riderPages = splitIntoRiderPages(cargo.description, []);
   const totalPages = 1 + riderPages.length;
 
   return {
@@ -304,20 +328,20 @@ export function buildBillOfLadingSample(args: {
     routing: {
       vesselAndVoyageNo: joinParts([clean(args.bookings?.vesselName) || clean(args.contract.shipping.vesselName), clean(args.bookings?.voyageNo)], " "),
       portOfLoading: clean(finalFields.portOfLoading),
-      placeOfReceipt: clean(bill.placeOfReceipt),
+      placeOfReceipt: "",
       portOfDischarge: clean(finalFields.destination),
-      placeOfDelivery: clean(bill.placeOfDelivery),
+      placeOfDelivery: "",
     },
     cargo,
     footer: {
-      freightAndCharges: clean(bill.freightAndChargesText),
+      freightAndCharges: "",
       legalText:
         "RECEIVED by the Carrier in apparent good order and condition (unless otherwise stated herein) the total number or quantity of Containers or other packages or units indicated in the box entitled Carrier's Receipt for carriage subject to all the terms and conditions hereof from the Place of Receipt or Port of Loading to the Port of Discharge or Place of Delivery, whichever is applicable. IN ACCEPTING THIS BILL OF LADING THE MERCHANT EXPRESSLY ACCEPTS AND AGREES TO ALL THE TERMS AND CONDITIONS, WHETHER PRINTED, STAMPED OR OTHERWISE INCORPORATED ON THIS SIDE AND ON THE REVERSE SIDE OF THIS BILL OF LADING AND THE TERMS AND CONDITIONS OF THE CARRIER'S APPLICABLE TARIFF AS IF THEY WERE ALL SIGNED BY THE MERCHANT.\n\nIf this is a negotiable (To Order / of) Bill of Lading, one original Bill of Lading, duly endorsed must be surrendered by the Merchant to the Carrier (together with outstanding Freight and charges) in exchange for the Goods or a Delivery Order. If this is a non-negotiable (straight) Bill of Lading, the Carrier shall deliver the Goods or issue a Delivery Order (after payment of outstanding Freight and charges) against the surrender of one original Bill of Lading or in accordance with the national law at the Port of Discharge or Place of Delivery whichever is applicable.\n\nIN WITNESS WHEREOF the Carrier or their Agent has signed the number of Bills of Lading stated at the top, all of this tenor and date, and wherever one original Bill of Lading has been surrendered all other Bills of Lading shall be void.",
-      declaredValue: clean(bill.declaredValue),
+      declaredValue: "",
       carrierReceipt: `${Math.max(1, parity.containerCount)} Containers`,
       signedOnBehalf: "SIGNED on behalf of the Carrier MSC Mediterranean Shipping Company S.A.",
-      placeAndDateOfIssue: clean(bill.placeAndDateOfIssue),
-      shippedOnBoardDate: formatDate(clean(bill.shippedOnBoardDate) || clean(args.contract.banking.latestShipmentDate)),
+      placeAndDateOfIssue: "",
+      shippedOnBoardDate: "",
     },
     riderPages: riderPages.map((description, index) => ({
       index: index + 1,
@@ -327,8 +351,8 @@ export function buildBillOfLadingSample(args: {
       description,
       grossCargoWeight: cargo.grossCargoWeight,
       measurement: cargo.measurement,
-      placeAndDateOfIssue: clean(bill.placeAndDateOfIssue),
-      shippedOnBoardDate: formatDate(clean(bill.shippedOnBoardDate) || clean(args.contract.banking.latestShipmentDate)),
+      placeAndDateOfIssue: "",
+      shippedOnBoardDate: "",
     })),
   };
 }

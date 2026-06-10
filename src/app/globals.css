@@ -333,30 +333,38 @@ tbody tr:hover {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 2rem;
-  min-height: 2rem;
-  padding: 0.36rem 0.56rem;
-  background: rgba(255, 255, 255, 0.06);
+  min-width: 2.35rem;
+  min-height: 2.35rem;
+  padding: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.08));
   color: #f3f8ff;
-  border-color: rgba(255, 255, 255, 0.16);
-  border-radius: 999px;
+  border: 1px solid rgba(216, 230, 248, 0.38);
+  border-radius: 12px;
   font-size: 0.82rem;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 8px 22px rgba(4, 10, 18, 0.18);
   transition: background 150ms ease, border-color 150ms ease, transform 150ms ease;
 }
 
 .sidebar-toggle:hover {
-  background: rgba(255, 255, 255, 0.13);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.12));
+  border-color: rgba(216, 230, 248, 0.62);
+  transform: translateY(-1px);
 }
 
 .sidebar-toggle-icon {
-  width: 1rem;
-  height: 1rem;
+  width: 1.15rem;
+  height: 1.15rem;
   stroke: currentColor;
-  stroke-width: 2;
+  stroke-width: 1.8;
   stroke-linecap: round;
   stroke-linejoin: round;
   fill: none;
+}
+
+.sidebar-toggle-arrow {
+  transform-origin: 15.35px 12px;
   transform: rotate(180deg);
   transition: transform 180ms ease;
 }
@@ -648,16 +656,16 @@ tbody tr:hover {
 }
 
 .app-shell.is-collapsed .desktop-toggle {
-  width: 2.1rem;
-  min-width: 2.1rem;
-  min-height: 2.1rem;
+  width: 2.35rem;
+  min-width: 2.35rem;
+  min-height: 2.35rem;
   padding: 0;
-  background: rgba(255, 255, 255, 0.04);
-  border-style: dashed;
-  color: rgba(243, 248, 255, 0.82);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.07));
+  border-style: solid;
+  color: rgba(243, 248, 255, 0.92);
 }
 
-.app-shell.is-collapsed .sidebar-toggle-icon {
+.app-shell.is-collapsed .sidebar-toggle-arrow {
   transform: rotate(0deg);
 }
 

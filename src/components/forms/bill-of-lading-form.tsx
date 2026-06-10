@@ -11,7 +11,7 @@ import { useToast } from "@/components/ui/toast";
 import { useUnsavedChangesGuard } from "@/components/ui/use-unsaved-changes-guard";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
-import type { AttachmentRef, Contract } from "@/types/models";
+import type { AttachmentRef, CompanyConfiguration, Contract } from "@/types/models";
 
 const schema = z.object({
   contractId: z.string().min(1, "Contract number is required"),
@@ -20,19 +20,13 @@ const schema = z.object({
   noOfCopyBills: z.string().optional(),
   shipperReferenceType: z.enum(["Booking Ref", "Shipper Ref."]),
   shipperReferenceValue: z.string().optional(),
-  placeOfReceipt: z.string().optional(),
-  placeOfDelivery: z.string().optional(),
-  shippedOnBoardDate: z.string().optional(),
-  placeAndDateOfIssue: z.string().optional(),
   carrierAgentsEndorsements: z.string().optional(),
   notify2: z.string().optional(),
   notify3: z.string().optional(),
-  declaredValue: z.string().optional(),
-  freightAndChargesText: z.string().optional(),
-  measurement: z.string().optional(),
   cargoMarksText: z.string().optional(),
   descriptionOverride: z.string().optional(),
-  riderDescriptionsText: z.string().optional(),
+  movementType: z.string().min(1, "Movement type is required"),
+  freightParty: z.string().min(1, "Freight party is required"),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -48,36 +42,6 @@ interface ContractDetailResponse {
   sourceInputs?: Array<{ id: string; sourceType?: string; payload?: unknown }>;
 }
 
-function toDateInputValue(value?: string): string {
-  const normalized = value?.trim();
-  if (!normalized) {
-    return "";
-  }
-
-  const isoDateMatch = normalized.match(/^(\d{4}-\d{2}-\d{2})/);
-  if (isoDateMatch) {
-    return isoDateMatch[1];
-  }
-
-  const parsed = new Date(normalized);
-  if (Number.isNaN(parsed.getTime())) {
-    return "";
-  }
-
-  return parsed.toISOString().slice(0, 10);
-}
-
-function serializeRiderDescriptions(value?: string[]): string {
-  return (value ?? []).filter(Boolean).join("\n\n");
-}
-
-function parseRiderDescriptions(value?: string): string[] {
-  return (value ?? "")
-    .split(/\n\s*\n/g)
-    .map((entry) => entry.trim())
-    .filter((entry) => entry.length > 0);
-}
-
 export function BillOfLadingForm({
   initialContractId,
   autoLoadExisting = false,
@@ -89,6 +53,7 @@ export function BillOfLadingForm({
   const [savedContractId, setSavedContractId] = useState<string | null>(null);
   const [loadingExisting, setLoadingExisting] = useState(false);
   const [attachments, setAttachments] = useState<AttachmentRef[]>([]);
+  const [movementTypes, setMovementTypes] = useState<string[]>(["FCL/FCL"]);
   const [highlightDirty, setHighlightDirty] = useState(false);
   const lastSavedRef = useRef<{ form: Partial<FormData>; attachments: AttachmentRef[] }>({ form: {}, attachments: [] });
 
@@ -108,19 +73,13 @@ export function BillOfLadingForm({
       noOfCopyBills: "3",
       shipperReferenceType: "Booking Ref",
       shipperReferenceValue: "",
-      placeOfReceipt: "",
-      placeOfDelivery: "",
-      shippedOnBoardDate: "",
-      placeAndDateOfIssue: "",
       carrierAgentsEndorsements: "",
       notify2: "",
       notify3: "",
-      declaredValue: "",
-      freightAndChargesText: "",
-      measurement: "",
       cargoMarksText: "",
       descriptionOverride: "",
-      riderDescriptionsText: "",
+      movementType: "",
+      freightParty: "",
     },
   });
 
@@ -158,6 +117,33 @@ export function BillOfLadingForm({
   }, [initialContractId, setValue]);
 
   useEffect(() => {
+    let mounted = true;
+
+    apiClient<CompanyConfiguration>(`/api/company-configuration?orgId=${DEFAULT_ORG_ID}`)
+      .then((configuration) => {
+        if (!mounted) {
+          return;
+        }
+
+        const options = (configuration.movementTypes ?? []).map((entry) => entry.trim()).filter(Boolean);
+        const nextOptions = options.length > 0 ? options : ["FCL/FCL"];
+        setMovementTypes(nextOptions);
+        if (!watch("movementType")) {
+          setValue("movementType", nextOptions[0], { shouldValidate: true, shouldDirty: false });
+        }
+      })
+      .catch(() => {
+        if (mounted && !watch("movementType")) {
+          setValue("movementType", "FCL/FCL", { shouldValidate: true, shouldDirty: false });
+        }
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [setValue, watch]);
+
+  useEffect(() => {
     const targetContractId = initialContractId ?? contractIdInput;
     if (!autoLoadExisting || !targetContractId) {
       return;
@@ -190,19 +176,13 @@ export function BillOfLadingForm({
           noOfCopyBills: bill.noOfCopyBills ?? "3",
           shipperReferenceType: bill.shipperReferenceType ?? "Booking Ref",
           shipperReferenceValue: bill.shipperReferenceValue ?? "",
-          placeOfReceipt: bill.placeOfReceipt ?? "",
-          placeOfDelivery: bill.placeOfDelivery ?? "",
-          shippedOnBoardDate: toDateInputValue(bill.shippedOnBoardDate),
-          placeAndDateOfIssue: bill.placeAndDateOfIssue ?? "",
           carrierAgentsEndorsements: bill.carrierAgentsEndorsements ?? "",
           notify2: bill.notify2 ?? "",
           notify3: bill.notify3 ?? "",
-          declaredValue: bill.declaredValue ?? "",
-          freightAndChargesText: bill.freightAndChargesText ?? "",
-          measurement: bill.measurement ?? "",
           cargoMarksText: bill.cargoMarksText ?? "",
           descriptionOverride: bill.descriptionOverride ?? "",
-          riderDescriptionsText: serializeRiderDescriptions(bill.riderDescriptions),
+          movementType: bill.movementType ?? movementTypes[0] ?? "",
+          freightParty: bill.freightParty ?? "",
         };
 
         reset(nextForm, { keepDirty: false, keepTouched: false });
@@ -223,7 +203,7 @@ export function BillOfLadingForm({
     return () => {
       mounted = false;
     };
-  }, [autoLoadExisting, contractIdInput, initialContractId, reset]);
+  }, [autoLoadExisting, contractIdInput, initialContractId, movementTypes, reset]);
 
   function discardChanges() {
     const snapshot = lastSavedRef.current;
@@ -252,19 +232,13 @@ export function BillOfLadingForm({
             noOfCopyBills: form.noOfCopyBills,
             shipperReferenceType: form.shipperReferenceType,
             shipperReferenceValue: form.shipperReferenceValue,
-            placeOfReceipt: form.placeOfReceipt,
-            placeOfDelivery: form.placeOfDelivery,
-            shippedOnBoardDate: form.shippedOnBoardDate,
-            placeAndDateOfIssue: form.placeAndDateOfIssue,
             carrierAgentsEndorsements: form.carrierAgentsEndorsements,
             notify2: form.notify2,
             notify3: form.notify3,
-            declaredValue: form.declaredValue,
-            freightAndChargesText: form.freightAndChargesText,
-            measurement: form.measurement,
             cargoMarksText: form.cargoMarksText,
             descriptionOverride: form.descriptionOverride,
-            riderDescriptions: parseRiderDescriptions(form.riderDescriptionsText),
+            movementType: form.movementType,
+            freightParty: form.freightParty,
           },
         }),
       });
@@ -341,24 +315,6 @@ export function BillOfLadingForm({
           <input className={dirtyControlClass("shipperReferenceValue")} {...register("shipperReferenceValue")} />
         </label>
 
-        <h3 className="span-all">Routing Overrides</h3>
-        <label>
-          Place of Receipt
-          <input className={dirtyControlClass("placeOfReceipt")} {...register("placeOfReceipt")} />
-        </label>
-        <label>
-          Place of Delivery
-          <input className={dirtyControlClass("placeOfDelivery")} {...register("placeOfDelivery")} />
-        </label>
-        <label>
-          Shipped on Board Date
-          <input className={dirtyControlClass("shippedOnBoardDate")} type="date" {...register("shippedOnBoardDate")} />
-        </label>
-        <label>
-          Place and Date of Issue
-          <input className={dirtyControlClass("placeAndDateOfIssue")} {...register("placeAndDateOfIssue")} />
-        </label>
-
         <h3 className="span-all">Party Overrides</h3>
         <label className="span-all">
           Carrier&apos;s Agents Endorsements
@@ -374,30 +330,24 @@ export function BillOfLadingForm({
         </label>
 
         <h3 className="span-all">Cargo and Freight Overrides</h3>
-        <label>
-          Declared Value
-          <input className={dirtyControlClass("declaredValue")} {...register("declaredValue")} />
+        <label className={errors.movementType ? "is-required field-error" : "is-required"}>
+          <span className="label-text">Movement Type</span>
+          <select className={dirtyControlClass("movementType")} {...register("movementType")} required>
+            <option value="">Select movement type</option>
+            {movementTypes.map((type) => (
+              <option key={type} value={type}>{type}</option>
+            ))}
+          </select>
+          <small>{errors.movementType?.message}</small>
         </label>
-        <label>
-          Measurement
-          <input className={dirtyControlClass("measurement")} {...register("measurement")} />
-        </label>
-        <label className="span-all">
-          Freight and Charges Text
-          <textarea className={dirtyControlClass("freightAndChargesText")} rows={4} {...register("freightAndChargesText")} />
+        <label className={errors.freightParty ? "is-required field-error" : "is-required"}>
+          <span className="label-text">Freight Party</span>
+          <input className={dirtyControlClass("freightParty")} {...register("freightParty")} required />
+          <small>{errors.freightParty?.message}</small>
         </label>
         <label className="span-all">
           Description Override
           <textarea className={dirtyControlClass("descriptionOverride")} rows={5} {...register("descriptionOverride")} />
-        </label>
-        <label className="span-all">
-          Rider Descriptions
-          <textarea
-            className={dirtyControlClass("riderDescriptionsText")}
-            rows={6}
-            {...register("riderDescriptionsText")}
-          />
-          <small>Separate rider-page paragraphs with a blank line.</small>
         </label>
 
         <div className="row-actions">

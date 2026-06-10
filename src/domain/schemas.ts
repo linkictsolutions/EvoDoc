@@ -104,6 +104,8 @@ export const billOfLadingInfoSchema = z.object({
   measurement: z.string().optional(),
   cargoMarksText: z.string().optional(),
   descriptionOverride: z.string().optional(),
+  movementType: z.string().optional(),
+  freightParty: z.string().optional(),
   riderDescriptions: z.array(z.string().min(1)).optional(),
 });
 
@@ -201,7 +203,10 @@ export const billOfLadingInputSchema = z.object({
     downloadUrl: z.string().url(),
     uploadedAt: z.string().min(1),
   })).optional(),
-  billOfLading: billOfLadingInfoSchema,
+  billOfLading: billOfLadingInfoSchema.extend({
+    movementType: z.string().min(1),
+    freightParty: z.string().min(1),
+  }),
 });
 
 export const customerMasterInputSchema = z.object({
@@ -253,6 +258,7 @@ export const companyConfigurationInputSchema = z.object({
     deliveryTerms: z.array(z.string().min(1)).min(1),
     priceUoms: z.array(z.string().min(1)).min(1),
     packagingUnits: z.array(z.string().min(1)).min(1).optional(),
+    movementTypes: z.array(z.string().min(1)).min(1).optional(),
     documentBranding: z.object({
       header: z.object({
         imageDataUrl: z.string().optional(),

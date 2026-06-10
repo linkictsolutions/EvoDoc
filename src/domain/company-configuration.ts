@@ -41,6 +41,7 @@ const DEFAULT_DELIVERY_TERMS = ["F.O.B"];
 const DEFAULT_PRICE_UOMS = ["Lbs", "Bag of 60Kg", "Bag of 50Kg", "Bag of 30Kg", "Kg", "Metric Ton"];
 const DEFAULT_CURRENCIES = ["USD"];
 const DEFAULT_PACKAGING_UNITS = ["Bag of 60Kg", "Bag of 50Kg", "Bag of 30Kg", "Kg", "Lbs", "Metric Ton", "Bulk"];
+const DEFAULT_MOVEMENT_TYPES = ["FCL/FCL", "CY/CY", "Port to Port", "Door to Port", "Port to Door"];
 const MAX_BRANDING_IMAGE_DATA_URL_LENGTH = 950_000;
 const MAX_BENEFICIARY_BANKS = 50;
 const MAX_BENEFICIARY_ACCOUNTS_PER_BANK = 20;
@@ -162,6 +163,15 @@ function resolvePackagingUnits(configuration?: Partial<CompanyConfiguration> | n
   }
 
   return DEFAULT_PACKAGING_UNITS;
+}
+
+function resolveMovementTypes(configuration?: Partial<CompanyConfiguration> | null): string[] {
+  const fromList = normalizePaymentTerms(configuration?.movementTypes);
+  if (fromList.length > 0) {
+    return fromList;
+  }
+
+  return DEFAULT_MOVEMENT_TYPES;
 }
 
 function normalizeBeneficiaryBanks(value?: BeneficiaryBankProfile[] | null): BeneficiaryBankProfile[] {
@@ -339,6 +349,7 @@ export function defaultCompanyConfiguration(orgId: string): CompanyConfiguration
     deliveryTerms: DEFAULT_DELIVERY_TERMS,
     priceUoms: DEFAULT_PRICE_UOMS,
     packagingUnits: DEFAULT_PACKAGING_UNITS,
+    movementTypes: DEFAULT_MOVEMENT_TYPES,
     documentBranding: DEFAULT_DOCUMENT_BRANDING,
     bulkReferenceKg: 19200,
     packagingDefinitions: DEFAULT_PACKAGING_DEFINITIONS,
@@ -377,6 +388,7 @@ export function resolveCompanyConfiguration(
     deliveryTerms: resolveDeliveryTerms(configuration),
     priceUoms: resolvePriceUoms(configuration),
     packagingUnits: resolvePackagingUnits(configuration),
+    movementTypes: resolveMovementTypes(configuration),
     documentBranding: resolveDocumentBranding(configuration),
     bulkReferenceKg: configuration?.bulkReferenceKg ?? defaults.bulkReferenceKg,
     beneficiaryBanks: normalizeBeneficiaryBanks(configuration?.beneficiaryBanks),
@@ -418,6 +430,7 @@ export function validateAndNormalizeCompanyConfigurationPayload(
       deliveryTerms: normalizePaymentTerms(normalized.deliveryTerms),
       priceUoms: normalizePaymentTerms(normalized.priceUoms),
       packagingUnits: normalizePaymentTerms(normalized.packagingUnits),
+      movementTypes: normalizePaymentTerms(normalized.movementTypes),
       documentBranding: resolveDocumentBranding(normalized),
       bulkReferenceKg: normalized.bulkReferenceKg,
       beneficiaryBanks: normalizeBeneficiaryBanks(normalized.beneficiaryBanks),
