@@ -276,6 +276,7 @@ export function validateAndNormalizeBillOfLadingPayload(
 ): NormalizedBillOfLadingPayload {
   const parsed = billOfLadingInputSchema.parse(input);
 
+  const hasRiderDescriptionsInput = Array.isArray(parsed.billOfLading.riderDescriptions);
   const splitRiderDescriptions = (parsed.billOfLading.riderDescriptions ?? [])
     .map((entry) => entry.trim())
     .filter((entry) => entry.length > 0);
@@ -301,7 +302,9 @@ export function validateAndNormalizeBillOfLadingPayload(
       descriptionOverride: cleanClearable(parsed.billOfLading.descriptionOverride),
       movementType: cleanOptional(parsed.billOfLading.movementType),
       freightParty: cleanOptional(parsed.billOfLading.freightParty),
-      riderDescriptions: splitRiderDescriptions.length > 0 ? splitRiderDescriptions : undefined,
+      ...(hasRiderDescriptionsInput
+        ? { riderDescriptions: splitRiderDescriptions }
+        : {}),
     },
   };
 }

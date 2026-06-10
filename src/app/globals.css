@@ -1750,6 +1750,10 @@ tbody tr:hover {
   align-items: stretch;
 }
 
+.document-family-grid .card + .card {
+  margin-top: 0;
+}
+
 .document-family-card {
   display: grid;
   grid-template-rows: auto auto auto 1fr;

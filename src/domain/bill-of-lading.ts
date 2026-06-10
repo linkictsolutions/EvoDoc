@@ -98,30 +98,40 @@ function fallbackBillOfLading(
   };
 }
 
-function splitIntoRiderPages(source: string, manualPages: string[]): string[] {
-  if (manualPages.length > 0) {
-    return manualPages;
+function splitIntoRiderPages(args: {
+  marks: string;
+  description: string;
+  manualPages: string[];
+}): string[] {
+  if (args.manualPages.length > 0) {
+    return args.manualPages;
   }
 
-  const normalized = source.replace(/\s+/g, " ").trim();
-  if (!normalized) {
+  const normalizedDescription = args.description.replace(/\s+/g, " ").trim();
+  const normalizedCombined = `${args.marks}\n\n${args.description}`.replace(/\s+/g, " ").trim();
+  if (!normalizedDescription && !normalizedCombined) {
     return [];
   }
 
   const overflowStart = 900;
-  if (normalized.length <= overflowStart) {
-    return [];
+  const chunkSize = 1800;
+
+  if (normalizedDescription.length > overflowStart) {
+    const remainder = normalizedDescription.slice(overflowStart);
+    const chunks: string[] = [];
+    let cursor = 0;
+    while (cursor < remainder.length) {
+      chunks.push(remainder.slice(cursor, cursor + chunkSize).trim());
+      cursor += chunkSize;
+    }
+    return chunks.filter(Boolean);
   }
 
-  const remainder = normalized.slice(overflowStart);
-  const chunks: string[] = [];
-  let cursor = 0;
-  const chunkSize = 1800;
-  while (cursor < remainder.length) {
-    chunks.push(remainder.slice(cursor, cursor + chunkSize).trim());
-    cursor += chunkSize;
+  if (normalizedCombined.length > overflowStart) {
+    return [" "];
   }
-  return chunks.filter(Boolean);
+
+  return [];
 }
 
 function buildCargoDescription(args: {
@@ -301,7 +311,11 @@ export function buildBillOfLadingSample(args: {
     bookings: args.bookings,
     staffingRows: args.staffingRows,
   });
-  const riderPages = splitIntoRiderPages(cargo.description, []);
+  const riderPages = splitIntoRiderPages({
+    marks: cargo.marks,
+    description: cargo.description,
+    manualPages: bill.riderDescriptions ?? [],
+  });
   const totalPages = 1 + riderPages.length;
 
   return {
