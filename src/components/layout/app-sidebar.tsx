@@ -193,8 +193,13 @@ function SidebarIcon({ name }: { name: SidebarIconName }) {
   if (name === "settings") {
     return (
       <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-        <path d="M12 8.75a3.25 3.25 0 1 0 0 6.5 3.25 3.25 0 0 0 0-6.5z" />
-        <path d="m18.2 13.35 1.45 1.15-1.75 3.05-1.72-.7a7.2 7.2 0 0 1-1.35.78l-.25 1.82h-3.5l-.25-1.82a7.2 7.2 0 0 1-1.35-.78l-1.72.7-1.75-3.05 1.45-1.15a7.5 7.5 0 0 1 0-1.56l-1.45-1.15 1.75-3.05 1.72.7c.42-.32.87-.58 1.35-.78l.25-1.82h3.5l.25 1.82c.48.2.93.46 1.35.78l1.72-.7 1.75 3.05-1.45 1.15a7.5 7.5 0 0 1 0 1.56z" />
+        <circle cx="12" cy="12" r="3" />
+        <path d="M12 4.75v2" />
+        <path d="M12 17.25v2" />
+        <path d="M5.72 8.38 7.45 9.4" />
+        <path d="m16.55 14.6 1.73 1.02" />
+        <path d="m18.28 8.38-1.73 1.02" />
+        <path d="m7.45 14.6-1.73 1.02" />
       </svg>
     );
   }
@@ -426,6 +431,8 @@ export function AppSidebar({ children }: { children: ReactNode }) {
   const [hasHydrated, setHasHydrated] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [documentFamilyQuery, setDocumentFamilyQuery] = useState<string | null>(null);
+  const [visibleContractId, setVisibleContractId] = useState<string | null>(contractId);
+  const [contractNavClosing, setContractNavClosing] = useState(false);
 
   useEffect(() => {
     // This runs only on the client after hydration to avoid SSR/client mismatches.
@@ -441,6 +448,34 @@ export function AppSidebar({ children }: { children: ReactNode }) {
 
     window.localStorage.setItem("evodoc.sidebar.collapsed", String(collapsed));
   }, [collapsed, hasHydrated]);
+
+  useEffect(() => {
+    if (contractId) {
+      const timeout = window.setTimeout(() => {
+        setVisibleContractId(contractId);
+        setContractNavClosing(false);
+      }, 0);
+
+      return () => window.clearTimeout(timeout);
+    }
+
+    if (!visibleContractId) {
+      return;
+    }
+
+    const closingTimeout = window.setTimeout(() => {
+      setContractNavClosing(true);
+    }, 0);
+    const timeout = window.setTimeout(() => {
+      setVisibleContractId(null);
+      setContractNavClosing(false);
+    }, 180);
+
+    return () => {
+      window.clearTimeout(closingTimeout);
+      window.clearTimeout(timeout);
+    };
+  }, [contractId, visibleContractId]);
 
   useEffect(() => {
     function updateDocumentFamilyQuery() {
@@ -461,6 +496,7 @@ export function AppSidebar({ children }: { children: ReactNode }) {
   }, [pathname]);
 
   const breadcrumbs = buildBreadcrumbsWithContext(pathname, documentFamilyQuery);
+  const displayContractId = contractId ?? visibleContractId;
   const contractWorkspaceKey = contractId ? activeContractWorkspaceKey(pathname, contractId) : null;
   const contractWorkspaceLabel = contractId ? activeContractWorkspaceLabel(pathname, contractId) : null;
 
@@ -484,7 +520,9 @@ export function AppSidebar({ children }: { children: ReactNode }) {
               onClick={() => setCollapsed((current) => !current)}
               aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             >
-              <span aria-hidden>{collapsed ? ">" : "<"}</span>
+              <svg className="sidebar-toggle-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="m9 6 6 6-6 6" />
+              </svg>
             </button>
           </div>
 
@@ -495,8 +533,8 @@ export function AppSidebar({ children }: { children: ReactNode }) {
                 <div className="app-sidebar-links">
                   {section.items.map((item) => {
                     const isContractsLink = item.href === "/app/contracts";
-                    const showContractWorkspace = contractId && isContractsLink && !collapsed;
-                    const showCollapsedContractWorkspace = contractId && isContractsLink && collapsed;
+                    const showContractWorkspace = displayContractId && isContractsLink && !collapsed;
+                    const showCollapsedContractWorkspace = displayContractId && isContractsLink && collapsed;
                     const isCurrentItem = isActive(pathname, item);
 
                     return (
@@ -524,15 +562,15 @@ export function AppSidebar({ children }: { children: ReactNode }) {
                         </Link>
 
                         {showContractWorkspace ? (
-                          <div className="app-contract-nav" aria-label="Contract Workspace">
+                          <div className={clsx("app-contract-nav", contractNavClosing && "is-exiting")} aria-label="Contract Workspace">
                             <div className="app-contract-nav-heading">
                               <strong>Contract Workspace</strong>
-                              <small>Contract {contractId.slice(0, 10)}</small>
+                              <small>Contract {displayContractId.slice(0, 10)}</small>
                             </div>
                             {contractWorkspaceItems.map((workspaceItem, index) => (
                               <Link
                                 key={workspaceItem.key}
-                                href={workspaceItem.href(contractId)}
+                                href={workspaceItem.href(displayContractId)}
                                 className={clsx("app-contract-nav-link", contractWorkspaceKey === workspaceItem.key && "active")}
                                 onClick={() => setMobileOpen(false)}
                               >
@@ -547,15 +585,15 @@ export function AppSidebar({ children }: { children: ReactNode }) {
                         ) : null}
 
                         {showCollapsedContractWorkspace ? (
-                          <div className="app-contract-nav-flyout" aria-label="Contract Workspace">
+                          <div className={clsx("app-contract-nav-flyout", contractNavClosing && "is-exiting")} aria-label="Contract Workspace">
                             <div className="app-contract-nav-heading">
                               <strong>Contract Workspace</strong>
-                              <small>Contract {contractId.slice(0, 10)}</small>
+                              <small>Contract {displayContractId.slice(0, 10)}</small>
                             </div>
                             {contractWorkspaceItems.map((workspaceItem, index) => (
                               <Link
                                 key={workspaceItem.key}
-                                href={workspaceItem.href(contractId)}
+                                href={workspaceItem.href(displayContractId)}
                                 className={clsx("app-contract-nav-link", contractWorkspaceKey === workspaceItem.key && "active")}
                                 onClick={() => setMobileOpen(false)}
                               >

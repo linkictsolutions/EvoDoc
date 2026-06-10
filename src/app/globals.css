@@ -263,6 +263,7 @@ tbody tr:hover {
   display: grid;
   grid-template-columns: 292px minmax(0, 1fr);
   overflow: hidden;
+  transition: grid-template-columns 180ms ease;
 }
 
 .app-shell.is-collapsed {
@@ -292,6 +293,7 @@ tbody tr:hover {
   justify-content: space-between;
   gap: 0.75rem;
   margin-bottom: 1.1rem;
+  transition: margin 180ms ease, padding 180ms ease, border-color 180ms ease;
 }
 
 .sidebar-brand-link {
@@ -299,6 +301,10 @@ tbody tr:hover {
   align-items: center;
   gap: 0.8rem;
   text-decoration: none;
+}
+
+.sidebar-brand-link > span:last-child {
+  transition: opacity 150ms ease, transform 150ms ease;
 }
 
 .sidebar-brand-link small {
@@ -324,6 +330,9 @@ tbody tr:hover {
 }
 
 .sidebar-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-width: 2rem;
   min-height: 2rem;
   padding: 0.36rem 0.56rem;
@@ -332,11 +341,24 @@ tbody tr:hover {
   border-color: rgba(255, 255, 255, 0.16);
   border-radius: 999px;
   font-size: 0.82rem;
+  transition: background 150ms ease, border-color 150ms ease, transform 150ms ease;
 }
 
 .sidebar-toggle:hover {
   background: rgba(255, 255, 255, 0.13);
   border-color: rgba(255, 255, 255, 0.3);
+}
+
+.sidebar-toggle-icon {
+  width: 1rem;
+  height: 1rem;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+  transform: rotate(180deg);
+  transition: transform 180ms ease;
 }
 
 .desktop-toggle {
@@ -350,6 +372,7 @@ tbody tr:hover {
 .app-sidebar-nav {
   display: grid;
   gap: 1rem;
+  transition: gap 180ms ease;
 }
 
 .contract-context-pill {
@@ -412,11 +435,18 @@ tbody tr:hover {
   text-decoration: none;
   color: rgba(244, 248, 255, 0.92);
   border: 1px solid transparent;
+  transition:
+    background 150ms ease,
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    padding 180ms ease,
+    min-height 180ms ease;
 }
 
 .app-sidebar-link-copy {
   display: grid;
   gap: 0.12rem;
+  transition: opacity 140ms ease, transform 140ms ease;
 }
 
 .app-sidebar-link-copy strong {
@@ -471,6 +501,7 @@ tbody tr:hover {
   justify-content: center;
   border-radius: 11px;
   background: rgba(255, 255, 255, 0.12);
+  transition: background 150ms ease, transform 150ms ease;
 }
 
 .app-sidebar-badge svg {
@@ -489,6 +520,12 @@ tbody tr:hover {
   margin-left: 1rem;
   padding: 0.35rem 0 0.35rem 0.65rem;
   border-left: 1px solid rgba(216, 230, 248, 0.2);
+  transform-origin: top left;
+  animation: contractNavEnter 180ms ease both;
+}
+
+.app-contract-nav.is-exiting {
+  animation: contractNavExit 180ms ease both;
 }
 
 .app-contract-nav-heading {
@@ -518,11 +555,13 @@ tbody tr:hover {
   color: rgba(235, 244, 255, 0.82);
   text-decoration: none;
   border: 1px solid transparent;
+  transition: background 140ms ease, border-color 140ms ease, transform 140ms ease;
 }
 
 .app-contract-nav-link:hover {
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(179, 203, 231, 0.16);
+  transform: translateX(2px);
 }
 
 .app-contract-nav-link.active {
@@ -618,6 +657,10 @@ tbody tr:hover {
   color: rgba(243, 248, 255, 0.82);
 }
 
+.app-shell.is-collapsed .sidebar-toggle-icon {
+  transform: rotate(0deg);
+}
+
 .app-shell.is-collapsed .app-sidebar-nav {
   gap: 0.78rem;
 }
@@ -709,11 +752,51 @@ tbody tr:hover {
   transition: opacity 120ms ease, transform 120ms ease;
 }
 
+.app-shell.is-collapsed .app-contract-nav-flyout.is-exiting {
+  animation: contractFlyoutExit 180ms ease both;
+}
+
 .app-shell.is-collapsed .has-collapsed-flyout:hover .app-contract-nav-flyout,
 .app-shell.is-collapsed .has-collapsed-flyout:focus-within .app-contract-nav-flyout {
   opacity: 1;
   pointer-events: auto;
   transform: translateX(0);
+}
+
+@keyframes contractNavEnter {
+  from {
+    opacity: 0;
+    transform: translateY(-0.35rem) scaleY(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+  }
+}
+
+@keyframes contractNavExit {
+  from {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(-0.35rem) scaleY(0.96);
+  }
+}
+
+@keyframes contractFlyoutExit {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateX(-0.3rem);
+  }
 }
 
 .app-breadcrumbs {
