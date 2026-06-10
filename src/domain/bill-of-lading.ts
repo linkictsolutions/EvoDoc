@@ -50,7 +50,7 @@ function appendBillOfLadingDescriptionDetails(args: {
     clean(args.billOfLading.freightParty) ? `FREIGHT PARTY: ${clean(args.billOfLading.freightParty)}` : "",
   ].filter(Boolean);
 
-  return [args.baseDescription, ...details].filter(Boolean).join("\n\n");
+  return [args.baseDescription, ...details].filter(Boolean).join("\n\n\n");
 }
 
 function dedupe(values: string[]): string[] {
@@ -321,8 +321,8 @@ export function buildBillOfLadingSample(args: {
       shipper: joinParts([clean(companyConfiguration.sellerName), clean(companyConfiguration.sellerAddress)], "\n"),
       consignee: clean(finalFields.consignee),
       notifyParty: clean(finalFields.notify),
-      carrierAgentsEndorsements: clean(bill.carrierAgentsEndorsements),
-      notify2: clean(bill.notify2),
+      carrierAgentsEndorsements: "",
+      notify2: clean(bill.notify2) || clean(finalFields.secondNotify),
       notify3: clean(bill.notify3),
     },
     routing: {

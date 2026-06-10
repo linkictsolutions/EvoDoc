@@ -1614,12 +1614,8 @@ function billOfLadingPrintPages({ output }: Props): ReactNode[] {
             <td colSpan={6} rowSpan={3} className="preserve-linebreaks">
               <span className="bl-label-lite">CARRIER&apos;S AGENTS ENDORSEMENTS: </span>
               <span className="bl-clause-text">(Include Agent(s) at POD)</span>
-              <br />
-              <span className="bl-field-value bl-field-value-spaced">{display(value(rows, "Carrier Agents Endorsements"))}</span>
               {display(value(rows, "Notify 2")) ? (
                 <>
-                  <br />
-                  <span className="bl-label-lite">NOTIFY-II</span>
                   <br />
                   <span className="bl-field-value bl-field-value-spaced">{display(value(rows, "Notify 2"))}</span>
                 </>
@@ -1627,7 +1623,6 @@ function billOfLadingPrintPages({ output }: Props): ReactNode[] {
               {display(value(rows, "Notify 3")) ? (
                 <>
                   <br />
-                  <span className="bl-label-lite">NOTIFY 3:</span>
                   <br />
                   <span className="bl-field-value bl-field-value-spaced">{display(value(rows, "Notify 3"))}</span>
                 </>

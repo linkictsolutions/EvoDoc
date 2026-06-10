@@ -20,7 +20,6 @@ const schema = z.object({
   noOfCopyBills: z.string().optional(),
   shipperReferenceType: z.enum(["Booking Ref", "Shipper Ref."]),
   shipperReferenceValue: z.string().optional(),
-  carrierAgentsEndorsements: z.string().optional(),
   notify2: z.string().optional(),
   notify3: z.string().optional(),
   cargoMarksText: z.string().optional(),
@@ -73,7 +72,6 @@ export function BillOfLadingForm({
       noOfCopyBills: "3",
       shipperReferenceType: "Booking Ref",
       shipperReferenceValue: "",
-      carrierAgentsEndorsements: "",
       notify2: "",
       notify3: "",
       cargoMarksText: "",
@@ -176,7 +174,6 @@ export function BillOfLadingForm({
           noOfCopyBills: bill.noOfCopyBills ?? "3",
           shipperReferenceType: bill.shipperReferenceType ?? "Booking Ref",
           shipperReferenceValue: bill.shipperReferenceValue ?? "",
-          carrierAgentsEndorsements: bill.carrierAgentsEndorsements ?? "",
           notify2: bill.notify2 ?? "",
           notify3: bill.notify3 ?? "",
           cargoMarksText: bill.cargoMarksText ?? "",
@@ -232,7 +229,7 @@ export function BillOfLadingForm({
             noOfCopyBills: form.noOfCopyBills,
             shipperReferenceType: form.shipperReferenceType,
             shipperReferenceValue: form.shipperReferenceValue,
-            carrierAgentsEndorsements: form.carrierAgentsEndorsements,
+            carrierAgentsEndorsements: "",
             notify2: form.notify2,
             notify3: form.notify3,
             cargoMarksText: form.cargoMarksText,
@@ -316,10 +313,6 @@ export function BillOfLadingForm({
         </label>
 
         <h3 className="span-all">Party Overrides</h3>
-        <label className="span-all">
-          Carrier&apos;s Agents Endorsements
-          <textarea className={dirtyControlClass("carrierAgentsEndorsements")} rows={4} {...register("carrierAgentsEndorsements")} />
-        </label>
         <label>
           Notify 2
           <textarea className={dirtyControlClass("notify2")} rows={3} {...register("notify2")} />
