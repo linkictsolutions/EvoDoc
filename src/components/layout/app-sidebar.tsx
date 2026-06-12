@@ -7,7 +7,29 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { ToastProvider } from "@/components/ui/toast";
 
+const EVO_LOGO_PATH = "/evo-logo.png";
+
 type SidebarIconName = "overview" | "contracts" | "documents" | "settings" | "buyers" | "templates";
+
+function SidebarBrandMark() {
+  const [logoFailed, setLogoFailed] = useState(false);
+
+  if (logoFailed) {
+    return <span className="sidebar-brand-mark sidebar-brand-mark-fallback">EV</span>;
+  }
+
+  return (
+    <span className="sidebar-brand-mark">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={EVO_LOGO_PATH}
+        alt="EvoDoc"
+        className="sidebar-brand-logo"
+        onError={() => setLogoFailed(true)}
+      />
+    </span>
+  );
+}
 
 type NavItem = {
   href: string;
@@ -505,7 +527,7 @@ export function AppSidebar({ children }: { children: ReactNode }) {
         <aside className="app-sidebar">
           <div className="sidebar-brand">
             <Link href="/app" className="sidebar-brand-link">
-              <span className="sidebar-brand-mark">EV</span>
+              <SidebarBrandMark />
               {!collapsed ? (
                 <span>
                   <strong>EvoDoc</strong>
