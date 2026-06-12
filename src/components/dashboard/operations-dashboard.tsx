@@ -5,32 +5,11 @@ import { useEffect, useMemo, useState } from "react";
 import { CenteredLoader } from "@/components/ui/centered-loader";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
+import { getMissingSourceSteps } from "@/domain/contract-readiness";
 import type { Contract, Customer, Notification } from "@/types/models";
 
 function countContractsByStatus(contracts: Contract[], status: Contract["status"]) {
   return contracts.filter((contract) => contract.status === status).length;
-}
-
-function getMissingSourceSteps(contract: Contract): string[] {
-  const missing: string[] = [];
-
-  if (!contract.terms?.quality?.trim() || !contract.terms?.quantityBags) {
-    missing.push("Contract");
-  }
-
-  if (
-    !contract.shipping?.destinationPort?.trim()
-    || !contract.shipping?.portOfLoading?.trim()
-    || !contract.shipping?.shippingLine?.trim()
-  ) {
-    missing.push("Shipping Instruction");
-  }
-
-  if (!contract.banking?.lcNumber?.trim() && !contract.banking?.beneficiaryBank?.trim()) {
-    missing.push("Bank & LC");
-  }
-
-  return missing;
 }
 
 function formatTimestamp(value: string) {
