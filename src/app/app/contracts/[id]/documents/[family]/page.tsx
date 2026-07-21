@@ -343,28 +343,28 @@ export default function ContractDocumentFamilyPage({
             <h4>ICO Manual Inputs</h4>
             <p className="sidebar-subtitle">Grouped manual entries for fields like 1, 6, 8 and related boxes. Save once for all changes.</p>
             <div className="form-grid mt-sm">
-              {[
-                ["exporterConsignor", "1 Exporter/Consignor"],
-                ["notifyAddress", "2 Notify address"],
-                ["internalReferenceNo", "3 Internal reference No"],
-                ["countryCode", "4 Country code"],
-                ["portCode", "4 Port code"],
-                ["serialNo", "4 Serial No"],
-                ["producingCountry", "5 Producing country"],
-                ["countryDestination", "6 Country of destination"],
-                ["dateOfExport", "7 Date of export"],
-                ["countryTransShipment", "8 Country of trans-shipment"],
-                ["nameOfCarrier", "9 Name of carrier"],
-                ["icoIdentificationMark", "10 ICO Identification mark"],
-                ["otherMarksIcoNo", "10 Other marks: ICO No"],
-                ["otherMarksCertNo", "10 Other marks: Cert No"],
-                ["descriptionOtherSpecify", "14 Other (specify)"],
-                ["partBText", "17 Part B text"],
-                ["issuingDate", "16 Issuing date"],
-                ["certifyingDate", "16 Certifying date"],
-                ["place", "16 Place"],
-              ].map(([key, label]) => (
-                <label key={key}>
+              {([
+                ["exporterConsignor", "1 Exporter/Consignor", "col-12"],
+                ["notifyAddress", "2 Notify address", "col-12"],
+                ["internalReferenceNo", "3 Internal reference No", "col-4"],
+                ["countryCode", "4 Country code", "col-2"],
+                ["portCode", "4 Port code", "col-2"],
+                ["serialNo", "4 Serial No", "col-4"],
+                ["producingCountry", "5 Producing country", "col-4"],
+                ["countryDestination", "6 Country of destination", "col-4"],
+                ["dateOfExport", "7 Date of export", "col-3"],
+                ["countryTransShipment", "8 Country of trans-shipment", "col-4"],
+                ["nameOfCarrier", "9 Name of carrier", "col-6"],
+                ["icoIdentificationMark", "10 ICO Identification mark", "col-6"],
+                ["otherMarksIcoNo", "10 Other marks: ICO No", "col-3"],
+                ["otherMarksCertNo", "10 Other marks: Cert No", "col-3"],
+                ["descriptionOtherSpecify", "14 Other (specify)", "col-12"],
+                ["partBText", "17 Part B text", "col-12"],
+                ["issuingDate", "16 Issuing date", "col-3"],
+                ["certifyingDate", "16 Certifying date", "col-3"],
+                ["place", "16 Place", "col-6"],
+              ] as const).map(([key, label, colClass]) => (
+                <label key={key} className={colClass}>
                   <span>{label}</span>
                   <textarea
                     value={icoOverrides[key] ?? ""}

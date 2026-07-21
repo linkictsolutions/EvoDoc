@@ -270,7 +270,7 @@ export function BillOfLadingForm({
         onSubmit={handleSubmit(onSubmit, () => toast.error("Fill in the required fields."))}
       >
         <h3 className="span-all">Contract Link</h3>
-        <label className={`span-all ${errors.contractId ? "is-required field-error" : "is-required"}`}>
+        <label className={`col-4 ${errors.contractId ? "is-required field-error" : "is-required"}`}>
           <span className="label-text">Contract Number (link only)</span>
           <input className={dirtyControlClass("contractId")} {...register("contractId")} readOnly={Boolean(initialContractId)} />
           <small>{errors.contractId?.message}</small>
@@ -286,47 +286,45 @@ export function BillOfLadingForm({
         />
 
         <h3 className="span-all">Bill Meta</h3>
-        <label>
+        <label className="col-4">
           Bill Type
           <select className={dirtyControlClass("billType")} {...register("billType")}>
             <option value="ORIGINAL BILL No.">ORIGINAL BILL No.</option>
             <option value="WAYBILL No.">WAYBILL No.</option>
           </select>
         </label>
-        <div className="form-dense-2">
-          <label>
-            Bill No.
-            <input className={dirtyControlClass("billNo")} {...register("billNo")} />
-          </label>
-          <label>
-            No. of Copy Bills
-            <input className={dirtyControlClass("noOfCopyBills")} {...register("noOfCopyBills")} />
-          </label>
-        </div>
-        <label>
+        <label className="col-4">
+          Bill No.
+          <input className={dirtyControlClass("billNo")} {...register("billNo")} />
+        </label>
+        <label className="col-2">
+          No. of Copy Bills
+          <input className={dirtyControlClass("noOfCopyBills")} {...register("noOfCopyBills")} />
+        </label>
+        <label className="col-4">
           Reference Type
           <select className={dirtyControlClass("shipperReferenceType")} {...register("shipperReferenceType")}>
             <option value="Booking Ref">Booking Ref</option>
             <option value="Shipper Ref.">Shipper Ref.</option>
           </select>
         </label>
-        <label>
+        <label className="col-8">
           Reference Value
           <input className={dirtyControlClass("shipperReferenceValue")} {...register("shipperReferenceValue")} />
         </label>
 
         <h3 className="span-all">Party Overrides</h3>
-        <label>
+        <label className="col-6">
           Notify 2
           <textarea className={dirtyControlClass("notify2")} rows={4} {...register("notify2")} />
         </label>
-        <label>
+        <label className="col-6">
           Notify 3
           <textarea className={dirtyControlClass("notify3")} rows={4} {...register("notify3")} />
         </label>
 
         <h3 className="span-all">Cargo and Freight Overrides</h3>
-        <label className={errors.movementType ? "is-required field-error" : "is-required"}>
+        <label className={`col-4 ${errors.movementType ? "is-required field-error" : "is-required"}`}>
           <span className="label-text">Movement Type</span>
           <select className={dirtyControlClass("movementType")} {...register("movementType")} required>
             <option value="">Select movement type</option>
@@ -336,7 +334,7 @@ export function BillOfLadingForm({
           </select>
           <small>{errors.movementType?.message}</small>
         </label>
-        <label className={errors.freightParty ? "is-required field-error" : "is-required"}>
+        <label className={`col-8 ${errors.freightParty ? "is-required field-error" : "is-required"}`}>
           <span className="label-text">Freight Party</span>
           <input className={dirtyControlClass("freightParty")} {...register("freightParty")} required />
           <small>{errors.freightParty?.message}</small>

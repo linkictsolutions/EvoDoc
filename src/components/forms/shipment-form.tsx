@@ -114,50 +114,48 @@ export function ShipmentForm({ contractId }: { contractId: string }) {
       className="card form-grid"
       onSubmit={handleSubmit(onSubmit, () => toast.error("Fill in the required fields."))}
     >
-      <label>
+      <label className="col-6">
         Vessel
         <input className={dirtyControlClass("vessel")} {...register("vessel")} />
       </label>
-      <label>
+      <label className="col-3">
         Voyage Number
         <input className={dirtyControlClass("voyageNo")} {...register("voyageNo")} />
       </label>
-      <label className="span-all">
+      <label className={`col-3 ${requiredLabelClass(Boolean(errors.bags))}`}>
+        <span className="label-text">Bags</span>
+        <input className={dirtyControlClass("bags")} type="number" {...register("bags", { valueAsNumber: true })} />
+        <small>{errors.bags?.message}</small>
+      </label>
+      <label className="col-8">
         Booking Reference
         <input className={dirtyControlClass("bookingReference")} {...register("bookingReference")} />
       </label>
-      <div className="span-all form-dense">
-        <label className={requiredLabelClass(Boolean(errors.bags))}>
-          <span className="label-text">Bags</span>
-          <input className={dirtyControlClass("bags")} type="number" {...register("bags", { valueAsNumber: true })} />
-          <small>{errors.bags?.message}</small>
-        </label>
-        <label className={requiredLabelClass(Boolean(errors.grossWeightKg))}>
-          <span className="label-text">Gross Weight (kg)</span>
-          <input
-            className={dirtyControlClass("grossWeightKg")}
-            type="number"
-            step="0.001"
-            {...register("grossWeightKg", { valueAsNumber: true })}
-          />
-          <small>{errors.grossWeightKg?.message}</small>
-        </label>
-        <label className={requiredLabelClass(Boolean(errors.tareWeightKg))}>
-          <span className="label-text">Tare Weight (kg)</span>
-          <input
-            className={dirtyControlClass("tareWeightKg")}
-            type="number"
-            step="0.001"
-            {...register("tareWeightKg", { valueAsNumber: true })}
-          />
-          <small>{errors.tareWeightKg?.message}</small>
-        </label>
-      </div>
-      <label>
+      <label className={`col-4 ${requiredLabelClass(Boolean(errors.grossWeightKg))}`}>
+        <span className="label-text">Gross Weight (kg)</span>
+        <input
+          className={dirtyControlClass("grossWeightKg")}
+          type="number"
+          step="0.001"
+          {...register("grossWeightKg", { valueAsNumber: true })}
+        />
+        <small>{errors.grossWeightKg?.message}</small>
+      </label>
+      <label className={`col-4 ${requiredLabelClass(Boolean(errors.tareWeightKg))}`}>
+        <span className="label-text">Tare Weight (kg)</span>
+        <input
+          className={dirtyControlClass("tareWeightKg")}
+          type="number"
+          step="0.001"
+          {...register("tareWeightKg", { valueAsNumber: true })}
+        />
+        <small>{errors.tareWeightKg?.message}</small>
+      </label>
+      <label className="col-6">
         Container Number
         <input className={dirtyControlClass("containerNumber")} {...register("containerNumber")} />
       </label>
-      <label>
+      <label className="col-2">
         Seal Number
         <input className={dirtyControlClass("sealNumber")} {...register("sealNumber")} />
       </label>

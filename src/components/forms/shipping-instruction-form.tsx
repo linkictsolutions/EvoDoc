@@ -322,7 +322,7 @@ export function ShippingInstructionForm({
         onSubmit={handleSubmit(onSubmit, () => toast.error("Fill in the required fields."))}
       >
         <h3 className="span-all">Contract Link</h3>
-        <label className={`span-all ${requiredLabelClass(Boolean(errors.contractId))}`}>
+        <label className={`col-4 ${requiredLabelClass(Boolean(errors.contractId))}`}>
           <span className="label-text">Contract Number (link only, no auto-fill)</span>
           <input className={dirtyControlClass("contractId")} {...register("contractId")} readOnly={Boolean(initialContractId)} />
           <small>{errors.contractId?.message}</small>
@@ -338,44 +338,44 @@ export function ShippingInstructionForm({
         />
 
         <h3 className="span-all">Route and Carrier</h3>
-        <label className={requiredLabelClass(Boolean(errors.destinationPort))}>
+        <label className={`col-6 ${requiredLabelClass(Boolean(errors.destinationPort))}`}>
           <span className="label-text">Destination (Port, Country)</span>
           <input className={dirtyControlClass("destinationPort")} {...register("destinationPort")} />
           <small>{errors.destinationPort?.message}</small>
         </label>
-        <label className={requiredLabelClass(Boolean(errors.portOfLoading))}>
+        <label className={`col-6 ${requiredLabelClass(Boolean(errors.portOfLoading))}`}>
           <span className="label-text">Port of Loading</span>
           <input className={dirtyControlClass("portOfLoading")} {...register("portOfLoading")} />
           <small>{errors.portOfLoading?.message}</small>
         </label>
-        <label className={requiredLabelClass(Boolean(errors.shippingLine))}>
+        <label className={`col-6 ${requiredLabelClass(Boolean(errors.shippingLine))}`}>
           <span className="label-text">Shipping Line</span>
           <input className={dirtyControlClass("shippingLine")} {...register("shippingLine")} />
           <small>{errors.shippingLine?.message}</small>
         </label>
-        <label>
+        <label className="col-6">
           Service Contract
           <input className={dirtyControlClass("serviceContract")} {...register("serviceContract")} />
         </label>
-        <label>
+        <label className="col-4">
           Alternative 1
           <input className={dirtyControlClass("alternative1")} {...register("alternative1")} />
         </label>
-        <label>
+        <label className="col-4">
           Alternative 1 Service Contract
           <input className={dirtyControlClass("alternative1ServiceContract")} {...register("alternative1ServiceContract")} />
         </label>
-        <label>
+        <label className="col-4">
           Alternative 2
           <input className={dirtyControlClass("alternative2")} {...register("alternative2")} />
         </label>
-        <label>
+        <label className="col-12">
           Alternative 2 Service Contract
           <input className={dirtyControlClass("alternative2ServiceContract")} {...register("alternative2ServiceContract")} />
         </label>
 
         <h3 className="span-all">Cargo Details</h3>
-        <div className="form-stack">
+        <div className="form-stack col-5">
           <label className={requiredLabelClass(Boolean(errors.quantityValue))}>
             <span className="label-text">Quantity</span>
             <input className={dirtyControlClass("quantityValue")} {...register("quantityValue")} />
@@ -395,27 +395,25 @@ export function ShippingInstructionForm({
             <small>{errors.packagingValue?.message}</small>
           </label>
         </div>
-        <label className={requiredLabelClass(Boolean(errors.qualityValue))}>
+        <label className={`col-7 ${requiredLabelClass(Boolean(errors.qualityValue))}`}>
           <span className="label-text">Quality</span>
           <textarea className={dirtyControlClass("qualityValue")} rows={4} {...register("qualityValue")} />
           <small>{errors.qualityValue?.message}</small>
         </label>
-        <div className="span-all form-dense">
-          <label className={requiredLabelClass(Boolean(errors.noOfBagsValue))}>
-            <span className="label-text">Number of Bags</span>
-            <input className={dirtyControlClass("noOfBagsValue")} {...register("noOfBagsValue")} />
-            <small>{errors.noOfBagsValue?.message}</small>
-          </label>
-          <label className={requiredLabelClass(Boolean(errors.containerCountValue))}>
-            <span className="label-text">Containers</span>
-            <input className={dirtyControlClass("containerCountValue")} {...register("containerCountValue")} />
-            <small>{errors.containerCountValue?.message}</small>
-          </label>
-          <label>
-            Shipment Month
-            <input className={dirtyControlClass("shipmentMonth")} type="month" {...register("shipmentMonth")} />
-          </label>
-        </div>
+        <label className={`col-4 ${requiredLabelClass(Boolean(errors.noOfBagsValue))}`}>
+          <span className="label-text">Number of Bags</span>
+          <input className={dirtyControlClass("noOfBagsValue")} {...register("noOfBagsValue")} />
+          <small>{errors.noOfBagsValue?.message}</small>
+        </label>
+        <label className={`col-3 ${requiredLabelClass(Boolean(errors.containerCountValue))}`}>
+          <span className="label-text">Containers</span>
+          <input className={dirtyControlClass("containerCountValue")} {...register("containerCountValue")} />
+          <small>{errors.containerCountValue?.message}</small>
+        </label>
+        <label className="col-3">
+          Shipment Month
+          <input className={dirtyControlClass("shipmentMonth")} type="month" {...register("shipmentMonth")} />
+        </label>
         <label className="span-all">
           Bag Marking
           <textarea className={dirtyControlClass("bagMarkings")} rows={8} {...register("bagMarkings")} />
@@ -426,15 +424,15 @@ export function ShippingInstructionForm({
         </label>
 
         <h3 className="span-all">Consignee and Notify Parties</h3>
-        <label>
+        <label className="col-6">
           Consignee
           <textarea className={dirtyControlClass("consignee")} rows={4} {...register("consignee")} />
         </label>
-        <label>
+        <label className="col-6">
           Notify
           <textarea className={dirtyControlClass("notifyParty")} rows={4} {...register("notifyParty")} />
         </label>
-        <label className="span-all">
+        <label className="col-12">
           2nd Notify
           <textarea className={dirtyControlClass("secondNotify")} rows={4} {...register("secondNotify")} />
         </label>

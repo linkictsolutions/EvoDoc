@@ -267,25 +267,25 @@ export function ContractWizardForm() {
 
   const common = (
     <>
-      <label className={requiredLabelClass(Boolean(errors.contractNumber))}>
+      <label className={`col-4 ${requiredLabelClass(Boolean(errors.contractNumber))}`}>
         <span className="label-text">Contract Number</span>
         <input className={dirtyControlClass("contractNumber")} {...register("contractNumber")} />
         <small>{errors.contractNumber?.message}</small>
       </label>
-      <label className={requiredLabelClass(Boolean(errors.customerName))}>
+      <label className={`col-8 ${requiredLabelClass(Boolean(errors.customerName))}`}>
         <span className="label-text">Buyer Name</span>
         <input className={dirtyControlClass("customerName")} {...register("customerName")} />
         <small>{errors.customerName?.message}</small>
       </label>
-      <label className={requiredLabelClass(Boolean(errors.customerAddress))}>
-        <span className="label-text">Buyer Address</span>
-        <input className={dirtyControlClass("customerAddress")} {...register("customerAddress")} />
-        <small>{errors.customerAddress?.message}</small>
-      </label>
-      <label className={requiredLabelClass(Boolean(errors.customerCountry))}>
+      <label className={`col-4 ${requiredLabelClass(Boolean(errors.customerCountry))}`}>
         <span className="label-text">Buyer Country</span>
         <input className={dirtyControlClass("customerCountry")} {...register("customerCountry")} />
         <small>{errors.customerCountry?.message}</small>
+      </label>
+      <label className={`col-12 ${requiredLabelClass(Boolean(errors.customerAddress))}`}>
+        <span className="label-text">Buyer Address</span>
+        <textarea className={dirtyControlClass("customerAddress")} rows={3} {...register("customerAddress")} />
+        <small>{errors.customerAddress?.message}</small>
       </label>
     </>
   );
@@ -304,27 +304,27 @@ export function ContractWizardForm() {
 
       {step === 1 && (
         <>
-          <label className={requiredLabelClass(Boolean(errors.quality))}>
+          <label className={`col-12 ${requiredLabelClass(Boolean(errors.quality))}`}>
             <span className="label-text">Quality</span>
-            <input className={dirtyControlClass("quality")} {...register("quality")} />
+            <textarea className={dirtyControlClass("quality")} rows={3} {...register("quality")} />
             <small>{errors.quality?.message}</small>
           </label>
-          <label className={requiredLabelClass(Boolean(errors.origin))}>
+          <label className={`col-4 ${requiredLabelClass(Boolean(errors.origin))}`}>
             <span className="label-text">Origin</span>
             <input className={dirtyControlClass("origin")} {...register("origin")} />
             <small>{errors.origin?.message}</small>
           </label>
-          <label className={requiredLabelClass(Boolean(errors.grade))}>
+          <label className={`col-2 ${requiredLabelClass(Boolean(errors.grade))}`}>
             <span className="label-text">Grade</span>
             <input className={dirtyControlClass("grade")} {...register("grade")} />
             <small>{errors.grade?.message}</small>
           </label>
-          <label className={requiredLabelClass(Boolean(errors.quantityBags))}>
+          <label className={`col-4 ${requiredLabelClass(Boolean(errors.quantityBags))}`}>
             <span className="label-text">Quantity (Bags)</span>
             <input className={dirtyControlClass("quantityBags")} type="number" {...register("quantityBags", { valueAsNumber: true })} />
             <small>{errors.quantityBags?.message}</small>
           </label>
-          <label className={requiredLabelClass(Boolean(errors.bagWeightKg))}>
+          <label className={`col-3 ${requiredLabelClass(Boolean(errors.bagWeightKg))}`}>
             <span className="label-text">Bag Weight (kg)</span>
             <input
               className={dirtyControlClass("bagWeightKg")}
@@ -334,12 +334,12 @@ export function ContractWizardForm() {
             />
             <small>{errors.bagWeightKg?.message}</small>
           </label>
-          <label className={requiredLabelClass(Boolean(errors.unitPrice))}>
+          <label className={`col-3 ${requiredLabelClass(Boolean(errors.unitPrice))}`}>
             <span className="label-text">Unit Price</span>
             <input className={dirtyControlClass("unitPrice")} type="number" step="0.01" {...register("unitPrice", { valueAsNumber: true })} />
             <small>{errors.unitPrice?.message}</small>
           </label>
-          <label className={requiredLabelClass(Boolean(errors.priceUnitForPrice))}>
+          <label className={`col-2 ${requiredLabelClass(Boolean(errors.priceUnitForPrice))}`}>
             <span className="label-text">Price Unit Base</span>
             <input
               className={dirtyControlClass("priceUnitForPrice")}
@@ -349,12 +349,12 @@ export function ContractWizardForm() {
             />
             <small>{errors.priceUnitForPrice?.message}</small>
           </label>
-          <label className={requiredLabelClass(Boolean(errors.priceUom))}>
+          <label className={`col-2 ${requiredLabelClass(Boolean(errors.priceUom))}`}>
             <span className="label-text">Price UoM</span>
             <input className={dirtyControlClass("priceUom")} {...register("priceUom")} />
             <small>{errors.priceUom?.message}</small>
           </label>
-          <label className={requiredLabelClass(Boolean(errors.currency))}>
+          <label className={`col-2 ${requiredLabelClass(Boolean(errors.currency))}`}>
             <span className="label-text">Currency</span>
             <select className={dirtyControlClass("currency")} {...register("currency")}>
               <option value="">Select currency</option>
@@ -364,12 +364,12 @@ export function ContractWizardForm() {
             </select>
             <small>{errors.currency?.message}</small>
           </label>
-          <label className={requiredLabelClass(Boolean(errors.packagingUnit))}>
+          <label className={`col-4 ${requiredLabelClass(Boolean(errors.packagingUnit))}`}>
             <span className="label-text">Packaging Unit</span>
             <input className={dirtyControlClass("packagingUnit")} {...register("packagingUnit")} />
             <small>{errors.packagingUnit?.message}</small>
           </label>
-          <label className={requiredLabelClass(Boolean(errors.paymentTerm))}>
+          <label className={`col-4 ${requiredLabelClass(Boolean(errors.paymentTerm))}`}>
             <span className="label-text">Payment Term</span>
             <select className={dirtyControlClass("paymentTerm")} {...register("paymentTerm")}>
               {paymentTermOptions.map((term) => (
@@ -378,7 +378,7 @@ export function ContractWizardForm() {
             </select>
             <small>{errors.paymentTerm?.message}</small>
           </label>
-          <label className={requiredLabelClass(Boolean(errors.deliveryTerm))}>
+          <label className={`col-4 ${requiredLabelClass(Boolean(errors.deliveryTerm))}`}>
             <span className="label-text">Delivery Term</span>
             <select className={dirtyControlClass("deliveryTerm")} {...register("deliveryTerm")}>
               {deliveryTermOptions.map((term) => (
@@ -387,15 +387,15 @@ export function ContractWizardForm() {
             </select>
             <small>{errors.deliveryTerm?.message}</small>
           </label>
-          <label>
+          <label className="col-3">
             Shipment Period
             <input className={dirtyControlClass("shipmentPeriod")} type="month" {...register("shipmentPeriod")} />
           </label>
-          <label>
+          <label className="col-2">
             Crop Year
             <input className={dirtyControlClass("cropYear")} {...register("cropYear")} />
           </label>
-          <label className={requiredLabelClass(Boolean(errors.lastCertNo))}>
+          <label className={`col-3 ${requiredLabelClass(Boolean(errors.lastCertNo))}`}>
             <span className="label-text">Last Cert No</span>
             <input className={dirtyControlClass("lastCertNo")} type="number" step="1" {...register("lastCertNo", { valueAsNumber: true })} />
             <small>{errors.lastCertNo?.message}</small>
@@ -405,60 +405,60 @@ export function ContractWizardForm() {
 
       {step === 2 && (
         <>
-          <label className={requiredLabelClass(Boolean(errors.destinationPort))}>
+          <label className={`col-6 ${requiredLabelClass(Boolean(errors.destinationPort))}`}>
             <span className="label-text">Destination Port</span>
             <input className={dirtyControlClass("destinationPort")} {...register("destinationPort")} />
             <small>{errors.destinationPort?.message}</small>
           </label>
-          <label className={requiredLabelClass(Boolean(errors.shippingLine))}>
-            <span className="label-text">Shipping Line</span>
-            <input className={dirtyControlClass("shippingLine")} {...register("shippingLine")} />
-            <small>{errors.shippingLine?.message}</small>
-          </label>
-          <label className={requiredLabelClass(Boolean(errors.portOfLoading))}>
+          <label className={`col-6 ${requiredLabelClass(Boolean(errors.portOfLoading))}`}>
             <span className="label-text">Port of Loading</span>
             <input className={dirtyControlClass("portOfLoading")} {...register("portOfLoading")} />
             <small>{errors.portOfLoading?.message}</small>
           </label>
-          <label>
-            Bag Markings
-            <input className={dirtyControlClass("bagMarkings")} {...register("bagMarkings")} />
+          <label className={`col-6 ${requiredLabelClass(Boolean(errors.shippingLine))}`}>
+            <span className="label-text">Shipping Line</span>
+            <input className={dirtyControlClass("shippingLine")} {...register("shippingLine")} />
+            <small>{errors.shippingLine?.message}</small>
           </label>
-          <label>
+          <label className="col-6">
+            Booking Number
+            <input className={dirtyControlClass("bookingNumber")} {...register("bookingNumber")} />
+          </label>
+          <label className="col-12">
+            Bag Markings
+            <textarea className={dirtyControlClass("bagMarkings")} rows={3} {...register("bagMarkings")} />
+          </label>
+          <label className="col-6">
             Alternative 1
             <input className={dirtyControlClass("alternative1")} {...register("alternative1")} />
           </label>
-          <label>
+          <label className="col-6">
             Alternative 2
             <input className={dirtyControlClass("alternative2")} {...register("alternative2")} />
           </label>
-          <label>
+          <label className="col-6">
             Consignee
-            <input className={dirtyControlClass("consignee")} {...register("consignee")} />
+            <textarea className={dirtyControlClass("consignee")} rows={3} {...register("consignee")} />
           </label>
-          <label>
+          <label className="col-6">
             Notify Party
-            <input className={dirtyControlClass("notifyParty")} {...register("notifyParty")} />
+            <textarea className={dirtyControlClass("notifyParty")} rows={3} {...register("notifyParty")} />
           </label>
-          <label>
+          <label className="col-12">
             2nd Notify
-            <input className={dirtyControlClass("secondNotify")} {...register("secondNotify")} />
-          </label>
-          <label>
-            Booking Number
-            <input className={dirtyControlClass("bookingNumber")} {...register("bookingNumber")} />
+            <textarea className={dirtyControlClass("secondNotify")} rows={3} {...register("secondNotify")} />
           </label>
         </>
       )}
 
       {step === 3 && (
         <>
-          <label className={requiredLabelClass(Boolean(errors.beneficiaryBank))}>
+          <label className={`col-8 ${requiredLabelClass(Boolean(errors.beneficiaryBank))}`}>
             <span className="label-text">Beneficiary Bank</span>
             <input className={dirtyControlClass("beneficiaryBank")} {...register("beneficiaryBank")} />
             <small>{errors.beneficiaryBank?.message}</small>
           </label>
-          <label className={requiredLabelClass(Boolean(errors.accountNumber))}>
+          <label className={`col-4 ${requiredLabelClass(Boolean(errors.accountNumber))}`}>
             <span className="label-text">Account Number</span>
             <input className={dirtyControlClass("accountNumber")} {...register("accountNumber")} />
             <small>{errors.accountNumber?.message}</small>
@@ -468,17 +468,12 @@ export function ContractWizardForm() {
 
       {step === 4 && (
         <>
-          <label className={requiredLabelClass(Boolean(errors.stationName))}>
+          <label className={`col-6 ${requiredLabelClass(Boolean(errors.stationName))}`}>
             <span className="label-text">Station Name</span>
             <input className={dirtyControlClass("stationName")} {...register("stationName")} />
             <small>{errors.stationName?.message}</small>
           </label>
-          <label className={requiredLabelClass(Boolean(errors.stationAddress))}>
-            <span className="label-text">Station Address</span>
-            <input className={dirtyControlClass("stationAddress")} {...register("stationAddress")} />
-            <small>{errors.stationAddress?.message}</small>
-          </label>
-          <label className={requiredLabelClass(Boolean(errors.moisturePercent))}>
+          <label className={`col-3 ${requiredLabelClass(Boolean(errors.moisturePercent))}`}>
             <span className="label-text">Moisture (%)</span>
             <input
               className={dirtyControlClass("moisturePercent")}
@@ -487,6 +482,11 @@ export function ContractWizardForm() {
               {...register("moisturePercent", { valueAsNumber: true })}
             />
             <small>{errors.moisturePercent?.message}</small>
+          </label>
+          <label className={`col-12 ${requiredLabelClass(Boolean(errors.stationAddress))}`}>
+            <span className="label-text">Station Address</span>
+            <textarea className={dirtyControlClass("stationAddress")} rows={3} {...register("stationAddress")} />
+            <small>{errors.stationAddress?.message}</small>
           </label>
         </>
       )}

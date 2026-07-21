@@ -563,12 +563,12 @@ export function ContractCoreForm({
         onSubmit={handleSubmit(onSubmit, () => toast.error("Fill in the required fields."))}
       >
         <h3 className="span-all">Contract Identity</h3>
-        <label className={requiredLabelClass(Boolean(errors.contractNumber))}>
+        <label className={`col-4 ${requiredLabelClass(Boolean(errors.contractNumber))}`}>
           <span className="label-text">Contract Number</span>
           <input className={dirtyControlClass("contractNumber")} {...register("contractNumber")} />
           <small>{errors.contractNumber?.message}</small>
         </label>
-        <label className={requiredLabelClass(Boolean(errors.buyerId))}>
+        <label className={`col-8 ${requiredLabelClass(Boolean(errors.buyerId))}`}>
           <span className="label-text">Buyer</span>
           <input type="hidden" {...register("buyerId")} />
           <select
@@ -599,12 +599,12 @@ export function ContractCoreForm({
           </button>
         </div>
 
-        <label className={requiredLabelClass(Boolean(errors.customerName))}>
+        <label className={`col-8 ${requiredLabelClass(Boolean(errors.customerName))}`}>
           <span className="label-text">Buyer Name</span>
           <input {...register("customerName")} readOnly />
           <small>{errors.customerName?.message}</small>
         </label>
-        <label className={requiredLabelClass(Boolean(errors.customerCountry))}>
+        <label className={`col-4 ${requiredLabelClass(Boolean(errors.customerCountry))}`}>
           <span className="label-text">Buyer Country</span>
           <input {...register("customerCountry")} readOnly />
           <small>{errors.customerCountry?.message}</small>
@@ -625,7 +625,7 @@ export function ContractCoreForm({
         />
 
         <h3 className="span-all">Product Details</h3>
-        <div className="form-stack">
+        <div className="form-stack col-4">
           <label className={requiredLabelClass(Boolean(errors.origin))}>
             <span className="label-text">Origin</span>
             <input className={dirtyControlClass("origin")} {...register("origin")} />
@@ -635,11 +635,11 @@ export function ContractCoreForm({
             <input className={dirtyControlClass("grade")} {...register("grade")} />
           </label>
         </div>
-        <label className={requiredLabelClass(Boolean(errors.quality))}>
+        <label className={`col-8 ${requiredLabelClass(Boolean(errors.quality))}`}>
           <span className="label-text">Quality</span>
           <textarea className={dirtyControlClass("quality")} rows={4} {...register("quality")} />
         </label>
-        <label className={requiredLabelClass(Boolean(errors.packagingUnit))}>
+        <label className={`col-9 ${requiredLabelClass(Boolean(errors.packagingUnit))}`}>
           <span className="label-text">Packaging Unit</span>
           <select
             {...packagingRegister}
@@ -654,27 +654,25 @@ export function ContractCoreForm({
             ))}
           </select>
         </label>
-        <label>
+        <label className="col-3">
           Last Cert No
           <input type="number" step="1" {...register("lastCertNo", { valueAsNumber: true })} />
         </label>
 
         <h3 className="span-all">Commercial Terms</h3>
-        <div className="span-all form-dense">
-          <label className={requiredLabelClass(Boolean(errors.quantityBags))}>
-            <span className="label-text">Quantity (Main Unit)</span>
-            <input className={dirtyControlClass("quantityBags")} type="number" step="0.001" {...register("quantityBags", { valueAsNumber: true })} />
-          </label>
-          <label className={requiredLabelClass(Boolean(errors.unitPrice))}>
-            <span className="label-text">Unit Price</span>
-            <input className={dirtyControlClass("unitPrice")} type="number" step="0.01" {...register("unitPrice", { valueAsNumber: true })} />
-          </label>
-          <label className={requiredLabelClass(Boolean(errors.priceUnitForPrice))}>
-            <span className="label-text">Price Unit Base</span>
-            <input className={dirtyControlClass("priceUnitForPrice")} type="number" step="1" {...register("priceUnitForPrice", { valueAsNumber: true })} />
-          </label>
-        </div>
-        <label className={requiredLabelClass(Boolean(errors.priceUom))}>
+        <label className={`col-4 ${requiredLabelClass(Boolean(errors.quantityBags))}`}>
+          <span className="label-text">Quantity (Main Unit)</span>
+          <input className={dirtyControlClass("quantityBags")} type="number" step="0.001" {...register("quantityBags", { valueAsNumber: true })} />
+        </label>
+        <label className={`col-3 ${requiredLabelClass(Boolean(errors.unitPrice))}`}>
+          <span className="label-text">Unit Price</span>
+          <input className={dirtyControlClass("unitPrice")} type="number" step="0.01" {...register("unitPrice", { valueAsNumber: true })} />
+        </label>
+        <label className={`col-2 ${requiredLabelClass(Boolean(errors.priceUnitForPrice))}`}>
+          <span className="label-text">Price Unit Base</span>
+          <input className={dirtyControlClass("priceUnitForPrice")} type="number" step="1" {...register("priceUnitForPrice", { valueAsNumber: true })} />
+        </label>
+        <label className={`col-3 ${requiredLabelClass(Boolean(errors.priceUom))}`}>
           <span className="label-text">Price UoM</span>
           <select className={dirtyControlClass("priceUom")} {...register("priceUom")}>
             <option value="">Select price UoM</option>
@@ -683,7 +681,7 @@ export function ContractCoreForm({
             ))}
           </select>
         </label>
-        <label className={requiredLabelClass(Boolean(errors.currency))}>
+        <label className={`col-2 ${requiredLabelClass(Boolean(errors.currency))}`}>
           <span className="label-text">Currency</span>
           <select className={dirtyControlClass("currency")} {...register("currency")}>
             <option value="">Select currency</option>
@@ -695,9 +693,13 @@ export function ContractCoreForm({
             ))}
           </select>
         </label>
+        <label className="col-2">
+          Crop Year
+          <input {...register("cropYear")} />
+        </label>
         <input type="hidden" {...register("bagWeightKg", { valueAsNumber: true })} />
 
-        <label className={requiredLabelClass(Boolean(errors.paymentTerm))}>
+        <label className={`col-4 ${requiredLabelClass(Boolean(errors.paymentTerm))}`}>
           <span className="label-text">Payment Term</span>
           <select className={dirtyControlClass("paymentTerm")} {...register("paymentTerm")}>
             <option value="">Select payment term</option>
@@ -706,7 +708,7 @@ export function ContractCoreForm({
             ))}
           </select>
         </label>
-        <label className={requiredLabelClass(Boolean(errors.deliveryTerm))}>
+        <label className={`col-4 ${requiredLabelClass(Boolean(errors.deliveryTerm))}`}>
           <span className="label-text">Delivery Term</span>
           <select {...register("deliveryTerm")}>
             <option value="">Select delivery term</option>
@@ -715,13 +717,9 @@ export function ContractCoreForm({
             ))}
           </select>
         </label>
-        <label>
+        <label className="col-3">
           Shipment Period
           <input className={dirtyControlClass("shipmentPeriod")} type="month" {...register("shipmentPeriod")} />
-        </label>
-        <label>
-          Crop Year
-          <input {...register("cropYear")} />
         </label>
 
         <div className="row-actions">
@@ -791,7 +789,7 @@ export function ContractCoreForm({
             </div>
 
             <div className="form-grid" style={{ padding: 0 }}>
-              <label className={`span-all ${buyerModalAttemptedSubmit && buyerModalForm.name.trim().length === 0 ? "is-required field-error" : "is-required"}`}>
+              <label className={`col-8 ${buyerModalAttemptedSubmit && buyerModalForm.name.trim().length === 0 ? "is-required field-error" : "is-required"}`}>
                 <span className="label-text">Legal Name</span>
                 <input
                   className={buyerModalAttemptedSubmit && buyerModalForm.name.trim().length === 0 ? "field-error-control" : undefined}
@@ -808,7 +806,7 @@ export function ContractCoreForm({
                   onChange={(event) => updateBuyerModalField("address", event.target.value)}
                 />
               </label>
-              <label className={buyerModalAttemptedSubmit && buyerModalForm.country.trim().length === 0 ? "is-required field-error" : "is-required"}>
+              <label className={`col-4 ${buyerModalAttemptedSubmit && buyerModalForm.country.trim().length === 0 ? "is-required field-error" : "is-required"}`}>
                 <span className="label-text">Country</span>
                 <input
                   className={buyerModalAttemptedSubmit && buyerModalForm.country.trim().length === 0 ? "field-error-control" : undefined}
@@ -816,21 +814,21 @@ export function ContractCoreForm({
                   onChange={(event) => updateBuyerModalField("country", event.target.value)}
                 />
               </label>
-              <label>
+              <label className="col-4">
                 <span className="label-text">Tax ID</span>
                 <input
                   value={buyerModalForm.taxId}
                   onChange={(event) => updateBuyerModalField("taxId", event.target.value)}
                 />
               </label>
-              <label>
+              <label className="col-6">
                 <span className="label-text">Contact Name</span>
                 <input
                   value={buyerModalForm.contactName}
                   onChange={(event) => updateBuyerModalField("contactName", event.target.value)}
                 />
               </label>
-              <label>
+              <label className="col-6">
                 <span className="label-text">Contact Email</span>
                 <input
                   type="email"
