@@ -10,6 +10,7 @@ import { DEFAULT_ORG_ID } from "@/lib/config";
 import type { AttachmentRef, CompanyConfiguration, Contract } from "@/types/models";
 import { CenteredLoader } from "@/components/ui/centered-loader";
 import { AttachmentsField } from "@/components/ui/attachments";
+import { AutoGrowTextarea } from "@/components/ui/auto-grow-textarea";
 import { useToast } from "@/components/ui/toast";
 import { useUnsavedChangesGuard } from "@/components/ui/use-unsaved-changes-guard";
 
@@ -401,7 +402,7 @@ export function BankLcForm({
         </label>
         <label className="span-all">
           Description of Goods
-          <textarea className={dirtyControlClass("goodsDescription")} rows={3} {...register("goodsDescription")} />
+          <textarea className={dirtyControlClass("goodsDescription")} rows={8} {...register("goodsDescription")} />
         </label>
         <label>
           Number of Bags
@@ -423,15 +424,15 @@ export function BankLcForm({
         <h3 className="span-all">Consignee and Notify Parties</h3>
         <label>
           Consignee
-          <textarea className={dirtyControlClass("consignee")} rows={2} {...register("consignee")} />
+          <AutoGrowTextarea className={dirtyControlClass("consignee")} rows={2} {...register("consignee")} />
         </label>
         <label>
           Notify
-          <textarea className={dirtyControlClass("notify")} rows={2} {...register("notify")} />
+          <AutoGrowTextarea className={dirtyControlClass("notify")} rows={2} {...register("notify")} />
         </label>
         <label>
           2nd Notify
-          <textarea className={dirtyControlClass("secondNotify")} rows={2} {...register("secondNotify")} />
+          <AutoGrowTextarea className={dirtyControlClass("secondNotify")} rows={2} {...register("secondNotify")} />
         </label>
 
         <h3 className="span-all">Bank Details (Beneficiary)</h3>

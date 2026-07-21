@@ -382,7 +382,7 @@ export function ShippingInstructionForm({
         </label>
         <label className={requiredLabelClass(Boolean(errors.qualityValue))}>
           <span className="label-text">Quality</span>
-          <textarea className={dirtyControlClass("qualityValue")} rows={3} {...register("qualityValue")} />
+          <textarea className={dirtyControlClass("qualityValue")} rows={4} {...register("qualityValue")} />
           <small>{errors.qualityValue?.message}</small>
         </label>
         <label className={requiredLabelClass(Boolean(errors.packagingValue))}>
@@ -414,7 +414,7 @@ export function ShippingInstructionForm({
         </label>
         <label>
           Bag Marking
-          <textarea className={dirtyControlClass("bagMarkings")} rows={6} {...register("bagMarkings")} />
+          <textarea className={dirtyControlClass("bagMarkings")} rows={8} {...register("bagMarkings")} />
         </label>
         <label>
           Description
@@ -424,15 +424,15 @@ export function ShippingInstructionForm({
         <h3 className="span-all">Consignee and Notify Parties</h3>
         <label>
           Consignee
-          <textarea className={dirtyControlClass("consignee")} rows={3} {...register("consignee")} />
+          <textarea className={dirtyControlClass("consignee")} rows={4} {...register("consignee")} />
         </label>
         <label>
           Notify
-          <textarea className={dirtyControlClass("notifyParty")} rows={3} {...register("notifyParty")} />
+          <textarea className={dirtyControlClass("notifyParty")} rows={4} {...register("notifyParty")} />
         </label>
         <label>
           2nd Notify
-          <textarea className={dirtyControlClass("secondNotify")} rows={3} {...register("secondNotify")} />
+          <textarea className={dirtyControlClass("secondNotify")} rows={4} {...register("secondNotify")} />
         </label>
 
         <div className="row-actions">

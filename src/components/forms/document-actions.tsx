@@ -212,7 +212,7 @@ export function ReviewActions({
 
       <label>
         Decision Comment
-        <textarea value={comment} onChange={(event) => setComment(event.target.value)} rows={3} />
+        <textarea value={comment} onChange={(event) => setComment(event.target.value)} rows={8} />
       </label>
 
       <div className="row-actions">

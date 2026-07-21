@@ -316,11 +316,11 @@ export function BillOfLadingForm({
         <h3 className="span-all">Party Overrides</h3>
         <label>
           Notify 2
-          <textarea className={dirtyControlClass("notify2")} rows={3} {...register("notify2")} />
+          <textarea className={dirtyControlClass("notify2")} rows={4} {...register("notify2")} />
         </label>
         <label>
           Notify 3
-          <textarea className={dirtyControlClass("notify3")} rows={3} {...register("notify3")} />
+          <textarea className={dirtyControlClass("notify3")} rows={4} {...register("notify3")} />
         </label>
 
         <h3 className="span-all">Cargo and Freight Overrides</h3>
@@ -341,7 +341,7 @@ export function BillOfLadingForm({
         </label>
         <label className="span-all">
           Description Override
-          <textarea className={dirtyControlClass("descriptionOverride")} rows={5} {...register("descriptionOverride")} />
+          <textarea className={dirtyControlClass("descriptionOverride")} rows={8} {...register("descriptionOverride")} />
         </label>
 
         <div className="row-actions">

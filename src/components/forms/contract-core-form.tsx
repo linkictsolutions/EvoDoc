@@ -636,7 +636,7 @@ export function ContractCoreForm({
 
         <label className={requiredLabelClass(Boolean(errors.quality))}>
           <span className="label-text">Quality</span>
-          <textarea className={dirtyControlClass("quality")} rows={3} {...register("quality")} />
+          <textarea className={dirtyControlClass("quality")} rows={4} {...register("quality")} />
         </label>
         <label className={requiredLabelClass(Boolean(errors.origin))}>
           <span className="label-text">Origin</span>
