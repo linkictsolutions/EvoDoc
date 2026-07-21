@@ -872,7 +872,7 @@ export function CompanyConfigurationPage() {
               <span className="label-text">Seller Address</span>
               <textarea className={dirtyControlClass("sellerAddress")} rows={3} value={form.sellerAddress} onChange={(event) => updateField("sellerAddress", event.target.value)} required />
             </label>
-            <label className="span-all">
+            <label>
               Amharic Name
               <input className={dirtyControlClass("sellerAmharicName")} value={form.sellerAmharicName} onChange={(event) => updateField("sellerAmharicName", event.target.value)} />
             </label>

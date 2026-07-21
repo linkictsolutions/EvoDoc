@@ -173,7 +173,7 @@ export function BuyerFormPage({ buyerId }: { buyerId?: string }) {
       </header>
 
       <form className="card form-grid" onSubmit={handleSubmit} noValidate>
-        <label className={requiredLabelClass(attemptedSubmit && form.name.trim().length === 0)}>
+        <label className={`span-all ${requiredLabelClass(attemptedSubmit && form.name.trim().length === 0)}`}>
           <span className="label-text">Legal Name</span>
           <input
             className={dirtyControlClass("name")}
@@ -202,6 +202,14 @@ export function BuyerFormPage({ buyerId }: { buyerId?: string }) {
           />
         </label>
         <label>
+          Tax ID
+          <input
+            className={dirtyControlClass("taxId")}
+            value={form.taxId}
+            onChange={(event) => updateField("taxId", event.target.value)}
+          />
+        </label>
+        <label>
           Contact Name
           <input
             className={dirtyControlClass("contactName")}
@@ -216,14 +224,6 @@ export function BuyerFormPage({ buyerId }: { buyerId?: string }) {
             type="email"
             value={form.contactEmail}
             onChange={(event) => updateField("contactEmail", event.target.value)}
-          />
-        </label>
-        <label>
-          Tax ID
-          <input
-            className={dirtyControlClass("taxId")}
-            value={form.taxId}
-            onChange={(event) => updateField("taxId", event.target.value)}
           />
         </label>
 

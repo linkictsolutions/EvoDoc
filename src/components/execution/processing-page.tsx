@@ -131,7 +131,7 @@ export function ProcessingPage({ contractId }: { contractId: string }) {
             onChange={(event) => setForm((current) => current ? { ...current, stationName: event.target.value } : current)}
           />
         </label>
-        <label>
+        <label className="span-all">
           Local Station Name
           <input
             className={highlightDirty && stationLocalDirty ? "field-error-control" : undefined}

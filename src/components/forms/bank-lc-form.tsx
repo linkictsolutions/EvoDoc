@@ -364,7 +364,7 @@ export function BankLcForm({
         onSubmit={handleSubmit(onSubmit, () => toast.error("Fill in the required fields."))}
       >
         <h3 className="span-all">Contract Link</h3>
-        <label className={requiredLabelClass(Boolean(errors.contractId))}>
+        <label className={`span-all ${requiredLabelClass(Boolean(errors.contractId))}`}>
           <span className="label-text">Contract Number (link only)</span>
           <input className={dirtyControlClass("contractId")} {...register("contractId")} readOnly={Boolean(initialContractId)} />
           <small>{errors.contractId?.message}</small>
@@ -400,13 +400,13 @@ export function BankLcForm({
           Latest Date of Shipment
           <input className={dirtyControlClass("latestShipmentDate")} type="date" {...register("latestShipmentDate")} />
         </label>
-        <label className="span-all">
-          Description of Goods
-          <textarea className={dirtyControlClass("goodsDescription")} rows={8} {...register("goodsDescription")} />
-        </label>
         <label>
           Number of Bags
           <input className={dirtyControlClass("noOfBags")} {...register("noOfBags")} />
+        </label>
+        <label className="span-all">
+          Description of Goods
+          <textarea className={dirtyControlClass("goodsDescription")} rows={8} {...register("goodsDescription")} />
         </label>
         <label>
           Currency Amount
@@ -416,7 +416,7 @@ export function BankLcForm({
           Sender
           <input className={dirtyControlClass("sender")} {...register("sender")} />
         </label>
-        <label>
+        <label className="span-all">
           Receiver
           <input className={dirtyControlClass("receiver")} {...register("receiver")} />
         </label>
@@ -430,7 +430,7 @@ export function BankLcForm({
           Notify
           <AutoGrowTextarea className={dirtyControlClass("notify")} rows={2} {...register("notify")} />
         </label>
-        <label>
+        <label className="span-all">
           2nd Notify
           <AutoGrowTextarea className={dirtyControlClass("secondNotify")} rows={2} {...register("secondNotify")} />
         </label>
@@ -463,16 +463,8 @@ export function BankLcForm({
           ) : null}
         </label>
         <label>
-          Address of Bank
-          <input className={dirtyControlClass("bankAddress")} {...register("bankAddress")} />
-        </label>
-        <label>
           Name of Beneficiary
           <input value={companyConfiguration?.sellerName ?? ""} readOnly disabled />
-        </label>
-        <label>
-          SWIFT Number
-          <input className={dirtyControlClass("beneficiarySwiftCode")} {...register("beneficiarySwiftCode")} />
         </label>
         <label>
           Beneficiary Account No
@@ -496,6 +488,14 @@ export function BankLcForm({
             <small className="muted-text">No beneficiary account numbers configured for this bank.</small>
           ) : null}
         </label>
+        <label className="span-all">
+          Address of Bank
+          <input className={dirtyControlClass("bankAddress")} {...register("bankAddress")} />
+        </label>
+        <label>
+          SWIFT Number
+          <input className={dirtyControlClass("beneficiarySwiftCode")} {...register("beneficiarySwiftCode")} />
+        </label>
 
         <h3 className="span-all">Correspondent Bank</h3>
         <label>
@@ -503,12 +503,12 @@ export function BankLcForm({
           <input className={dirtyControlClass("correspondentBank")} {...register("correspondentBank")} />
         </label>
         <label>
-          Address
-          <input className={dirtyControlClass("correspondentBankAddress")} {...register("correspondentBankAddress")} />
-        </label>
-        <label>
           SWIFT Number
           <input className={dirtyControlClass("correspondentSwiftCode")} {...register("correspondentSwiftCode")} />
+        </label>
+        <label className="span-all">
+          Address
+          <input className={dirtyControlClass("correspondentBankAddress")} {...register("correspondentBankAddress")} />
         </label>
         <label>
           Acc. No

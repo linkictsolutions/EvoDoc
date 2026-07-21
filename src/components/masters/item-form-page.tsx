@@ -274,7 +274,7 @@ export function ItemFormPage({ itemId }: { itemId?: string }) {
             onChange={(event) => updateField("defaultBagWeightKg", event.target.value)}
           />
         </label>
-        <label className="span-all">
+        <label>
           <span>Active</span>
           <input
             type="checkbox"

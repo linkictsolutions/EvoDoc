@@ -270,7 +270,7 @@ export function BillOfLadingForm({
         onSubmit={handleSubmit(onSubmit, () => toast.error("Fill in the required fields."))}
       >
         <h3 className="span-all">Contract Link</h3>
-        <label className={errors.contractId ? "is-required field-error" : "is-required"}>
+        <label className={`span-all ${errors.contractId ? "is-required field-error" : "is-required"}`}>
           <span className="label-text">Contract Number (link only)</span>
           <input className={dirtyControlClass("contractId")} {...register("contractId")} readOnly={Boolean(initialContractId)} />
           <small>{errors.contractId?.message}</small>
@@ -293,14 +293,16 @@ export function BillOfLadingForm({
             <option value="WAYBILL No.">WAYBILL No.</option>
           </select>
         </label>
-        <label>
-          Bill No.
-          <input className={dirtyControlClass("billNo")} {...register("billNo")} />
-        </label>
-        <label>
-          No. of Copy Bills
-          <input className={dirtyControlClass("noOfCopyBills")} {...register("noOfCopyBills")} />
-        </label>
+        <div className="form-dense-2">
+          <label>
+            Bill No.
+            <input className={dirtyControlClass("billNo")} {...register("billNo")} />
+          </label>
+          <label>
+            No. of Copy Bills
+            <input className={dirtyControlClass("noOfCopyBills")} {...register("noOfCopyBills")} />
+          </label>
+        </div>
         <label>
           Reference Type
           <select className={dirtyControlClass("shipperReferenceType")} {...register("shipperReferenceType")}>
