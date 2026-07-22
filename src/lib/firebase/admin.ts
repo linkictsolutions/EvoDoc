@@ -1,6 +1,7 @@
 import { cert, getApps, initializeApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore, initializeFirestore } from "firebase-admin/firestore";
+import { getStorage } from "firebase-admin/storage";
 
 function parsePrivateKey(value?: string): string | undefined {
   return value?.replace(/\\n/g, "\n");
@@ -43,6 +44,7 @@ type FirebaseAdminCache = {
   app?: ReturnType<typeof getAdminApp>;
   auth?: ReturnType<typeof getAuth>;
   db?: ReturnType<typeof getFirestore>;
+  storage?: ReturnType<typeof getStorage>;
 };
 
 const globalCache = globalThis as typeof globalThis & {
@@ -60,11 +62,13 @@ const adminDb =
       ignoreUndefinedProperties: true,
     } as Parameters<typeof initializeFirestore>[1],
   );
+const adminStorage = cache.storage ?? getStorage(app);
 
 globalCache.__evodocFirebaseAdmin = {
   app,
   auth: adminAuth,
   db: adminDb,
+  storage: adminStorage,
 };
 
-export { adminAuth, adminDb };
+export { adminAuth, adminDb, adminStorage };

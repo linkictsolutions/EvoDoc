@@ -1,9 +1,8 @@
 "use client";
 
-import { useMemo, useRef, useState, type DragEvent } from "react";
-import { getDownloadURL, ref as storageRef, uploadBytesResumable } from "firebase/storage";
+import { useRef, useState, type DragEvent } from "react";
 import type { AttachmentRef } from "@/types/models";
-import { getFirebaseStorageClient } from "@/lib/firebase/client";
+import { uploadContractAttachment } from "@/lib/attachments/client-upload";
 import { useToast } from "@/components/ui/toast";
 
 function formatBytes(bytes: number) {
@@ -65,15 +64,7 @@ export function AttachmentsField({
 
   const attachments = value ?? [];
 
-  const stagePrefix = useMemo(() => {
-    if (stage === "contract_sheet") return "contract";
-    if (stage === "shipping_instruction_sheet") return "shipping";
-    if (stage === "bill_of_lading_sheet") return "bill-of-lading";
-    return "bank-lc";
-  }, [stage]);
-
   async function uploadFiles(files: FileList, replaceId?: string) {
-    const storage = getFirebaseStorageClient();
     const list = Array.from(files);
     let nextAttachments = [...attachments];
 
@@ -81,35 +72,21 @@ export function AttachmentsField({
       const id = (typeof crypto !== "undefined" && "randomUUID" in crypto)
         ? crypto.randomUUID()
         : `${Date.now()}-${Math.random()}`;
-      const safeName = file.name.replace(/[^\w.\-() ]+/g, "_");
-      const path = `evodoc/${orgId}/contracts/${contractId}/attachments/${stagePrefix}/${id}_${safeName}`;
-      const ref = storageRef(storage, path);
 
       setUploading((current) => [...current, { id, fileName: file.name, progress: 0, replaceId }]);
 
       try {
-        const task = uploadBytesResumable(ref, file, { contentType: file.type || "application/octet-stream" });
-        await new Promise<void>((resolve, reject) => {
-          task.on("state_changed", (snapshot) => {
-            const progress = snapshot.totalBytes > 0
-              ? Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100)
-              : 0;
+        const uploaded = await uploadContractAttachment({
+          contractId,
+          orgId,
+          stage,
+          file,
+          onProgress: (progress) => {
             setUploading((current) => current.map((entry) => (
               entry.id === id ? { ...entry, progress } : entry
             )));
-          }, reject, () => resolve());
+          },
         });
-
-        const downloadUrl = await getDownloadURL(ref);
-        const uploaded: AttachmentRef = {
-          id,
-          fileName: file.name,
-          mimeType: file.type || "application/octet-stream",
-          sizeBytes: file.size,
-          storagePath: path,
-          downloadUrl,
-          uploadedAt: new Date().toISOString(),
-        };
 
         if (replaceId) {
           nextAttachments = [...nextAttachments.filter((item) => item.id !== replaceId), uploaded];
@@ -122,7 +99,7 @@ export function AttachmentsField({
 
         onChange(nextAttachments);
       } catch (error) {
-        toast.error(`Upload failed: ${(error as Error).message}`);
+        toast.error((error as Error).message || "Upload failed");
       } finally {
         setUploading((current) => current.filter((entry) => entry.id !== id));
       }
