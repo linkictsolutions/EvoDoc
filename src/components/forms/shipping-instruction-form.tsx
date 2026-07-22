@@ -403,15 +403,17 @@ export function ShippingInstructionForm({
           <textarea className={dirtyControlClass("qualityValue")} rows={4} {...register("qualityValue")} />
           <small>{errors.qualityValue?.message}</small>
         </label>
-        <label className={`col-4 ${requiredLabelClass(Boolean(errors.containerCountValue))}`}>
-          <span className="label-text">Containers</span>
-          <input className={dirtyControlClass("containerCountValue")} {...register("containerCountValue")} />
-          <small>{errors.containerCountValue?.message}</small>
-        </label>
-        <label className="col-4">
-          Shipment Month
-          <input className={dirtyControlClass("shipmentMonth")} type="month" {...register("shipmentMonth")} />
-        </label>
+        <div className="form-stack col-4">
+          <label className={requiredLabelClass(Boolean(errors.containerCountValue))}>
+            <span className="label-text">Containers</span>
+            <input className={dirtyControlClass("containerCountValue")} {...register("containerCountValue")} />
+            <small>{errors.containerCountValue?.message}</small>
+          </label>
+          <label>
+            Shipment Month
+            <input className={dirtyControlClass("shipmentMonth")} type="month" {...register("shipmentMonth")} />
+          </label>
+        </div>
         <label className="col-6">
           Bag Marking
           <textarea className={dirtyControlClass("bagMarkings")} rows={8} {...register("bagMarkings")} />

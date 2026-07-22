@@ -422,17 +422,17 @@ export function BankLcForm({
         </label>
 
         <h3 className="span-all">Consignee and Notify Parties</h3>
-        <label className="col-6">
+        <label className="col-12">
           Consignee
-          <AutoGrowTextarea className={dirtyControlClass("consignee")} rows={2} {...register("consignee")} />
+          <textarea className={dirtyControlClass("consignee")} rows={4} {...register("consignee")} />
         </label>
         <label className="col-6">
           Notify
-          <AutoGrowTextarea className={dirtyControlClass("notify")} rows={2} {...register("notify")} />
+          <AutoGrowTextarea className={dirtyControlClass("notify")} rows={4} {...register("notify")} />
         </label>
-        <label className="col-12">
+        <label className="col-6">
           2nd Notify
-          <AutoGrowTextarea className={dirtyControlClass("secondNotify")} rows={2} {...register("secondNotify")} />
+          <AutoGrowTextarea className={dirtyControlClass("secondNotify")} rows={4} {...register("secondNotify")} />
         </label>
 
         <h3 className="span-all">Bank Details (Beneficiary)</h3>
@@ -488,13 +488,13 @@ export function BankLcForm({
           Name of Beneficiary
           <input value={companyConfiguration?.sellerName ?? ""} readOnly disabled />
         </label>
+        <label className="col-4">
+          SWIFT Number
+          <input className={dirtyControlClass("beneficiarySwiftCode")} {...register("beneficiarySwiftCode")} />
+        </label>
         <label className="span-all">
           Address of Bank
           <textarea className={dirtyControlClass("bankAddress")} rows={2} {...register("bankAddress")} />
-        </label>
-        <label className="col-3">
-          SWIFT Number
-          <input className={dirtyControlClass("beneficiarySwiftCode")} {...register("beneficiarySwiftCode")} />
         </label>
 
         <h3 className="span-all">Correspondent Bank</h3>
