@@ -616,7 +616,7 @@ export function ContractCoreForm({
           </div>
           <label className={`col-8 form-field-stretch ${requiredLabelClass(Boolean(errors.customerAddress))}`}>
             <span className="label-text">Buyer Address</span>
-            <textarea rows={3} {...register("customerAddress")} readOnly />
+            <textarea {...register("customerAddress")} readOnly />
             <small>{errors.customerAddress?.message}</small>
           </label>
         </div>

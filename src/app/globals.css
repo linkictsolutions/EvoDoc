@@ -84,7 +84,7 @@ select {
 input:not([type="checkbox"]):not([type="radio"]),
 select {
   height: 38px;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
 }
 
 input:focus,
@@ -98,6 +98,7 @@ select:focus {
 textarea {
   resize: vertical;
   padding: 0.55rem 0.7rem;
+  font-size: 0.8125rem;
 }
 
 input[type="checkbox"] {
@@ -1855,7 +1856,7 @@ tbody tr:hover {
 }
 
 .form-stack-tight {
-  gap: 0.45rem;
+  gap: 0.35rem;
 }
 
 /* Equal-height row: stretched textarea beside a stacked column */
@@ -1868,20 +1869,22 @@ tbody tr:hover {
 }
 
 .form-field-stretch {
-  display: grid;
-  grid-template-rows: auto 1fr auto;
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
   min-width: 0;
   min-height: 0;
 }
 
 .form-field-stretch > textarea {
-  height: 100%;
-  min-height: 5.5rem;
+  flex: 1 1 auto;
+  min-height: 7.25rem;
   resize: vertical;
 }
 
 .form-pair-row > .form-stack {
   align-self: stretch;
+  align-content: start;
 }
 
 .form-pair-row > .col-4 {

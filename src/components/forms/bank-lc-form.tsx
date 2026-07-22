@@ -484,18 +484,22 @@ export function BankLcForm({
             <small className="muted-text">No beneficiary account numbers configured for this bank.</small>
           ) : null}
         </label>
-        <label className="col-8">
-          Name of Beneficiary
-          <input value={companyConfiguration?.sellerName ?? ""} readOnly disabled />
-        </label>
-        <label className="col-4">
-          SWIFT Number
-          <input className={dirtyControlClass("beneficiarySwiftCode")} {...register("beneficiarySwiftCode")} />
-        </label>
-        <label className="span-all">
-          Address of Bank
-          <textarea className={dirtyControlClass("bankAddress")} rows={2} {...register("bankAddress")} />
-        </label>
+        <div className="form-pair-row">
+          <div className="form-stack form-stack-tight col-4">
+            <label>
+              Name of Beneficiary
+              <input value={companyConfiguration?.sellerName ?? ""} readOnly disabled />
+            </label>
+            <label>
+              SWIFT Number
+              <input className={dirtyControlClass("beneficiarySwiftCode")} {...register("beneficiarySwiftCode")} />
+            </label>
+          </div>
+          <label className="col-8 form-field-stretch">
+            Address of Bank
+            <textarea className={dirtyControlClass("bankAddress")} {...register("bankAddress")} />
+          </label>
+        </div>
 
         <h3 className="span-all">Correspondent Bank</h3>
         <label className="col-6">

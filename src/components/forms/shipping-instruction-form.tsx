@@ -401,7 +401,7 @@ export function ShippingInstructionForm({
         <div className="form-pair-row">
           <label className={`col-8 form-field-stretch ${requiredLabelClass(Boolean(errors.qualityValue))}`}>
             <span className="label-text">Quality</span>
-            <textarea className={dirtyControlClass("qualityValue")} rows={4} {...register("qualityValue")} />
+            <textarea className={dirtyControlClass("qualityValue")} {...register("qualityValue")} />
             <small>{errors.qualityValue?.message}</small>
           </label>
           <div className="form-stack form-stack-tight col-4">
