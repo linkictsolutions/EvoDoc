@@ -190,11 +190,6 @@ export function BookingsPage({ contractId }: { contractId: string }) {
 
   return (
     <section className="page-shell bookings-page">
-      <header className="page-header">
-        <h1>Bookings</h1>
-        <p>Bookings are captured as vehicle pairs. The truck and its trailer share the same driver, phone numbers, and license, so those details are entered once on the truck row and carried to the trailer automatically.</p>
-      </header>
-
       <div className="form-workspace">
       <FormSection title="Booking Header" description="Booking number, shipping line, vessel, and bill of lading reference.">
         <label className="col-3">
@@ -241,7 +236,7 @@ export function BookingsPage({ contractId }: { contractId: string }) {
         <div className="section-heading">
           <div>
             <h3>Vehicle Rows</h3>
-            <p className="sidebar-subtitle">Each added vehicle creates a truck row and its paired trailer row. Staffing follows these rows automatically.</p>
+            <p className="sidebar-subtitle">Each added vehicle creates a truck row and its paired trailer row. The truck and trailer share driver, phone, and license details entered once on the truck row.</p>
           </div>
           <div className="row-actions">
             <button type="button" onClick={addVehiclePair} disabled={saving}>Add Vehicle</button>

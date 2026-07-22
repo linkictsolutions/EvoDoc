@@ -830,14 +830,14 @@ export function TemplateEditor({
         </div>
       </header>
 
-      <div style={{ display: "grid", gridTemplateColumns: "320px 1fr", gap: "1rem", alignItems: "start" }}>
-        <aside style={{ position: "sticky", top: 16, alignSelf: "start" }}>
+      <div className="template-editor-layout">
+        <aside className="template-editor-sidebar">
           <section className="card">
             <h2 style={{ marginBottom: 8 }}>Available Fields</h2>
             <p className="muted-text" style={{ marginTop: 0 }}>
               Drag fields from here back into the grid after removing them.
             </p>
-            <div style={{ display: "grid", gap: "0.75rem" }}>
+            <div className="template-available-fields-scroll">
               <div>
                 <div className="muted-text" style={{ fontWeight: 700, marginBottom: 6 }}>Spacer</div>
                 <div

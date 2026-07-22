@@ -310,15 +310,7 @@ export function ShippingInstructionForm({
 
   return (
     <section className="page-shell">
-      <header className="page-header">
-        <h1>Shipping Instruction Source Document</h1>
-        <p>
-          {autoLoadExisting
-            ? "Loads existing shipping details for editing."
-            : "Create and maintain shipping details for this contract."}
-        </p>
-        {loadingExisting ? <CenteredLoader label="Loading existing shipping data..." scope="inline" /> : null}
-      </header>
+      {loadingExisting ? <CenteredLoader label="Loading existing shipping data..." scope="inline" /> : null}
 
       <form
         className="form-workspace"

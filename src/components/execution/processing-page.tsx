@@ -109,11 +109,6 @@ export function ProcessingPage({ contractId }: { contractId: string }) {
 
   return (
     <section className="page-shell">
-      <header className="page-header">
-        <h1>Processing</h1>
-        <p>Processing station and moisture details used by packing, certificates, and execution documents.</p>
-      </header>
-
       <form className="form-workspace" onSubmit={(event) => { event.preventDefault(); void save(); }}>
         <FormSection title="Processing Details" description="Processing station and moisture details used by packing and certificates.">
         <label className="col-4">

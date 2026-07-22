@@ -207,6 +207,81 @@ function cellValue(rows: Row[], cell: TemplateCell): string {
   return value(rows, mapped);
 }
 
+const PRINT_TEMPLATE_COLS = 12;
+
+function scaleTemplateCellToPrintCols(cell: TemplateCell, sourceCols: number, printCols = PRINT_TEMPLATE_COLS): TemplateCell {
+  if (sourceCols <= printCols) {
+    const x = Math.max(0, Math.min(printCols - 1, cell.x));
+    const w = Math.max(1, Math.min(printCols - x, cell.w));
+    return { ...cell, x, w };
+  }
+
+  if (sourceCols % printCols === 0) {
+    const factor = sourceCols / printCols;
+    const x = Math.max(0, Math.min(printCols - 1, Math.floor(cell.x / factor)));
+    const w = Math.max(1, Math.min(printCols - x, Math.max(1, Math.ceil(cell.w / factor))));
+    return { ...cell, x, w };
+  }
+
+  const ratio = printCols / sourceCols;
+  const start = cell.x * ratio;
+  const end = (cell.x + cell.w) * ratio;
+  const x = Math.max(0, Math.min(printCols - 1, Math.round(start)));
+  const w = Math.max(1, Math.min(printCols - x, Math.max(1, Math.round(end - start))));
+  return { ...cell, x, w };
+}
+
+function resolvePrintColumnCollisions(
+  cells: TemplateCell[],
+  printCols: number,
+  sourceCells: TemplateCell[] = cells,
+): TemplateCell[] {
+  const sourceXById = new Map(sourceCells.map((cell) => [cell.id, cell.x]));
+  const next = cells.map((cell) => ({ ...cell }));
+  const maxY = next.reduce((acc, cell) => Math.max(acc, cell.y + cell.h), 0);
+
+  for (let y = 0; y < maxY; y += 1) {
+    const starters = next
+      .filter((cell) => cell.y === y)
+      .sort((a, b) => {
+        const sourceDelta = (sourceXById.get(a.id) ?? a.x) - (sourceXById.get(b.id) ?? b.x);
+        return sourceDelta || a.x - b.x || a.id.localeCompare(b.id);
+      });
+
+    let cursor = 0;
+    for (const cell of starters) {
+      if (cell.x < cursor) {
+        cell.x = cursor;
+      }
+      if (cell.x >= printCols) {
+        cell.x = Math.max(0, printCols - 1);
+      }
+      if (cell.x + cell.w > printCols) {
+        cell.w = Math.max(1, printCols - cell.x);
+      }
+      cursor = cell.x + cell.w;
+    }
+  }
+
+  return next;
+}
+
+function scaleTemplateSectionToPrintColumns(section: TemplateSection, printCols = PRINT_TEMPLATE_COLS): TemplateSection {
+  const sourceCols = Math.max(1, section.w);
+  const sourceCells = [...(section.cells ?? [])];
+  const scaledCells = resolvePrintColumnCollisions(
+    sourceCells.map((cell) => scaleTemplateCellToPrintCols(cell, sourceCols, printCols)),
+    printCols,
+    sourceCells,
+  );
+
+  return {
+    ...section,
+    w: Math.min(sourceCols, printCols),
+    cells: scaledCells,
+  };
+}
+
 function templateColumnCount(sections: TemplateSection[]): number {
   const maxCol = sections.reduce((acc, section) => Math.max(acc, section.x + section.w), 0);
   // Backward compatible default.
@@ -303,12 +378,35 @@ function isBorderlessSpacerCell(cell: TemplateCell) {
   return cell.label === "(spacer no border)" || cell.id.includes("spacer_borderless");
 }
 
+function isSignatureBoxCell(cell: TemplateCell) {
+  const label = cell.label.toLowerCase();
+  return label.includes("signature box") || cell.id.toLowerCase().includes("sign_box");
+}
+
+function isAuthorizedSignatureCell(cell: TemplateCell) {
+  const label = cell.label.toLowerCase();
+  return cell.id === "ts_signature"
+    || cell.id === "fm_signature"
+    || label.includes("authorized signature");
+}
+
+function templateRowHeightMm(cell: TemplateCell, rowScale: number) {
+  return `${Math.max(1, cell.h) * ICC_PRINT_GRID_ROW_MM * rowScale}mm`;
+}
+
+function templateCellLayoutStyle(cell: TemplateCell, rowScale: number): CSSProperties {
+  if (isSpacerCell(cell) || isSignatureBoxCell(cell)) {
+    return { height: templateRowHeightMm(cell, rowScale) };
+  }
+  if (isAuthorizedSignatureCell(cell)) {
+    return { minHeight: templateRowHeightMm(cell, rowScale) };
+  }
+  return {};
+}
+
 function IccInvoiceTemplatePrintView({ output, documentId, isFinal, template }: Props & { template: PersistedIccTemplate }) {
   const rows = flattenRows(output);
   const sections = normalizeTemplateSections(template.sections);
-  const cols = templateColumnCount(sections);
-  const colCountForPrint = Math.min(12, cols);
-  const scaleX = cols / colCountForPrint;
 
   return (
     <article className="print-sheet icc-sheet">
@@ -350,20 +448,9 @@ function IccInvoiceTemplatePrintView({ output, documentId, isFinal, template }: 
           spacerRowScale = scaled.rowScale;
         }
 
-        if (cols > colCountForPrint) {
-          normalizedSection = {
-            ...normalizedSection,
-            x: Math.floor(normalizedSection.x / scaleX),
-            w: Math.max(1, Math.round(normalizedSection.w / scaleX)),
-            cells: (normalizedSection.cells ?? []).map((cell) => ({
-              ...cell,
-              x: Math.floor(cell.x / scaleX),
-              w: Math.max(1, Math.round(cell.w / scaleX)),
-            })),
-          };
-        }
+        normalizedSection = scaleTemplateSectionToPrintColumns(normalizedSection);
 
-        const { rows: tableRows } = buildTemplateTableRows(normalizedSection, colCountForPrint);
+        const { rows: tableRows } = buildTemplateTableRows(normalizedSection, PRINT_TEMPLATE_COLS);
 
         return (
           <table
@@ -372,8 +459,8 @@ function IccInvoiceTemplatePrintView({ output, documentId, isFinal, template }: 
             style={{ tableLayout: "fixed", borderCollapse: "collapse" }}
           >
             <colgroup>
-              {Array.from({ length: colCountForPrint }).map((_, index) => (
-                <col key={index} style={{ width: `${100 / colCountForPrint}%` }} />
+              {Array.from({ length: PRINT_TEMPLATE_COLS }).map((_, index) => (
+                <col key={index} style={{ width: `${100 / PRINT_TEMPLATE_COLS}%` }} />
               ))}
             </colgroup>
             <tbody>
@@ -444,6 +531,9 @@ function IccInvoiceTemplatePrintView({ output, documentId, isFinal, template }: 
                           </>
                         );
                       }
+                      if (cell.id === "ts_signature") {
+                        return <strong>{cell.label}</strong>;
+                      }
                       if (isGoodsHeader) {
                         return <strong>{cell.label}</strong>;
                       }
@@ -452,7 +542,7 @@ function IccInvoiceTemplatePrintView({ output, documentId, isFinal, template }: 
                         const valueText = cell.id === "gt_sn" ? "1" : display(value(rows, mapped));
                         return <span style={{ fontWeight: 400 }}>{valueText}</span>;
                       }
-                      if (isSpacer) {
+                      if (isSpacer || isSignatureBoxCell(cell)) {
                         return null;
                       }
                       if (isHeaderLike) {
@@ -477,7 +567,7 @@ function IccInvoiceTemplatePrintView({ output, documentId, isFinal, template }: 
                           whiteSpace: "pre-wrap",
                           wordBreak: "break-word",
                           verticalAlign: "top",
-                          height: isSpacer ? `${Math.max(1, cell.h) * ICC_PRINT_GRID_ROW_MM * spacerRowScale}mm` : undefined,
+                          ...templateCellLayoutStyle(cell, spacerRowScale),
                           border: isBorderlessSpacer ? "none" : undefined,
                           textAlign: (
                             cell.id === "inv_page"
@@ -515,9 +605,6 @@ function GenericTemplatePrintView({
   tableSectionConfig?: Record<string, { columnIds: Set<string>; rowPlaceholderId: string }>;
 }) {
   const sections = normalizeTemplateSections(template.sections);
-  const cols = templateColumnCount(sections);
-  const colCountForPrint = Math.min(12, cols);
-  const scaleX = cols / colCountForPrint;
 
   return (
     <article className="print-sheet icc-sheet">
@@ -556,20 +643,9 @@ function GenericTemplatePrintView({
           spacerRowScale = scaled.rowScale;
         }
 
-        if (cols > colCountForPrint) {
-          normalizedSection = {
-            ...normalizedSection,
-            x: Math.floor(normalizedSection.x / scaleX),
-            w: Math.max(1, Math.round(normalizedSection.w / scaleX)),
-            cells: (normalizedSection.cells ?? []).map((cell) => ({
-              ...cell,
-              x: Math.floor(cell.x / scaleX),
-              w: Math.max(1, Math.round(cell.w / scaleX)),
-            })),
-          };
-        }
+        normalizedSection = scaleTemplateSectionToPrintColumns(normalizedSection);
 
-        const { rows: tableRows } = buildTemplateTableRows(normalizedSection, colCountForPrint);
+        const { rows: tableRows } = buildTemplateTableRows(normalizedSection, PRINT_TEMPLATE_COLS);
 
         return (
           <table
@@ -578,8 +654,8 @@ function GenericTemplatePrintView({
             style={{ tableLayout: "fixed", borderCollapse: "collapse" }}
           >
             <colgroup>
-              {Array.from({ length: colCountForPrint }).map((_, index) => (
-                <col key={index} style={{ width: `${100 / colCountForPrint}%` }} />
+              {Array.from({ length: PRINT_TEMPLATE_COLS }).map((_, index) => (
+                <col key={index} style={{ width: `${100 / PRINT_TEMPLATE_COLS}%` }} />
               ))}
             </colgroup>
             <tbody>
@@ -622,7 +698,7 @@ function GenericTemplatePrintView({
                     const labelWithColon = cell.label.trim().endsWith(":") ? cell.label.trim() : `${cell.label.trim()}:`;
 
                     const content = (() => {
-                      if (isSpacer) return null;
+                      if (isSpacer || isSignatureBoxCell(cell)) return null;
                       if (isTableHeader) {
                         return <strong>{cell.label}</strong>;
                       }
@@ -658,7 +734,7 @@ function GenericTemplatePrintView({
                           whiteSpace: "pre-wrap",
                           wordBreak: "break-word",
                           verticalAlign: "top",
-                          height: isSpacer ? `${Math.max(1, cell.h) * ICC_PRINT_GRID_ROW_MM * spacerRowScale}mm` : undefined,
+                          ...templateCellLayoutStyle(cell, spacerRowScale),
                           border: isBorderlessSpacer ? "none" : undefined,
                         }}
                       >
@@ -1093,9 +1169,6 @@ function icoCellValue(rows: Row[], cell: TemplateCell): string {
 function PackingListIccTemplatePrintView({ output, documentId, isFinal, template }: Props & { template: PersistedIccTemplate }) {
   const rows = flattenRows(output);
   const sections = normalizeTemplateSections(template.sections);
-  const cols = templateColumnCount(sections);
-  const colCountForPrint = Math.min(12, cols);
-  const scaleX = cols / colCountForPrint;
 
   const containers = indexedValues(rows, "Container No ");
   const seals = indexedValues(rows, "Seal No ");
@@ -1130,18 +1203,7 @@ function PackingListIccTemplatePrintView({ output, documentId, isFinal, template
           spacerRowScale = scaled.rowScale;
         }
 
-        if (cols > colCountForPrint) {
-          normalizedSection = {
-            ...normalizedSection,
-            x: Math.floor(normalizedSection.x / scaleX),
-            w: Math.max(1, Math.round(normalizedSection.w / scaleX)),
-            cells: (normalizedSection.cells ?? []).map((cell) => ({
-              ...cell,
-              x: Math.floor(cell.x / scaleX),
-              w: Math.max(1, Math.round(cell.w / scaleX)),
-            })),
-          };
-        }
+        normalizedSection = scaleTemplateSectionToPrintColumns(normalizedSection);
 
         if (section.id === "container_table") {
           const cells = [...(normalizedSection.cells ?? [])];
@@ -1155,8 +1217,8 @@ function PackingListIccTemplatePrintView({ output, documentId, isFinal, template
           return (
             <table key={section.id} className="print-table packing-icc-table mt-sm">
               <colgroup>
-                {Array.from({ length: colCountForPrint }).map((_, index) => (
-                  <col key={index} style={{ width: `${100 / colCountForPrint}%` }} />
+                {Array.from({ length: PRINT_TEMPLATE_COLS }).map((_, index) => (
+                  <col key={index} style={{ width: `${100 / PRINT_TEMPLATE_COLS}%` }} />
                 ))}
               </colgroup>
               <thead>
@@ -1187,7 +1249,7 @@ function PackingListIccTemplatePrintView({ output, documentId, isFinal, template
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={active.reduce((acc, cell) => acc + Math.max(1, cell.w), 0) || colCountForPrint}>
+                    <td colSpan={active.reduce((acc, cell) => acc + Math.max(1, cell.w), 0) || PRINT_TEMPLATE_COLS}>
                       No container lines yet.
                     </td>
                   </tr>
@@ -1197,13 +1259,13 @@ function PackingListIccTemplatePrintView({ output, documentId, isFinal, template
           );
         }
 
-        const { rows: tableRows } = buildTemplateTableRows(normalizedSection, colCountForPrint);
+        const { rows: tableRows } = buildTemplateTableRows(normalizedSection, PRINT_TEMPLATE_COLS);
 
         return (
           <table key={section.id} className="print-table packing-icc-table mt-sm" style={{ tableLayout: "fixed", borderCollapse: "collapse" }}>
             <colgroup>
-              {Array.from({ length: colCountForPrint }).map((_, index) => (
-                <col key={index} style={{ width: `${100 / colCountForPrint}%` }} />
+              {Array.from({ length: PRINT_TEMPLATE_COLS }).map((_, index) => (
+                <col key={index} style={{ width: `${100 / PRINT_TEMPLATE_COLS}%` }} />
               ))}
             </colgroup>
             <tbody>
@@ -1237,7 +1299,7 @@ function PackingListIccTemplatePrintView({ output, documentId, isFinal, template
                       if (cell.id === "pl_page") {
                         return <strong>PAGE 1 OF 1 | {isFinal ? "FINAL" : "ORIGINAL"}</strong>;
                       }
-                      if (isSpacer) {
+                      if (isSpacer || isSignatureBoxCell(cell)) {
                         return null;
                       }
                       if (isHeaderLike) {
@@ -1295,7 +1357,7 @@ function PackingListIccTemplatePrintView({ output, documentId, isFinal, template
                           whiteSpace: "pre-wrap",
                           wordBreak: "break-word",
                           verticalAlign: "top",
-                          height: isSpacer ? `${Math.max(1, cell.h) * ICC_PRINT_GRID_ROW_MM * spacerRowScale}mm` : undefined,
+                          ...templateCellLayoutStyle(cell, spacerRowScale),
                           textAlign: cell.id === "pl_page" ? "right" : undefined,
                         }}
                       >

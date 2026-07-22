@@ -187,16 +187,11 @@ export function StaffingPage({ contractId }: { contractId: string }) {
 
   return (
     <section className="page-shell staffing-page">
-      <header className="page-header">
-        <h1>Staffing</h1>
-        <p>Staffing stays parallel to Bookings. Add or remove vehicles in Bookings first, then refresh here to sync rows and seal options before saving staffing details.</p>
-      </header>
-
       <section className="card staffing-entry-card">
         <div className="section-heading">
           <div>
             <h3>Staffing Instruction &amp; Report</h3>
-            <p className="sidebar-subtitle">Vehicle, driver, container, seal, and tare details are synced from Bookings.</p>
+            <p className="sidebar-subtitle">Staffing stays parallel to Bookings. Add or remove vehicles in Bookings first, then refresh here to sync rows before saving staffing details.</p>
           </div>
           <div className="row-actions">
             <button type="button" className="button-secondary" onClick={() => void load()} disabled={saving}>Refresh from Bookings</button>

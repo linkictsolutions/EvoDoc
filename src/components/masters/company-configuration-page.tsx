@@ -5,6 +5,7 @@ import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
 import { CenteredLoader } from "@/components/ui/centered-loader";
 import { FormActionBar } from "@/components/ui/form-action-bar";
+import { FormSection } from "@/components/ui/form-section";
 import { useToast } from "@/components/ui/toast";
 import { useUnsavedChangesGuard } from "@/components/ui/use-unsaved-changes-guard";
 import type {
@@ -804,52 +805,34 @@ export function CompanyConfigurationPage() {
         </p>
       </header>
 
-      <form className="form-workspace" onSubmit={handleSubmit} noValidate>
-        <div className="section-heading">
-          <div>
-            <h3>
-              {activeTab === "general"
-                ? "General Configuration"
-                : activeTab === "banking"
-                  ? "Banking Configuration"
-                  : "Document Branding"}
-            </h3>
-            <p className="sidebar-subtitle">
-              {activeTab === "general"
-                ? "Master company constants used throughout contract and document generation."
-                : activeTab === "banking"
-                  ? "Default beneficiary bank + account options used in contract Bank & LC forms."
-                  : "A4-safe header and footer graphics for generated documents."}
-            </p>
-          </div>
-        </div>
-
-        <div className="config-tabs" role="tablist" aria-label="Company configuration tabs">
+      <form className="form-workspace config-workspace" onSubmit={handleSubmit} noValidate>
+        <nav className="config-workspace-tabs" role="tablist" aria-label="Company configuration tabs">
           <button
             type="button"
-            className={activeTab === "general" ? "" : "button-secondary"}
+            className={activeTab === "general" ? "config-tab is-active" : "config-tab"}
             onClick={() => setActiveTab("general")}
           >
             General
           </button>
           <button
             type="button"
-            className={activeTab === "branding" ? "" : "button-secondary"}
+            className={activeTab === "branding" ? "config-tab is-active" : "config-tab"}
             onClick={() => setActiveTab("branding")}
           >
             Document Branding
           </button>
           <button
             type="button"
-            className={activeTab === "banking" ? "" : "button-secondary"}
+            className={activeTab === "banking" ? "config-tab is-active" : "config-tab"}
             onClick={() => setActiveTab("banking")}
           >
             Banking
           </button>
-        </div>
+        </nav>
 
         {activeTab === "general" ? (
           <>
+            <FormSection title="Company Identity" description="Seller identity and contact details used across generated documents.">
             <label className={`col-8 ${requiredLabelClass(attemptedSubmit && form.sellerName.trim().length === 0)}`}>
               <span className="label-text">Seller Name</span>
               <input className={dirtyControlClass("sellerName")} value={form.sellerName} onChange={(event) => updateField("sellerName", event.target.value)} required />
@@ -870,19 +853,14 @@ export function CompanyConfigurationPage() {
               Company Phone
               <input className={dirtyControlClass("companyPhone")} value={form.companyPhone} onChange={(event) => updateField("companyPhone", event.target.value)} />
             </label>
+            </FormSection>
 
-            <div className="section-heading span-all mt-sm">
-              <div>
-                <h3>Export Defaults</h3>
-                <p className="sidebar-subtitle">Origin, HS code, ICO prefix, and issue location referenced by templates.</p>
-              </div>
-            </div>
-
+            <FormSection title="Export Defaults" description="Origin, HS code, ICO prefix, and issue location referenced by templates.">
             <label className={`col-4 ${requiredLabelClass(attemptedSubmit && form.defaultOrigin.trim().length === 0)}`}>
               <span className="label-text">Default Origin</span>
               <input className={dirtyControlClass("defaultOrigin")} value={form.defaultOrigin} onChange={(event) => updateField("defaultOrigin", event.target.value)} required />
             </label>
-            <label className={`col-3 ${requiredLabelClass(attemptedSubmit && form.defaultHsCode.trim().length === 0)}`}>
+            <label className={`col-2 ${requiredLabelClass(attemptedSubmit && form.defaultHsCode.trim().length === 0)}`}>
               <span className="label-text">Default HS Code</span>
               <input className={dirtyControlClass("defaultHsCode")} value={form.defaultHsCode} onChange={(event) => updateField("defaultHsCode", event.target.value)} required />
             </label>
@@ -891,7 +869,7 @@ export function CompanyConfigurationPage() {
               <input className={dirtyControlClass("icoReferencePrefix")} value={form.icoReferencePrefix} onChange={(event) => updateField("icoReferencePrefix", event.target.value)} required />
             </label>
             <label
-              className={`col-2 ${requiredLabelClass(attemptedSubmit && (!Number.isFinite(Number(form.bulkReferenceKg)) || Number(form.bulkReferenceKg) <= 0))}`}
+              className={`col-3 ${requiredLabelClass(attemptedSubmit && (!Number.isFinite(Number(form.bulkReferenceKg)) || Number(form.bulkReferenceKg) <= 0))}`}
             >
               <span className="label-text">Bulk Reference Kg</span>
               <input
@@ -908,15 +886,11 @@ export function CompanyConfigurationPage() {
               <span className="label-text">Place of Issue</span>
               <input className={dirtyControlClass("placeOfIssue")} value={form.placeOfIssue} onChange={(event) => updateField("placeOfIssue", event.target.value)} required />
             </label>
+            </FormSection>
 
-            <div className="section-heading span-all mt-sm">
-              <div>
-                <h3>Payment, Delivery, and Price Terms</h3>
-                <p className="sidebar-subtitle">Maintain selectable options used in contract creation.</p>
-              </div>
-            </div>
-
-            <div className="table-wrap span-all">
+            <FormSection title="Payment, Delivery, and Price Terms" description="Maintain selectable options used in contract creation.">
+            <div className="config-option-tables span-all">
+            <div className="table-wrap config-option-table">
               <table>
                 <thead>
                   <tr>
@@ -958,7 +932,7 @@ export function CompanyConfigurationPage() {
               </div>
             </div>
 
-            <div className="table-wrap span-all">
+            <div className="table-wrap config-option-table">
               <table>
                 <thead>
                   <tr>
@@ -1000,7 +974,7 @@ export function CompanyConfigurationPage() {
               </div>
             </div>
 
-            <div className="table-wrap span-all">
+            <div className="table-wrap config-option-table">
               <table>
                 <thead>
                   <tr>
@@ -1042,7 +1016,7 @@ export function CompanyConfigurationPage() {
               </div>
             </div>
 
-            <div className="table-wrap span-all">
+            <div className="table-wrap config-option-table">
               <table>
                 <thead>
                   <tr>
@@ -1084,7 +1058,7 @@ export function CompanyConfigurationPage() {
               </div>
             </div>
 
-            <div className="table-wrap span-all">
+            <div className="table-wrap config-option-table">
               <table>
                 <thead>
                   <tr>
@@ -1126,7 +1100,7 @@ export function CompanyConfigurationPage() {
               </div>
             </div>
 
-            <div className="table-wrap span-all">
+            <div className="table-wrap config-option-table">
               <table>
                 <thead>
                   <tr>
@@ -1167,13 +1141,10 @@ export function CompanyConfigurationPage() {
                 </button>
               </div>
             </div>
-
-            <div className="section-heading span-all mt-sm">
-              <div>
-                <h3>Transitor</h3>
-                <p className="sidebar-subtitle">Transit partner details used in shipping-related documents.</p>
-              </div>
             </div>
+            </FormSection>
+
+            <FormSection title="Transitor" description="Transit partner details used in shipping-related documents.">
             <label className="col-8">
               Transitor Company Name
               <input className={dirtyControlClass("transitorCompanyName")} value={form.transitorCompanyName} onChange={(event) => updateField("transitorCompanyName", event.target.value)} />
@@ -1186,14 +1157,9 @@ export function CompanyConfigurationPage() {
               Transitor Location
               <textarea className={dirtyControlClass("transitorLocation")} rows={2} value={form.transitorLocation} onChange={(event) => updateField("transitorLocation", event.target.value)} />
             </label>
+            </FormSection>
 
-            <div className="section-heading span-all mt-sm">
-              <div>
-                <h3>Packaging Definitions</h3>
-                <p className="sidebar-subtitle">Bag weight and tare settings used in document totals.</p>
-              </div>
-            </div>
-
+            <FormSection title="Packaging Definitions" description="Bag weight and tare settings used in document totals.">
             <div className="span-all table-wrap">
               <table>
                 <thead>
@@ -1260,29 +1226,25 @@ export function CompanyConfigurationPage() {
                 </tbody>
               </table>
             </div>
+            </FormSection>
           </>
         ) : activeTab === "banking" ? (
           <>
-            <div className="section-heading span-all">
-              <div>
-                <h3>Beneficiary Banks</h3>
-                <p className="sidebar-subtitle">
-                  Add the beneficiary banks and account numbers you reuse across contracts.
-                </p>
-              </div>
-              <div className="row-actions">
+            <FormSection
+              title="Beneficiary Banks"
+              description="Add the beneficiary banks and account numbers you reuse across contracts."
+              actions={(
                 <button type="button" className="button-secondary" onClick={addBeneficiaryBank}>
                   Add Bank
                 </button>
-              </div>
-            </div>
-
+              )}
+            >
             {form.beneficiaryBanks.length === 0 ? (
               <p className="span-all muted-text">No beneficiary banks configured yet.</p>
             ) : null}
 
             {form.beneficiaryBanks.map((bank, bankIndex) => (
-              <section key={bankIndex} className="card span-all">
+              <section key={bankIndex} className="config-bank-card span-all">
                 <div className="row-actions" style={{ justifyContent: "space-between" }}>
                   <strong>Bank {bankIndex + 1}</strong>
                   <button
@@ -1361,15 +1323,11 @@ export function CompanyConfigurationPage() {
                 </div>
               </section>
             ))}
+            </FormSection>
           </>
         ) : (
           <>
-            <div className="span-all branding-note">
-              <p>
-                Upload optional header/footer images sized for A4 documents. You can apply each slot per document type.
-                Cropping is controlled by <strong>Fit</strong> and <strong>Position</strong>.
-              </p>
-            </div>
+            <FormSection title="Document Branding" description="Upload optional header/footer images sized for A4 documents. Cropping is controlled by Fit and Position.">
 
             {(["header", "footer"] as const).map((slot) => {
               const settings = form.documentBranding[slot];
@@ -1475,11 +1433,9 @@ export function CompanyConfigurationPage() {
               );
             })}
 
-            <div className="section-heading span-all mt-sm">
-              <div>
-                <h3>Apply by Document Type</h3>
-                <p className="sidebar-subtitle">Choose which document outputs should include the header/footer slots.</p>
-              </div>
+            <div className="span-all config-subsection">
+              <h4 className="config-subsection__title">Apply by Document Type</h4>
+              <p className="sidebar-subtitle">Choose which document outputs should include the header/footer slots.</p>
             </div>
 
             <div className="span-all table-wrap">
@@ -1514,6 +1470,7 @@ export function CompanyConfigurationPage() {
                 </tbody>
               </table>
             </div>
+            </FormSection>
           </>
         )}
 

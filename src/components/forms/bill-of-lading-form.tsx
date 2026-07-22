@@ -262,11 +262,7 @@ export function BillOfLadingForm({
 
   return (
     <section className="page-shell">
-      <header className="page-header">
-        <h1>Bill of Lading Source Document</h1>
-        <p>Capture MSC bill-of-lading-specific overrides used during generation.</p>
-        {loadingExisting ? <CenteredLoader label="Loading existing bill of lading data..." scope="inline" /> : null}
-      </header>
+      {loadingExisting ? <CenteredLoader label="Loading existing bill of lading data..." scope="inline" /> : null}
 
       <form
         className="form-workspace"

@@ -175,60 +175,66 @@ export function BuyerFormPage({ buyerId }: { buyerId?: string }) {
       </header>
 
       <form className="form-workspace" onSubmit={handleSubmit} noValidate>
-        <FormSection title={isEdit ? "Buyer Details" : "New Buyer"} description="Legal identity and contact information for contract reuse.">
-        <label className={`col-8 ${requiredLabelClass(attemptedSubmit && form.name.trim().length === 0)}`}>
-          <span className="label-text">Legal Name</span>
-          <input
-            className={dirtyControlClass("name")}
-            value={form.name}
-            onChange={(event) => updateField("name", event.target.value)}
-            required
-          />
-        </label>
-        <label className={`span-all ${requiredLabelClass(attemptedSubmit && form.address.trim().length === 0)}`}>
-          <span className="label-text">Address</span>
-          <textarea
-            className={dirtyControlClass("address")}
-            rows={4}
-            value={form.address}
-            onChange={(event) => updateField("address", event.target.value)}
-            required
-          />
-        </label>
-        <label className={`col-4 ${requiredLabelClass(attemptedSubmit && form.country.trim().length === 0)}`}>
-          <span className="label-text">Country</span>
-          <input
-            className={dirtyControlClass("country")}
-            value={form.country}
-            onChange={(event) => updateField("country", event.target.value)}
-            required
-          />
-        </label>
-        <label className="col-4">
-          Tax ID
-          <input
-            className={dirtyControlClass("taxId")}
-            value={form.taxId}
-            onChange={(event) => updateField("taxId", event.target.value)}
-          />
-        </label>
-        <label className="col-6">
-          Contact Name
-          <input
-            className={dirtyControlClass("contactName")}
-            value={form.contactName}
-            onChange={(event) => updateField("contactName", event.target.value)}
-          />
-        </label>
-        <label className="col-6">
-          Contact Email
-          <input
-            className={dirtyControlClass("contactEmail")}
-            type="email"
-            value={form.contactEmail}
-            onChange={(event) => updateField("contactEmail", event.target.value)}
-          />
-        </label>
+        <FormSection title="Legal Identity" description="Official buyer name and registered address used on contracts.">
+          <label className={`span-all ${requiredLabelClass(attemptedSubmit && form.name.trim().length === 0)}`}>
+            <span className="label-text">Legal Name</span>
+            <input
+              className={dirtyControlClass("name")}
+              value={form.name}
+              onChange={(event) => updateField("name", event.target.value)}
+              required
+            />
+          </label>
+          <label className={`span-all ${requiredLabelClass(attemptedSubmit && form.address.trim().length === 0)}`}>
+            <span className="label-text">Address</span>
+            <textarea
+              className={dirtyControlClass("address")}
+              rows={4}
+              value={form.address}
+              onChange={(event) => updateField("address", event.target.value)}
+              required
+            />
+          </label>
+        </FormSection>
+
+        <FormSection title="Location & Tax" description="Country and optional tax identification.">
+          <label className={`col-6 ${requiredLabelClass(attemptedSubmit && form.country.trim().length === 0)}`}>
+            <span className="label-text">Country</span>
+            <input
+              className={dirtyControlClass("country")}
+              value={form.country}
+              onChange={(event) => updateField("country", event.target.value)}
+              required
+            />
+          </label>
+          <label className="col-6">
+            Tax ID
+            <input
+              className={dirtyControlClass("taxId")}
+              value={form.taxId}
+              onChange={(event) => updateField("taxId", event.target.value)}
+            />
+          </label>
+        </FormSection>
+
+        <FormSection title="Contact" description="Optional contact person for this buyer.">
+          <label className="col-6">
+            Contact Name
+            <input
+              className={dirtyControlClass("contactName")}
+              value={form.contactName}
+              onChange={(event) => updateField("contactName", event.target.value)}
+            />
+          </label>
+          <label className="col-6">
+            Contact Email
+            <input
+              className={dirtyControlClass("contactEmail")}
+              type="email"
+              value={form.contactEmail}
+              onChange={(event) => updateField("contactEmail", event.target.value)}
+            />
+          </label>
         </FormSection>
 
         {error ? <p className="error-text">{error}</p> : null}

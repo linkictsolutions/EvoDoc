@@ -555,11 +555,7 @@ export function ContractCoreForm({
 
   return (
     <section className="page-shell">
-      <header className="page-header">
-        <h1>Contract Source Document</h1>
-        <p>Start the export workflow by completing the core contract source document.</p>
-        {loadingExisting ? <CenteredLoader label="Loading existing contract data..." scope="inline" /> : null}
-      </header>
+      {loadingExisting ? <CenteredLoader label="Loading existing contract data..." scope="inline" /> : null}
 
       <form
         className="form-workspace"
