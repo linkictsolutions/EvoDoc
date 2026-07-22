@@ -1,10 +1,23 @@
-import { cert, getApps, initializeApp } from "firebase-admin/app";
+import { cert, getApps, initializeApp, type AppOptions } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore, initializeFirestore } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
+import { getFirebaseProjectId, getStorageBucketCandidates, resolvePrimaryStorageBucket } from "@/lib/firebase/storage-config";
 
 function parsePrivateKey(value?: string): string | undefined {
   return value?.replace(/\\n/g, "\n");
+}
+
+function buildAdminAppOptions(projectId?: string): AppOptions {
+  const resolvedProjectId = projectId || getFirebaseProjectId();
+  const storageBucket = resolvePrimaryStorageBucket()
+    || getStorageBucketCandidates().find((candidate) => candidate.includes("firebasestorage.app"))
+    || getStorageBucketCandidates()[0];
+
+  return {
+    ...(resolvedProjectId ? { projectId: resolvedProjectId } : {}),
+    ...(storageBucket ? { storageBucket } : {}),
+  };
 }
 
 function getAdminApp() {
@@ -15,12 +28,14 @@ function getAdminApp() {
   const projectId = process.env.FIREBASE_PROJECT_ID;
   const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
   const privateKey = parsePrivateKey(process.env.FIREBASE_PRIVATE_KEY);
+  const appOptions = buildAdminAppOptions(projectId);
 
   // Prefer explicit service-account credentials when provided, but never hard-fail
   // local/dev flows when the private key is missing or malformed.
   if (projectId && clientEmail && privateKey) {
     try {
       return initializeApp({
+        ...appOptions,
         credential: cert({
           projectId,
           clientEmail,
@@ -34,10 +49,10 @@ function getAdminApp() {
 
   // If a projectId is available, pass it explicitly to make emulator/local usage easier.
   if (projectId) {
-    return initializeApp({ projectId });
+    return initializeApp(appOptions);
   }
 
-  return initializeApp();
+  return initializeApp(appOptions);
 }
 
 type FirebaseAdminCache = {
