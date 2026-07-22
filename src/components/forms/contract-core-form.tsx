@@ -568,52 +568,58 @@ export function ContractCoreForm({
           <input className={dirtyControlClass("contractNumber")} {...register("contractNumber")} />
           <small>{errors.contractNumber?.message}</small>
         </label>
-        <label className={`col-8 ${requiredLabelClass(Boolean(errors.buyerId))}`}>
-          <span className="label-text">Buyer</span>
-          <input type="hidden" {...register("buyerId")} />
-          <select
-            className={dirtyControlClass("buyerId")}
-            value={selectedBuyerId}
-            onChange={(event) => {
-              const buyerId = event.target.value;
-              setSelectedBuyerId(buyerId);
-              setValue("buyerId", buyerId, { shouldValidate: true, shouldDirty: true });
-            }}
-          >
-            <option value="">Select saved buyer</option>
-            {buyers.map((buyer) => (
-              <option key={buyer.id} value={buyer.id}>
-                {buyer.name}
-              </option>
-            ))}
-          </select>
-          <small>{errors.buyerId?.message ?? (buyers.length === 0 ? "No buyers found. Create one in Master Data > Buyers." : "")}</small>
-        </label>
-        <div className="span-all form-field-action" style={{ marginTop: "-0.4rem" }}>
-          <button
-            type="button"
-            className="button-secondary"
-            onClick={() => setBuyerModalOpen(true)}
-          >
-            + Register new buyer
-          </button>
+        <div className="form-stack form-stack-tight col-8">
+          <label className={requiredLabelClass(Boolean(errors.buyerId))}>
+            <span className="label-text">Buyer</span>
+            <input type="hidden" {...register("buyerId")} />
+            <select
+              className={dirtyControlClass("buyerId")}
+              value={selectedBuyerId}
+              onChange={(event) => {
+                const buyerId = event.target.value;
+                setSelectedBuyerId(buyerId);
+                setValue("buyerId", buyerId, { shouldValidate: true, shouldDirty: true });
+              }}
+            >
+              <option value="">Select saved buyer</option>
+              {buyers.map((buyer) => (
+                <option key={buyer.id} value={buyer.id}>
+                  {buyer.name}
+                </option>
+              ))}
+            </select>
+            <small>{errors.buyerId?.message ?? (buyers.length === 0 ? "No buyers found. Create one in Master Data > Buyers." : "")}</small>
+          </label>
+          <div className="form-field-action" style={{ marginTop: 0 }}>
+            <button
+              type="button"
+              className="button-secondary"
+              onClick={() => setBuyerModalOpen(true)}
+            >
+              + Register new buyer
+            </button>
+          </div>
         </div>
 
-        <label className={`col-8 ${requiredLabelClass(Boolean(errors.customerName))}`}>
-          <span className="label-text">Buyer Name</span>
-          <input {...register("customerName")} readOnly />
-          <small>{errors.customerName?.message}</small>
-        </label>
-        <label className={`col-4 ${requiredLabelClass(Boolean(errors.customerCountry))}`}>
-          <span className="label-text">Buyer Country</span>
-          <input {...register("customerCountry")} readOnly />
-          <small>{errors.customerCountry?.message}</small>
-        </label>
-        <label className={`span-all ${requiredLabelClass(Boolean(errors.customerAddress))}`}>
-          <span className="label-text">Buyer Address</span>
-          <textarea rows={3} {...register("customerAddress")} readOnly />
-          <small>{errors.customerAddress?.message}</small>
-        </label>
+        <div className="form-pair-row">
+          <div className="form-stack form-stack-tight col-4">
+            <label className={requiredLabelClass(Boolean(errors.customerName))}>
+              <span className="label-text">Buyer Name</span>
+              <input {...register("customerName")} readOnly />
+              <small>{errors.customerName?.message}</small>
+            </label>
+            <label className={requiredLabelClass(Boolean(errors.customerCountry))}>
+              <span className="label-text">Buyer Country</span>
+              <input {...register("customerCountry")} readOnly />
+              <small>{errors.customerCountry?.message}</small>
+            </label>
+          </div>
+          <label className={`col-8 form-field-stretch ${requiredLabelClass(Boolean(errors.customerAddress))}`}>
+            <span className="label-text">Buyer Address</span>
+            <textarea rows={3} {...register("customerAddress")} readOnly />
+            <small>{errors.customerAddress?.message}</small>
+          </label>
+        </div>
 
         <AttachmentsField
           orgId={DEFAULT_ORG_ID}

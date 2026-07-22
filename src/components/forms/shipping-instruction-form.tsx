@@ -398,21 +398,23 @@ export function ShippingInstructionForm({
           <input className={dirtyControlClass("noOfBagsValue")} {...register("noOfBagsValue")} />
           <small>{errors.noOfBagsValue?.message}</small>
         </label>
-        <label className={`col-8 ${requiredLabelClass(Boolean(errors.qualityValue))}`}>
-          <span className="label-text">Quality</span>
-          <textarea className={dirtyControlClass("qualityValue")} rows={4} {...register("qualityValue")} />
-          <small>{errors.qualityValue?.message}</small>
-        </label>
-        <div className="form-stack col-4">
-          <label className={requiredLabelClass(Boolean(errors.containerCountValue))}>
-            <span className="label-text">Containers</span>
-            <input className={dirtyControlClass("containerCountValue")} {...register("containerCountValue")} />
-            <small>{errors.containerCountValue?.message}</small>
+        <div className="form-pair-row">
+          <label className={`col-8 form-field-stretch ${requiredLabelClass(Boolean(errors.qualityValue))}`}>
+            <span className="label-text">Quality</span>
+            <textarea className={dirtyControlClass("qualityValue")} rows={4} {...register("qualityValue")} />
+            <small>{errors.qualityValue?.message}</small>
           </label>
-          <label>
-            Shipment Month
-            <input className={dirtyControlClass("shipmentMonth")} type="month" {...register("shipmentMonth")} />
-          </label>
+          <div className="form-stack form-stack-tight col-4">
+            <label className={requiredLabelClass(Boolean(errors.containerCountValue))}>
+              <span className="label-text">Containers</span>
+              <input className={dirtyControlClass("containerCountValue")} {...register("containerCountValue")} />
+              <small>{errors.containerCountValue?.message}</small>
+            </label>
+            <label>
+              Shipment Month
+              <input className={dirtyControlClass("shipmentMonth")} type="month" {...register("shipmentMonth")} />
+            </label>
+          </div>
         </div>
         <label className="col-6">
           Bag Marking

@@ -1854,6 +1854,44 @@ tbody tr:hover {
   min-width: 0;
 }
 
+.form-stack-tight {
+  gap: 0.45rem;
+}
+
+/* Equal-height row: stretched textarea beside a stacked column */
+.form-pair-row {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: 1rem;
+  align-items: stretch;
+}
+
+.form-field-stretch {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  min-width: 0;
+  min-height: 0;
+}
+
+.form-field-stretch > textarea {
+  height: 100%;
+  min-height: 5.5rem;
+  resize: vertical;
+}
+
+.form-pair-row > .form-stack {
+  align-self: stretch;
+}
+
+.form-pair-row > .col-4 {
+  grid-column: span 4;
+}
+
+.form-pair-row > .col-8 {
+  grid-column: span 8;
+}
+
 /* Dense rows for grouped short fields */
 .form-dense {
   display: grid;

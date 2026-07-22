@@ -512,7 +512,7 @@ export function BankLcForm({
         </label>
         <label className="span-all">
           Address
-          <textarea className={dirtyControlClass("correspondentBankAddress")} rows={2} {...register("correspondentBankAddress")} />
+          <textarea className={dirtyControlClass("correspondentBankAddress")} rows={3} {...register("correspondentBankAddress")} />
         </label>
 
         <div className="row-actions">
