@@ -656,6 +656,7 @@ tbody tr:hover {
   height: 100vh;
   overflow-y: auto;
   overflow-x: hidden;
+  --workspace-toolbar-offset: 4.85rem;
 }
 
 .app-toolbar {
@@ -663,12 +664,46 @@ tbody tr:hover {
   top: 0;
   z-index: 15;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.85rem;
   padding: 0.95rem 1.35rem;
   background: rgba(242, 245, 247, 0.82);
   backdrop-filter: blur(14px) saturate(130%);
   border-bottom: 1px solid var(--border);
+  transition: padding 0.32s ease, box-shadow 0.32s ease, background 0.32s ease;
+}
+
+.app-toolbar-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.app-toolbar-details {
+  overflow: hidden;
+  max-height: 5.5rem;
+  opacity: 1;
+  transition: max-height 0.34s ease, opacity 0.28s ease, margin 0.32s ease;
+}
+
+.app-content-shell.is-header-collapsed {
+  --workspace-toolbar-offset: 2.95rem;
+}
+
+.app-content-shell.is-header-collapsed .app-toolbar {
+  padding-top: 0.62rem;
+  padding-bottom: 0.62rem;
+  box-shadow: 0 8px 18px rgba(9, 18, 31, 0.06);
+}
+
+.app-content-shell.is-header-collapsed .app-toolbar-details {
+  max-height: 0;
+  opacity: 0;
+  margin-top: 0;
+  pointer-events: none;
+}
+
+.app-content-shell.is-header-collapsed .app-toolbar-title {
+  font-size: 0.94rem;
 }
 
 .app-toolbar-title {
@@ -1713,19 +1748,69 @@ tbody tr:hover {
 
 .workspace-subnav {
   position: sticky;
-  top: 4.8rem;
+  top: var(--workspace-toolbar-offset);
   z-index: 12;
   display: grid;
   gap: 0.85rem;
   background: rgba(242, 245, 247, 0.94);
   border: 1px solid var(--border);
   backdrop-filter: blur(12px) saturate(130%);
+  transition: top 0.32s ease, gap 0.32s ease, padding 0.32s ease, box-shadow 0.32s ease;
+}
+
+.workspace-subnav-intro {
+  overflow: hidden;
+  max-height: 4.5rem;
+  opacity: 1;
+  transition: max-height 0.34s ease, opacity 0.28s ease, margin 0.32s ease;
+}
+
+.workspace-subnav.is-collapsed {
+  gap: 0;
+  padding-top: 0.55rem;
+  padding-bottom: 0.55rem;
+  box-shadow: 0 10px 24px rgba(9, 18, 31, 0.08);
+}
+
+.workspace-subnav.is-collapsed .workspace-subnav-intro {
+  max-height: 0;
+  opacity: 0;
+  margin: 0;
+  pointer-events: none;
+}
+
+.workspace-subnav.is-collapsed .workspace-tab {
+  padding-top: 0.42rem;
+  padding-bottom: 0.42rem;
+}
+
+.workspace-subnav.is-collapsed .workspace-tab small {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  margin: 0;
+  transition: max-height 0.28s ease, opacity 0.24s ease;
 }
 
 .workspace-subnav-links {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));
   gap: 0.5rem;
+  transition: gap 0.32s ease;
+}
+
+.workspace-subnav.is-collapsed .workspace-subnav-links {
+  grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-toolbar,
+  .app-toolbar-details,
+  .workspace-subnav,
+  .workspace-subnav-intro,
+  .workspace-subnav.is-collapsed .workspace-tab small {
+    transition: none;
+  }
 }
 
 .workspace-subnav-links .workspace-tab {

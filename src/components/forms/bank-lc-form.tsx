@@ -407,18 +407,22 @@ export function BankLcForm({
           Number of Bags
           <input className={dirtyControlClass("noOfBags")} {...register("noOfBags")} />
         </label>
-        <label className="col-12">
-          Applicant
-          <textarea className={dirtyControlClass("applicant")} rows={3} {...register("applicant")} />
-        </label>
-        <label className="col-4">
-          Port of Loading / Airport of Departure
-          <input className={dirtyControlClass("portOfLoading")} {...register("portOfLoading")} />
-        </label>
-        <label className="col-4">
-          Port of Discharge / Airport of Destination
-          <input className={dirtyControlClass("portOfDischarge")} {...register("portOfDischarge")} />
-        </label>
+        <div className="form-pair-row">
+          <label className="col-8 form-field-stretch">
+            Applicant
+            <textarea className={dirtyControlClass("applicant")} {...register("applicant")} />
+          </label>
+          <div className="form-stack form-stack-tight col-4">
+            <label>
+              Port of Loading / Airport of Departure
+              <input className={dirtyControlClass("portOfLoading")} {...register("portOfLoading")} />
+            </label>
+            <label>
+              Port of Discharge / Airport of Destination
+              <input className={dirtyControlClass("portOfDischarge")} {...register("portOfDischarge")} />
+            </label>
+          </div>
+        </div>
         <label className="span-all">
           Description of Goods
           <textarea className={dirtyControlClass("goodsDescription")} rows={8} {...register("goodsDescription")} />

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import clsx from "clsx";
 import { usePathname } from "next/navigation";
+import { useWorkspaceScrollCollapsed } from "@/components/layout/workspace-scroll-context";
 
 interface ContractWorkspaceNavProps {
   contractId: string;
@@ -30,10 +31,11 @@ function ContractSubnav({
   items: SubnavItem[];
 }) {
   const pathname = usePathname();
+  const isCollapsed = useWorkspaceScrollCollapsed();
 
   return (
-    <section className="workspace-subnav card">
-      <div>
+    <section className={clsx("workspace-subnav", "card", isCollapsed && "is-collapsed")}>
+      <div className="workspace-subnav-intro">
         <h3>{title}</h3>
         <p className="sidebar-subtitle">{subtitle}</p>
       </div>

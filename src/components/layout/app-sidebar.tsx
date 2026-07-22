@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { ToastProvider } from "@/components/ui/toast";
+import { WorkspaceScrollProvider } from "@/components/layout/workspace-scroll-context";
 
 const EVO_LOGO_PATH = "/evo-logo.png";
 
@@ -638,44 +639,48 @@ export function AppSidebar({ children }: { children: ReactNode }) {
           </nav>
         </aside>
 
-        <div className="app-content-shell">
-          <header className="app-toolbar">
-            <button
-              type="button"
-              className="sidebar-toggle mobile-toggle"
-              onClick={() => setMobileOpen((current) => !current)}
-              aria-label="Toggle navigation"
-            >
-              <span className={clsx("mobile-toggle-icon", mobileOpen && "is-open")} aria-hidden />
-              <span>{mobileOpen ? "Close Panel" : "Open Panel"}</span>
-            </button>
-            <div>
-              <p className="app-toolbar-title">{toolbar.title}</p>
-              <p className="app-toolbar-subtitle">
-                {collapsed && contractWorkspaceLabel ? `${toolbar.subtitle} Current step: ${contractWorkspaceLabel}.` : toolbar.subtitle}
-              </p>
-              <nav className="app-breadcrumbs" aria-label="Breadcrumb">
-                {breadcrumbs.map((crumb, index) => {
-                  const isLast = index === breadcrumbs.length - 1;
+        <WorkspaceScrollProvider enabled={Boolean(contractId)}>
+          <div className={clsx("app-content-shell", contractId && "has-workspace-scroll")}>
+            <header className={clsx("app-toolbar", contractId && "app-toolbar--contract-workspace")}>
+              <button
+                type="button"
+                className="sidebar-toggle mobile-toggle"
+                onClick={() => setMobileOpen((current) => !current)}
+                aria-label="Toggle navigation"
+              >
+                <span className={clsx("mobile-toggle-icon", mobileOpen && "is-open")} aria-hidden />
+                <span>{mobileOpen ? "Close Panel" : "Open Panel"}</span>
+              </button>
+              <div className="app-toolbar-copy">
+                <p className="app-toolbar-title">{toolbar.title}</p>
+                <div className="app-toolbar-details">
+                  <p className="app-toolbar-subtitle">
+                    {collapsed && contractWorkspaceLabel ? `${toolbar.subtitle} Current step: ${contractWorkspaceLabel}.` : toolbar.subtitle}
+                  </p>
+                  <nav className="app-breadcrumbs" aria-label="Breadcrumb">
+                    {breadcrumbs.map((crumb, index) => {
+                      const isLast = index === breadcrumbs.length - 1;
 
-                  return (
-                    <span key={`${crumb.href}-${index}`} className="app-breadcrumb-item">
-                      {index > 0 ? <span className="app-breadcrumb-sep">/</span> : null}
-                      {isLast ? (
-                        <span className="app-breadcrumb-current">{crumb.label}</span>
-                      ) : (
-                        <Link href={crumb.href} className="app-breadcrumb-link">
-                          {crumb.label}
-                        </Link>
-                      )}
-                    </span>
-                  );
-                })}
-              </nav>
-            </div>
-          </header>
-          <div className="app-body">{children}</div>
-        </div>
+                      return (
+                        <span key={`${crumb.href}-${index}`} className="app-breadcrumb-item">
+                          {index > 0 ? <span className="app-breadcrumb-sep">/</span> : null}
+                          {isLast ? (
+                            <span className="app-breadcrumb-current">{crumb.label}</span>
+                          ) : (
+                            <Link href={crumb.href} className="app-breadcrumb-link">
+                              {crumb.label}
+                            </Link>
+                          )}
+                        </span>
+                      );
+                    })}
+                  </nav>
+                </div>
+              </div>
+            </header>
+            <div className="app-body">{children}</div>
+          </div>
+        </WorkspaceScrollProvider>
 
         {mobileOpen ? (
           <button type="button" className="sidebar-backdrop" onClick={() => setMobileOpen(false)} />
