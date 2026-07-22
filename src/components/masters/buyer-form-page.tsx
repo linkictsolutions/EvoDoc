@@ -7,6 +7,8 @@ import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
 import type { Customer } from "@/types/models";
 import { CenteredLoader } from "@/components/ui/centered-loader";
+import { FormActionBar } from "@/components/ui/form-action-bar";
+import { FormSection } from "@/components/ui/form-section";
 import { useToast } from "@/components/ui/toast";
 import { useUnsavedChangesGuard } from "@/components/ui/use-unsaved-changes-guard";
 
@@ -172,7 +174,8 @@ export function BuyerFormPage({ buyerId }: { buyerId?: string }) {
         <p>{isEdit ? "Update buyer details and save changes." : "Create a buyer record for contract reuse."}</p>
       </header>
 
-      <form className="card form-grid" onSubmit={handleSubmit} noValidate>
+      <form className="form-workspace" onSubmit={handleSubmit} noValidate>
+        <FormSection title={isEdit ? "Buyer Details" : "New Buyer"} description="Legal identity and contact information for contract reuse.">
         <label className={`col-8 ${requiredLabelClass(attemptedSubmit && form.name.trim().length === 0)}`}>
           <span className="label-text">Legal Name</span>
           <input
@@ -226,9 +229,11 @@ export function BuyerFormPage({ buyerId }: { buyerId?: string }) {
             onChange={(event) => updateField("contactEmail", event.target.value)}
           />
         </label>
+        </FormSection>
 
         {error ? <p className="error-text">{error}</p> : null}
-        <div className="row-actions">
+
+        <FormActionBar hint={isDirty ? "You have unsaved changes." : undefined}>
           <button type="submit" disabled={saving}>{saving ? "Saving..." : isEdit ? "Save Changes" : "Save Buyer"}</button>
           <button type="button" className="button-secondary" disabled={!isDirty || saving} onClick={discardChanges}>
             Discard changes
@@ -236,7 +241,7 @@ export function BuyerFormPage({ buyerId }: { buyerId?: string }) {
           <Link href="/app/masters/customers">
             <button type="button" className="button-secondary" disabled={saving}>Back to Buyers</button>
           </Link>
-        </div>
+        </FormActionBar>
       </form>
     </section>
   );

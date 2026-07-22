@@ -5,6 +5,8 @@ import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
 import type { ProcessingSheet } from "@/types/models";
 import { CenteredLoader } from "@/components/ui/centered-loader";
+import { FormActionBar } from "@/components/ui/form-action-bar";
+import { FormSection } from "@/components/ui/form-section";
 import { useToast } from "@/components/ui/toast";
 import { useUnsavedChangesGuard } from "@/components/ui/use-unsaved-changes-guard";
 
@@ -112,7 +114,8 @@ export function ProcessingPage({ contractId }: { contractId: string }) {
         <p>Processing station and moisture details used by packing, certificates, and execution documents.</p>
       </header>
 
-      <section className="card form-grid">
+      <form className="form-workspace" onSubmit={(event) => { event.preventDefault(); void save(); }}>
+        <FormSection title="Processing Details" description="Processing station and moisture details used by packing and certificates.">
         <label className="col-4">
           Moisture (%)
           <input
@@ -148,13 +151,16 @@ export function ProcessingPage({ contractId }: { contractId: string }) {
             onChange={(event) => setForm((current) => current ? { ...current, stationAddress: event.target.value } : current)}
           />
         </label>
+        </FormSection>
+
         {error ? <p className="error-text">{error}</p> : null}
-        <div className="row-actions">
+
+        <FormActionBar hint={isDirty ? "You have unsaved changes." : undefined}>
           <button type="button" className="button-secondary" onClick={() => void load()} disabled={saving}>Refresh</button>
           <button type="button" className="button-secondary" onClick={discardChanges} disabled={!isDirty || saving}>Discard changes</button>
-          <button type="button" onClick={() => void save()} disabled={saving}>{saving ? "Saving..." : "Save Processing"}</button>
-        </div>
-      </section>
+          <button type="submit" disabled={saving}>{saving ? "Saving..." : "Save Processing"}</button>
+        </FormActionBar>
+      </form>
     </section>
   );
 }

@@ -9,6 +9,8 @@ import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
 import type { CompanyConfiguration } from "@/types/models";
 import { useToast } from "@/components/ui/toast";
+import { FormActionBar } from "@/components/ui/form-action-bar";
+import { FormSection } from "@/components/ui/form-section";
 import { useUnsavedChangesGuard } from "@/components/ui/use-unsaved-changes-guard";
 
 const formSchema = z.object({
@@ -292,7 +294,7 @@ export function ContractWizardForm() {
 
   return (
     <form
-      className="card form-grid"
+      className="form-workspace"
       onSubmit={handleSubmit(save, () => toast.error("Fill in the required fields."))}
     >
       <div className="progress-wrap">
@@ -300,10 +302,14 @@ export function ContractWizardForm() {
         <progress max={100} value={progress} />
       </div>
 
-      {step === 0 && common}
+      {step === 0 ? (
+        <FormSection title="Contract & Buyer" description="Contract number and buyer identity details.">
+          {common}
+        </FormSection>
+      ) : null}
 
-      {step === 1 && (
-        <>
+      {step === 1 ? (
+        <FormSection title="Product & Commercial" description="Quality, quantity, pricing, and payment terms.">
           <label className={`col-12 ${requiredLabelClass(Boolean(errors.quality))}`}>
             <span className="label-text">Quality</span>
             <textarea className={dirtyControlClass("quality")} rows={3} {...register("quality")} />
@@ -400,11 +406,11 @@ export function ContractWizardForm() {
             <input className={dirtyControlClass("lastCertNo")} type="number" step="1" {...register("lastCertNo", { valueAsNumber: true })} />
             <small>{errors.lastCertNo?.message}</small>
           </label>
-        </>
-      )}
+        </FormSection>
+      ) : null}
 
-      {step === 2 && (
-        <>
+      {step === 2 ? (
+        <FormSection title="Shipping" description="Ports, carrier, and consignee details.">
           <label className={`col-6 ${requiredLabelClass(Boolean(errors.destinationPort))}`}>
             <span className="label-text">Destination Port</span>
             <input className={dirtyControlClass("destinationPort")} {...register("destinationPort")} />
@@ -448,11 +454,11 @@ export function ContractWizardForm() {
             2nd Notify
             <textarea className={dirtyControlClass("secondNotify")} rows={3} {...register("secondNotify")} />
           </label>
-        </>
-      )}
+        </FormSection>
+      ) : null}
 
-      {step === 3 && (
-        <>
+      {step === 3 ? (
+        <FormSection title="Banking" description="Beneficiary bank and account number.">
           <label className={`col-8 ${requiredLabelClass(Boolean(errors.beneficiaryBank))}`}>
             <span className="label-text">Beneficiary Bank</span>
             <input className={dirtyControlClass("beneficiaryBank")} {...register("beneficiaryBank")} />
@@ -463,11 +469,11 @@ export function ContractWizardForm() {
             <input className={dirtyControlClass("accountNumber")} {...register("accountNumber")} />
             <small>{errors.accountNumber?.message}</small>
           </label>
-        </>
-      )}
+        </FormSection>
+      ) : null}
 
-      {step === 4 && (
-        <>
+      {step === 4 ? (
+        <FormSection title="Processing" description="Processing station and moisture details.">
           <label className={`col-6 ${requiredLabelClass(Boolean(errors.stationName))}`}>
             <span className="label-text">Station Name</span>
             <input className={dirtyControlClass("stationName")} {...register("stationName")} />
@@ -488,19 +494,17 @@ export function ContractWizardForm() {
             <textarea className={dirtyControlClass("stationAddress")} rows={3} {...register("stationAddress")} />
             <small>{errors.stationAddress?.message}</small>
           </label>
-        </>
-      )}
+        </FormSection>
+      ) : null}
 
-      {step === stepFields.length && (
-        <div className="review-box">
-          <h3>Review and Submit</h3>
-          <p>This saves contract and buyer data as draft records.</p>
-          {apiError ? <p className="error-text">{apiError}</p> : null}
-          <button type="submit" disabled={isSaving}>{isSaving ? "Saving..." : "Save Draft"}</button>
-        </div>
-      )}
+      {step === stepFields.length ? (
+        <FormSection title="Review and Submit" description="This saves contract and buyer data as draft records.">
+          {apiError ? <p className="error-text span-all">{apiError}</p> : null}
+          <button type="submit" className="span-all" disabled={isSaving}>{isSaving ? "Saving..." : "Save Draft"}</button>
+        </FormSection>
+      ) : null}
 
-      <div className="row-actions">
+      <FormActionBar hint={isDirty ? "You have unsaved changes." : undefined}>
         <button type="button" onClick={() => setStep((s) => Math.max(0, s - 1))} disabled={step === 0}>
           Back
         </button>
@@ -510,7 +514,7 @@ export function ContractWizardForm() {
         {step < stepFields.length ? (
           <button type="button" onClick={nextStep}>Next</button>
         ) : null}
-      </div>
+      </FormActionBar>
     </form>
   );
 }

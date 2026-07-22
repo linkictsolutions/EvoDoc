@@ -7,6 +7,8 @@ import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
 import type { CompanyConfiguration, Item } from "@/types/models";
 import { CenteredLoader } from "@/components/ui/centered-loader";
+import { FormActionBar } from "@/components/ui/form-action-bar";
+import { FormSection } from "@/components/ui/form-section";
 import { useToast } from "@/components/ui/toast";
 import { useUnsavedChangesGuard } from "@/components/ui/use-unsaved-changes-guard";
 
@@ -204,7 +206,8 @@ export function ItemFormPage({ itemId }: { itemId?: string }) {
         <p>{isEdit ? "Update item definition and save changes." : "Create a reusable item record for contracts."}</p>
       </header>
 
-      <form className="card form-grid" onSubmit={handleSubmit} noValidate>
+      <form className="form-workspace" onSubmit={handleSubmit} noValidate>
+        <FormSection title={isEdit ? "Item Details" : "New Item"} description="Item definition used across contracts and documents.">
         <label className={`col-3 ${requiredLabelClass(attemptedSubmit && form.itemCode.trim().length === 0)}`}>
           <span className="label-text">Item Code</span>
           <input
@@ -288,9 +291,11 @@ export function ItemFormPage({ itemId }: { itemId?: string }) {
             Company defaults: Origin {companyConfiguration.defaultOrigin}, HS Code {companyConfiguration.defaultHsCode}
           </p>
         ) : null}
+        </FormSection>
 
         {error ? <p className="error-text">{error}</p> : null}
-        <div className="row-actions">
+
+        <FormActionBar hint={isDirty ? "You have unsaved changes." : undefined}>
           <button type="submit" disabled={saving}>{saving ? "Saving..." : isEdit ? "Save Changes" : "Save Item"}</button>
           <button type="button" className="button-secondary" disabled={!isDirty || saving} onClick={discardChanges}>
             Discard changes
@@ -298,7 +303,7 @@ export function ItemFormPage({ itemId }: { itemId?: string }) {
           <Link href="/app/masters/items">
             <button type="button" className="button-secondary" disabled={saving}>Back to Items</button>
           </Link>
-        </div>
+        </FormActionBar>
       </form>
     </section>
   );

@@ -8,6 +8,8 @@ import { z } from "zod";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
 import { useToast } from "@/components/ui/toast";
+import { FormActionBar } from "@/components/ui/form-action-bar";
+import { FormSection } from "@/components/ui/form-section";
 import { useUnsavedChangesGuard } from "@/components/ui/use-unsaved-changes-guard";
 
 const shipmentSchema = z.object({
@@ -111,9 +113,10 @@ export function ShipmentForm({ contractId }: { contractId: string }) {
 
   return (
     <form
-      className="card form-grid"
+      className="form-workspace"
       onSubmit={handleSubmit(onSubmit, () => toast.error("Fill in the required fields."))}
     >
+      <FormSection title="Shipment Details" description="Vessel, booking, container, and weight information.">
       <label className="col-6">
         Vessel
         <input className={dirtyControlClass("vessel")} {...register("vessel")} />
@@ -159,14 +162,16 @@ export function ShipmentForm({ contractId }: { contractId: string }) {
         Seal Number
         <input className={dirtyControlClass("sealNumber")} {...register("sealNumber")} />
       </label>
+      </FormSection>
 
       {error ? <p className="error-text">{error}</p> : null}
-      <div className="row-actions">
+
+      <FormActionBar hint={isDirty ? "You have unsaved changes." : undefined}>
         <button type="submit" disabled={saving}>{saving ? "Saving..." : "Save Shipment"}</button>
         <button type="button" className="button-secondary" disabled={!isDirty || saving} onClick={discardChanges}>
           Discard changes
         </button>
-      </div>
+      </FormActionBar>
     </form>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, type RefObject } from "react";
 import { getDownloadURL, ref as storageRef, uploadBytesResumable } from "firebase/storage";
 import type { AttachmentRef } from "@/types/models";
 import { getFirebaseStorageClient } from "@/lib/firebase/client";
@@ -14,7 +14,7 @@ function formatBytes(bytes: number) {
   return `${value.toFixed(value >= 10 || idx === 0 ? 0 : 1)} ${units[idx]}`;
 }
 
-function badgeFor(mimeType: string, fileName: string) {
+function badgeClassFor(mimeType: string, fileName: string) {
   const ext = fileName.split(".").pop()?.toLowerCase() ?? "";
   const key = mimeType.toLowerCase();
   const isPdf = key.includes("pdf") || ext === "pdf";
@@ -22,11 +22,11 @@ function badgeFor(mimeType: string, fileName: string) {
   const isExcel = key.includes("spreadsheet") || ["xls", "xlsx", "csv"].includes(ext);
   const isImage = key.startsWith("image/") || ["png", "jpg", "jpeg", "webp"].includes(ext);
 
-  if (isPdf) return { label: "PDF", bg: "rgba(239,68,68,0.14)", border: "rgba(239,68,68,0.55)", fg: "#b91c1c" };
-  if (isWord) return { label: "DOC", bg: "rgba(59,130,246,0.14)", border: "rgba(59,130,246,0.55)", fg: "#1d4ed8" };
-  if (isExcel) return { label: "XLS", bg: "rgba(34,197,94,0.14)", border: "rgba(34,197,94,0.55)", fg: "#15803d" };
-  if (isImage) return { label: "IMG", bg: "rgba(168,85,247,0.14)", border: "rgba(168,85,247,0.55)", fg: "#7e22ce" };
-  return { label: "FILE", bg: "rgba(148,163,184,0.18)", border: "rgba(148,163,184,0.65)", fg: "#0f172a" };
+  if (isPdf) return { label: "PDF", className: "attachments-badge attachments-badge--pdf" };
+  if (isWord) return { label: "DOC", className: "attachments-badge attachments-badge--doc" };
+  if (isExcel) return { label: "XLS", className: "attachments-badge attachments-badge--xls" };
+  if (isImage) return { label: "IMG", className: "attachments-badge attachments-badge--img" };
+  return { label: "FILE", className: "attachments-badge attachments-badge--file" };
 }
 
 export function AttachmentsField({
@@ -37,6 +37,8 @@ export function AttachmentsField({
   onChange,
   label = "Attachments",
   helperText,
+  embedded = false,
+  inputRef: externalInputRef,
 }: {
   orgId: string;
   contractId: string;
@@ -45,9 +47,12 @@ export function AttachmentsField({
   onChange: (next: AttachmentRef[]) => void;
   label?: string;
   helperText?: string;
+  embedded?: boolean;
+  inputRef?: RefObject<HTMLInputElement | null>;
 }) {
   const toast = useToast();
-  const inputRef = useRef<HTMLInputElement | null>(null);
+  const internalInputRef = useRef<HTMLInputElement | null>(null);
+  const inputRef = externalInputRef ?? internalInputRef;
   const [uploadingIds, setUploadingIds] = useState<Record<string, number>>({});
 
   const attachments = value ?? [];
@@ -102,19 +107,8 @@ export function AttachmentsField({
     }
   }
 
-  return (
-    <div className="span-all">
-      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "baseline" }}>
-        <div style={{ fontWeight: 700 }}>{label}</div>
-        <div className="row-actions">
-          <button type="button" className="button-secondary" onClick={() => inputRef.current?.click()}>
-            Add files
-          </button>
-        </div>
-      </div>
-
-      {helperText ? <div className="muted-text" style={{ marginTop: 4 }}>{helperText}</div> : null}
-
+  const panel = (
+  <>
       <input
         ref={inputRef}
         type="file"
@@ -126,57 +120,23 @@ export function AttachmentsField({
           }
           event.target.value = "";
         }}
-        style={{ display: "none" }}
+        hidden
       />
 
-      <div
-        style={{
-          marginTop: 10,
-          border: "1px solid rgba(148,163,184,0.7)",
-          borderRadius: 14,
-          padding: 12,
-          background: hasUploads ? "rgba(34,197,94,0.06)" : "rgba(255,255,255,0.65)",
-        }}
-      >
+      <div className={hasUploads ? "attachments-panel attachments-panel--filled" : "attachments-panel"}>
         {Object.keys(uploadingIds).length > 0 ? (
-          <div className="muted-text" style={{ marginBottom: 10 }}>
+          <div className="attachments-empty" style={{ marginBottom: "0.65rem" }}>
             Uploading {Object.keys(uploadingIds).length} file(s)…
           </div>
         ) : null}
 
         {hasUploads ? (
-          <div style={{ display: "grid", gap: 8 }}>
+          <div className="attachments-list">
             {attachments.map((att) => {
-              const badge = badgeFor(att.mimeType, att.fileName);
+              const badge = badgeClassFor(att.mimeType, att.fileName);
               return (
-                <div
-                  key={att.id}
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "auto 1fr auto",
-                    gap: 10,
-                    alignItems: "center",
-                    border: "1px solid rgba(148,163,184,0.55)",
-                    borderRadius: 12,
-                    padding: "10px 10px",
-                    background: "rgba(255,255,255,0.78)",
-                  }}
-                >
-                  <span
-                    style={{
-                      fontSize: 12,
-                      fontWeight: 800,
-                      letterSpacing: 0.4,
-                      padding: "4px 8px",
-                      borderRadius: 999,
-                      background: badge.bg,
-                      border: `1px solid ${badge.border}`,
-                      color: badge.fg,
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    {badge.label}
-                  </span>
+                <div key={att.id} className="attachments-item">
+                  <span className={badge.className}>{badge.label}</span>
 
                   <div style={{ minWidth: 0 }}>
                     <div style={{ fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
@@ -211,11 +171,29 @@ export function AttachmentsField({
             })}
           </div>
         ) : (
-          <div className="muted-text">
-            No files attached yet.
-          </div>
+          <div className="attachments-empty">No files attached yet.</div>
         )}
       </div>
+  </>
+  );
+
+  if (embedded) {
+    return <div className="span-all">{panel}</div>;
+  }
+
+  return (
+    <div className="span-all">
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "baseline" }}>
+        <div style={{ fontWeight: 700 }}>{label}</div>
+        <div className="row-actions">
+          <button type="button" className="button-secondary" onClick={() => inputRef.current?.click()}>
+            Add files
+          </button>
+        </div>
+      </div>
+
+      {helperText ? <div className="muted-text" style={{ marginTop: 4 }}>{helperText}</div> : null}
+      <div style={{ marginTop: 10 }}>{panel}</div>
     </div>
   );
 }

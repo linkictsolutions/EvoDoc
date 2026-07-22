@@ -6,6 +6,8 @@ import type { DocumentFamily, DocumentType, DocumentVariant } from "@/types/mode
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
 import { useToast } from "@/components/ui/toast";
+import { FormActionBar } from "@/components/ui/form-action-bar";
+import { FormSection } from "@/components/ui/form-section";
 
 const ICC_INVOICE_TEMPLATE_STORAGE_KEY = "evodoc.templates.commercial_invoice_icc.v1";
 const ICC_PACKING_TEMPLATE_STORAGE_KEY = "evodoc.templates.packing_list_icc.v1";
@@ -194,8 +196,8 @@ export function ReviewActions({
   const canMarkFinal = normalizedStatus === "approved";
 
   return (
-    <section className="card form-grid">
-      <h3>Workflow Actions</h3>
+    <section className="form-workspace">
+      <FormSection title="Workflow Actions" description="Submit, approve, reject, or mark this document as final.">
       <button type="button" onClick={submitForReview} disabled={busy !== null}>
         {busy === "submit" ? "Submitting..." : "Submit for Review"}
       </button>
@@ -214,17 +216,18 @@ export function ReviewActions({
         Decision Comment
         <textarea value={comment} onChange={(event) => setComment(event.target.value)} rows={8} />
       </label>
+      </FormSection>
 
-      <div className="row-actions">
+      {error ? <p className="error-text">{error}</p> : null}
+
+      <FormActionBar>
         <button type="button" onClick={() => decide("approve")} disabled={busy !== null}>
           {busy === "approve" ? "Approving..." : "Approve"}
         </button>
         <button type="button" onClick={() => decide("reject")} disabled={busy !== null}>
           {busy === "reject" ? "Rejecting..." : "Reject"}
         </button>
-      </div>
-
-      {error ? <p className="error-text">{error}</p> : null}
+      </FormActionBar>
     </section>
   );
 }

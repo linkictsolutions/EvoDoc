@@ -10,6 +10,8 @@ import { DEFAULT_ORG_ID } from "@/lib/config";
 import type { AttachmentRef, CompanyConfiguration, Customer } from "@/types/models";
 import { CenteredLoader } from "@/components/ui/centered-loader";
 import { AttachmentsField } from "@/components/ui/attachments";
+import { FormActionBar } from "@/components/ui/form-action-bar";
+import { FormSection } from "@/components/ui/form-section";
 import { useToast } from "@/components/ui/toast";
 import { useUnsavedChangesGuard } from "@/components/ui/use-unsaved-changes-guard";
 
@@ -148,6 +150,7 @@ export function ContractCoreForm({
   const [savedContractId, setSavedContractId] = useState<string | null>(null);
   const [activeContractId, setActiveContractId] = useState<string | null>(initialContractId ?? null);
   const [savedNotice, setSavedNotice] = useState<string | null>(null);
+  const attachmentsInputRef = useRef<HTMLInputElement>(null);
   const [attachments, setAttachments] = useState<AttachmentRef[]>([]);
   const [saving, setSaving] = useState(false);
   const [loadingExisting, setLoadingExisting] = useState(false);
@@ -559,10 +562,10 @@ export function ContractCoreForm({
       </header>
 
       <form
-        className="card form-grid"
+        className="form-workspace"
         onSubmit={handleSubmit(onSubmit, () => toast.error("Fill in the required fields."))}
       >
-        <h3 className="span-all">Contract Identity</h3>
+        <FormSection title="Contract Identity" description="Contract number, buyer selection, and linked buyer details.">
         <label className={`col-4 ${requiredLabelClass(Boolean(errors.contractNumber))}`}>
           <span className="label-text">Contract Number</span>
           <input className={dirtyControlClass("contractNumber")} {...register("contractNumber")} />
@@ -620,17 +623,29 @@ export function ContractCoreForm({
             <small>{errors.customerAddress?.message}</small>
           </label>
         </div>
+        </FormSection>
 
-        <AttachmentsField
-          orgId={DEFAULT_ORG_ID}
-          contractId={activeContractId ?? savedContractId ?? values.contractNumber ?? "draft"}
-          stage="contract_sheet"
-          value={attachments}
-          onChange={setAttachments}
-          helperText="Attach the original contract file(s) for this source document."
-        />
+        <FormSection
+          title="Attachments"
+          description="Attach the original contract file(s) for this source document."
+          actions={(
+            <button type="button" className="button-secondary" onClick={() => attachmentsInputRef.current?.click()}>
+              Add files
+            </button>
+          )}
+        >
+          <AttachmentsField
+            embedded
+            inputRef={attachmentsInputRef}
+            orgId={DEFAULT_ORG_ID}
+            contractId={activeContractId ?? savedContractId ?? values.contractNumber ?? "draft"}
+            stage="contract_sheet"
+            value={attachments}
+            onChange={setAttachments}
+          />
+        </FormSection>
 
-        <h3 className="span-all">Product Details</h3>
+        <FormSection title="Product Details" description="Origin, grade, packaging, and quality specifications.">
         <label className={`col-4 ${requiredLabelClass(Boolean(errors.origin))}`}>
           <span className="label-text">Origin</span>
           <input className={dirtyControlClass("origin")} {...register("origin")} />
@@ -662,8 +677,9 @@ export function ContractCoreForm({
           Last Cert No
           <input type="number" step="1" {...register("lastCertNo", { valueAsNumber: true })} />
         </label>
+        </FormSection>
 
-        <h3 className="span-all">Commercial Terms</h3>
+        <FormSection title="Commercial Terms" description="Quantity, pricing, payment, and shipment terms.">
         <label className={`col-4 ${requiredLabelClass(Boolean(errors.quantityBags))}`}>
           <span className="label-text">Quantity (Main Unit)</span>
           <input className={dirtyControlClass("quantityBags")} type="number" step="0.001" {...register("quantityBags", { valueAsNumber: true })} />
@@ -725,8 +741,20 @@ export function ContractCoreForm({
           Shipment Period
           <input className={dirtyControlClass("shipmentPeriod")} type="month" {...register("shipmentPeriod")} />
         </label>
+        </FormSection>
 
-        <div className="row-actions">
+        {savedNotice ? <p>{savedNotice}</p> : null}
+        {apiError ? <p className="error-text">{apiError}</p> : null}
+        {warnings.length > 0 ? (
+          <div>
+            <strong>Warnings</strong>
+            <ul className="list-indent">
+              {warnings.map((warning) => <li key={warning}>{warning}</li>)}
+            </ul>
+          </div>
+        ) : null}
+
+        <FormActionBar hint={isDirty ? "You have unsaved changes." : undefined}>
           <button type="submit" disabled={saving}>{saving ? "Saving..." : "Save Contract Draft"}</button>
           <button type="button" className="button-secondary" disabled={!isDirty || saving} onClick={discardChanges}>
             Discard changes
@@ -736,17 +764,7 @@ export function ContractCoreForm({
               <button type="button" className="button-secondary">Continue to Shipping Instruction</button>
             </Link>
           ) : null}
-        </div>
-        {savedNotice ? <p>{savedNotice}</p> : null}
-        {apiError ? <p className="error-text">{apiError}</p> : null}
-        {warnings.length > 0 ? (
-          <div className="span-all">
-            <strong>Warnings</strong>
-            <ul className="list-indent">
-              {warnings.map((warning) => <li key={warning}>{warning}</li>)}
-            </ul>
-          </div>
-        ) : null}
+        </FormActionBar>
       </form>
 
       <section className="card">

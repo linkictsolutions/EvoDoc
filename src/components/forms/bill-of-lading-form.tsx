@@ -7,6 +7,8 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { AttachmentsField } from "@/components/ui/attachments";
 import { CenteredLoader } from "@/components/ui/centered-loader";
+import { FormActionBar } from "@/components/ui/form-action-bar";
+import { FormSection } from "@/components/ui/form-section";
 import { useToast } from "@/components/ui/toast";
 import { useUnsavedChangesGuard } from "@/components/ui/use-unsaved-changes-guard";
 import { apiClient } from "@/lib/api/client";
@@ -47,6 +49,7 @@ export function BillOfLadingForm({
   continueHref,
 }: BillOfLadingFormProps) {
   const toast = useToast();
+  const attachmentsInputRef = useRef<HTMLInputElement>(null);
   const [apiError, setApiError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [savedContractId, setSavedContractId] = useState<string | null>(null);
@@ -266,85 +269,102 @@ export function BillOfLadingForm({
       </header>
 
       <form
-        className="card form-grid"
+        className="form-workspace"
         onSubmit={handleSubmit(onSubmit, () => toast.error("Fill in the required fields."))}
       >
-        <h3 className="span-all">Contract Link</h3>
-        <label className={`col-4 ${errors.contractId ? "is-required field-error" : "is-required"}`}>
-          <span className="label-text">Contract Number (link only)</span>
-          <input className={dirtyControlClass("contractId")} {...register("contractId")} readOnly={Boolean(initialContractId)} />
-          <small>{errors.contractId?.message}</small>
-        </label>
+        <FormSection title="Contract Link" description="Link this bill of lading to an existing contract.">
+          <label className={`col-4 ${errors.contractId ? "is-required field-error" : "is-required"}`}>
+            <span className="label-text">Contract Number (link only)</span>
+            <input className={dirtyControlClass("contractId")} {...register("contractId")} readOnly={Boolean(initialContractId)} />
+            <small>{errors.contractId?.message}</small>
+          </label>
+        </FormSection>
 
-        <AttachmentsField
-          orgId={DEFAULT_ORG_ID}
-          contractId={savedContractId ?? contractIdInput ?? "draft"}
-          stage="bill_of_lading_sheet"
-          value={attachments}
-          onChange={setAttachments}
-          helperText="Attach carrier drafts, booking confirmations, or B/L support files."
-        />
+        <FormSection
+          title="Attachments"
+          description="Attach carrier drafts, booking confirmations, or B/L support files."
+          actions={(
+            <button type="button" className="button-secondary" onClick={() => attachmentsInputRef.current?.click()}>
+              Add files
+            </button>
+          )}
+        >
+          <AttachmentsField
+            embedded
+            inputRef={attachmentsInputRef}
+            orgId={DEFAULT_ORG_ID}
+            contractId={savedContractId ?? contractIdInput ?? "draft"}
+            stage="bill_of_lading_sheet"
+            value={attachments}
+            onChange={setAttachments}
+          />
+        </FormSection>
 
-        <h3 className="span-all">Bill Meta</h3>
-        <label className="col-4">
-          Bill Type
-          <select className={dirtyControlClass("billType")} {...register("billType")}>
-            <option value="ORIGINAL BILL No.">ORIGINAL BILL No.</option>
-            <option value="WAYBILL No.">WAYBILL No.</option>
-          </select>
-        </label>
-        <label className="col-4">
-          Bill No.
-          <input className={dirtyControlClass("billNo")} {...register("billNo")} />
-        </label>
-        <label className="col-2">
-          No. of Copy Bills
-          <input className={dirtyControlClass("noOfCopyBills")} {...register("noOfCopyBills")} />
-        </label>
-        <label className="col-4">
-          Reference Type
-          <select className={dirtyControlClass("shipperReferenceType")} {...register("shipperReferenceType")}>
-            <option value="Booking Ref">Booking Ref</option>
-            <option value="Shipper Ref.">Shipper Ref.</option>
-          </select>
-        </label>
-        <label className="col-8">
-          Reference Value
-          <input className={dirtyControlClass("shipperReferenceValue")} {...register("shipperReferenceValue")} />
-        </label>
+        <FormSection title="Bill Meta" description="Bill type, number, and shipper reference details.">
+          <label className="col-4">
+            Bill Type
+            <select className={dirtyControlClass("billType")} {...register("billType")}>
+              <option value="ORIGINAL BILL No.">ORIGINAL BILL No.</option>
+              <option value="WAYBILL No.">WAYBILL No.</option>
+            </select>
+          </label>
+          <label className="col-4">
+            Bill No.
+            <input className={dirtyControlClass("billNo")} {...register("billNo")} />
+          </label>
+          <label className="col-4">
+            No. of Copy Bills
+            <input className={dirtyControlClass("noOfCopyBills")} {...register("noOfCopyBills")} />
+          </label>
+          <label className="col-4">
+            Reference Type
+            <select className={dirtyControlClass("shipperReferenceType")} {...register("shipperReferenceType")}>
+              <option value="Booking Ref">Booking Ref</option>
+              <option value="Shipper Ref.">Shipper Ref.</option>
+            </select>
+          </label>
+          <label className="col-8">
+            Reference Value
+            <input className={dirtyControlClass("shipperReferenceValue")} {...register("shipperReferenceValue")} />
+          </label>
+        </FormSection>
 
-        <h3 className="span-all">Party Overrides</h3>
-        <label className="col-6">
-          Notify 2
-          <textarea className={dirtyControlClass("notify2")} rows={4} {...register("notify2")} />
-        </label>
-        <label className="col-6">
-          Notify 3
-          <textarea className={dirtyControlClass("notify3")} rows={4} {...register("notify3")} />
-        </label>
+        <FormSection title="Party Overrides" description="Additional notify parties when they differ from the contract.">
+          <label className="col-6">
+            Notify 2
+            <textarea className={dirtyControlClass("notify2")} rows={4} {...register("notify2")} />
+          </label>
+          <label className="col-6">
+            Notify 3
+            <textarea className={dirtyControlClass("notify3")} rows={4} {...register("notify3")} />
+          </label>
+        </FormSection>
 
-        <h3 className="span-all">Cargo and Freight Overrides</h3>
-        <label className={`col-4 ${errors.movementType ? "is-required field-error" : "is-required"}`}>
-          <span className="label-text">Movement Type</span>
-          <select className={dirtyControlClass("movementType")} {...register("movementType")} required>
-            <option value="">Select movement type</option>
-            {movementTypes.map((type) => (
-              <option key={type} value={type}>{type}</option>
-            ))}
-          </select>
-          <small>{errors.movementType?.message}</small>
-        </label>
-        <label className={`col-8 ${errors.freightParty ? "is-required field-error" : "is-required"}`}>
-          <span className="label-text">Freight Party</span>
-          <input className={dirtyControlClass("freightParty")} {...register("freightParty")} required />
-          <small>{errors.freightParty?.message}</small>
-        </label>
-        <label className="span-all">
-          Description Override
-          <textarea className={dirtyControlClass("descriptionOverride")} rows={8} {...register("descriptionOverride")} />
-        </label>
+        <FormSection title="Cargo and Freight Overrides" description="Movement type, freight party, and description overrides.">
+          <label className={`col-4 ${errors.movementType ? "is-required field-error" : "is-required"}`}>
+            <span className="label-text">Movement Type</span>
+            <select className={dirtyControlClass("movementType")} {...register("movementType")} required>
+              <option value="">Select movement type</option>
+              {movementTypes.map((type) => (
+                <option key={type} value={type}>{type}</option>
+              ))}
+            </select>
+            <small>{errors.movementType?.message}</small>
+          </label>
+          <label className={`col-8 ${errors.freightParty ? "is-required field-error" : "is-required"}`}>
+            <span className="label-text">Freight Party</span>
+            <input className={dirtyControlClass("freightParty")} {...register("freightParty")} required />
+            <small>{errors.freightParty?.message}</small>
+          </label>
+          <label className="span-all">
+            Description Override
+            <textarea className={dirtyControlClass("descriptionOverride")} rows={8} {...register("descriptionOverride")} />
+          </label>
+        </FormSection>
 
-        <div className="row-actions">
+        {apiError ? <p className="error-text">{apiError}</p> : null}
+
+        <FormActionBar hint={isDirty ? "You have unsaved changes." : undefined}>
           <button type="submit" disabled={saving}>{saving ? "Saving..." : "Save Bill of Lading"}</button>
           <button type="button" className="button-secondary" disabled={!isDirty || saving} onClick={discardChanges}>
             Discard changes
@@ -352,9 +372,7 @@ export function BillOfLadingForm({
           <Link href={nextHref}>
             <button type="button" className="button-secondary">Continue</button>
           </Link>
-        </div>
-
-        {apiError ? <p className="error-text span-all">{apiError}</p> : null}
+        </FormActionBar>
       </form>
     </section>
   );

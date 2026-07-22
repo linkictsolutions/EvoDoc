@@ -11,6 +11,8 @@ import type { AttachmentRef, CompanyConfiguration, Contract } from "@/types/mode
 import { CenteredLoader } from "@/components/ui/centered-loader";
 import { AttachmentsField } from "@/components/ui/attachments";
 import { AutoGrowTextarea } from "@/components/ui/auto-grow-textarea";
+import { FormActionBar } from "@/components/ui/form-action-bar";
+import { FormSection } from "@/components/ui/form-section";
 import { useToast } from "@/components/ui/toast";
 import { useUnsavedChangesGuard } from "@/components/ui/use-unsaved-changes-guard";
 
@@ -83,6 +85,7 @@ export function BankLcForm({
   const [savedContractId, setSavedContractId] = useState<string | null>(null);
   const [loadingExisting, setLoadingExisting] = useState(false);
   const [companyConfiguration, setCompanyConfiguration] = useState<CompanyConfiguration | null>(null);
+  const attachmentsInputRef = useRef<HTMLInputElement>(null);
   const [attachments, setAttachments] = useState<AttachmentRef[]>([]);
   const [highlightDirty, setHighlightDirty] = useState(false);
   const lastSavedRef = useRef<{ form: Partial<FormData>; attachments: AttachmentRef[] }>({ form: {}, attachments: [] });
@@ -360,26 +363,38 @@ export function BankLcForm({
       </header>
 
       <form
-        className="card form-grid"
+        className="form-workspace"
         onSubmit={handleSubmit(onSubmit, () => toast.error("Fill in the required fields."))}
       >
-        <h3 className="span-all">Contract Link</h3>
+        <FormSection title="Contract Link" description="Link this bank and LC document to an existing contract.">
         <label className={`col-4 ${requiredLabelClass(Boolean(errors.contractId))}`}>
           <span className="label-text">Contract Number (link only)</span>
           <input className={dirtyControlClass("contractId")} {...register("contractId")} readOnly={Boolean(initialContractId)} />
           <small>{errors.contractId?.message}</small>
         </label>
+        </FormSection>
 
-        <AttachmentsField
-          orgId={DEFAULT_ORG_ID}
-          contractId={savedContractId ?? contractIdInput ?? "draft"}
-          stage="bank_lc_sheet"
-          value={attachments}
-          onChange={setAttachments}
-          helperText="Attach LC documents, bank letters, or related files (multiple allowed)."
-        />
+        <FormSection
+          title="Attachments"
+          description="Attach LC documents, bank letters, or related files (multiple allowed)."
+          actions={(
+            <button type="button" className="button-secondary" onClick={() => attachmentsInputRef.current?.click()}>
+              Add files
+            </button>
+          )}
+        >
+          <AttachmentsField
+            embedded
+            inputRef={attachmentsInputRef}
+            orgId={DEFAULT_ORG_ID}
+            contractId={savedContractId ?? contractIdInput ?? "draft"}
+            stage="bank_lc_sheet"
+            value={attachments}
+            onChange={setAttachments}
+          />
+        </FormSection>
 
-        <h3 className="span-all">LC Information</h3>
+        <FormSection title="LC Information" description="Letter of credit details, ports, and goods description.">
         <label className="col-4">
           LC No
           <input className={dirtyControlClass("lcNumber")} {...register("lcNumber")} />
@@ -420,8 +435,9 @@ export function BankLcForm({
           Receiver
           <input className={dirtyControlClass("receiver")} {...register("receiver")} />
         </label>
+        </FormSection>
 
-        <h3 className="span-all">Consignee and Notify Parties</h3>
+        <FormSection title="Consignee and Notify Parties" description="Consignee and notify party details from the LC.">
         <label className="col-12">
           Consignee
           <textarea className={dirtyControlClass("consignee")} rows={4} {...register("consignee")} />
@@ -434,8 +450,9 @@ export function BankLcForm({
           2nd Notify
           <AutoGrowTextarea className={dirtyControlClass("secondNotify")} rows={4} {...register("secondNotify")} />
         </label>
+        </FormSection>
 
-        <h3 className="span-all">Bank Details (Beneficiary)</h3>
+        <FormSection title="Bank Details (Beneficiary)" description="Beneficiary bank, account, and address details.">
         <label className="col-3">
           Bank Permit
           <input className={dirtyControlClass("permitNumber")} {...register("permitNumber")} />
@@ -500,8 +517,9 @@ export function BankLcForm({
             <textarea className={dirtyControlClass("bankAddress")} {...register("bankAddress")} />
           </label>
         </div>
+        </FormSection>
 
-        <h3 className="span-all">Correspondent Bank</h3>
+        <FormSection title="Correspondent Bank" description="Correspondent bank name, SWIFT, account, and address.">
         <label className="col-6">
           Bank Name
           <input className={dirtyControlClass("correspondentBank")} {...register("correspondentBank")} />
@@ -518,8 +536,12 @@ export function BankLcForm({
           Address
           <textarea className={dirtyControlClass("correspondentBankAddress")} rows={3} {...register("correspondentBankAddress")} />
         </label>
+        </FormSection>
 
-        <div className="row-actions">
+        {savedContractId ? <p>Saved to Contract ID: {savedContractId}</p> : null}
+        {apiError ? <p className="error-text">{apiError}</p> : null}
+
+        <FormActionBar hint={isDirty ? "You have unsaved changes." : undefined}>
           <button type="submit" disabled={saving}>{saving ? "Saving..." : "Save Bank & LC"}</button>
           <button type="button" className="button-secondary" disabled={!isDirty || saving} onClick={discardChanges}>
             Discard changes
@@ -527,9 +549,7 @@ export function BankLcForm({
           <Link href={reportHref}>
             <button type="button" className="button-secondary">View Resolved Values</button>
           </Link>
-        </div>
-        {savedContractId ? <p>Saved to Contract ID: {savedContractId}</p> : null}
-        {apiError ? <p className="error-text">{apiError}</p> : null}
+        </FormActionBar>
       </form>
     </section>
   );

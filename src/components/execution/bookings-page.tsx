@@ -6,6 +6,7 @@ import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
 import type { BookingsSheet } from "@/types/models";
 import { CenteredLoader } from "@/components/ui/centered-loader";
+import { FormSection } from "@/components/ui/form-section";
 import { useToast } from "@/components/ui/toast";
 import { useUnsavedChangesGuard } from "@/components/ui/use-unsaved-changes-guard";
 
@@ -194,7 +195,8 @@ export function BookingsPage({ contractId }: { contractId: string }) {
         <p>Bookings are captured as vehicle pairs. The truck and its trailer share the same driver, phone numbers, and license, so those details are entered once on the truck row and carried to the trailer automatically.</p>
       </header>
 
-      <section className="card form-grid bookings-header-grid">
+      <div className="form-workspace">
+      <FormSection title="Booking Header" description="Booking number, shipping line, vessel, and bill of lading reference.">
         <label className="col-3">
           Booking Number
           <input className={headerControlClass} value={form.bookingNumber ?? ""} onChange={(event) => updateHeader("bookingNumber", event.target.value)} />
@@ -233,7 +235,7 @@ export function BookingsPage({ contractId }: { contractId: string }) {
           Bill of Lading Number
           <input className={headerControlClass} value={form.billOfLadingNumber ?? ""} onChange={(event) => updateHeader("billOfLadingNumber", event.target.value)} />
         </label>
-      </section>
+      </FormSection>
 
       <section className="card bookings-vehicle-card">
         <div className="section-heading">
@@ -333,6 +335,7 @@ export function BookingsPage({ contractId }: { contractId: string }) {
         </div>
         {error ? <p className="error-text mt-md">{error}</p> : null}
       </section>
+      </div>
     </section>
   );
 }

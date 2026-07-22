@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
 import { CenteredLoader } from "@/components/ui/centered-loader";
+import { FormActionBar } from "@/components/ui/form-action-bar";
 import { useToast } from "@/components/ui/toast";
 import { useUnsavedChangesGuard } from "@/components/ui/use-unsaved-changes-guard";
 import type {
@@ -803,8 +804,8 @@ export function CompanyConfigurationPage() {
         </p>
       </header>
 
-      <form className="card form-grid" onSubmit={handleSubmit} noValidate>
-        <div className="section-heading span-all">
+      <form className="form-workspace" onSubmit={handleSubmit} noValidate>
+        <div className="section-heading">
           <div>
             <h3>
               {activeTab === "general"
@@ -821,20 +822,9 @@ export function CompanyConfigurationPage() {
                   : "A4-safe header and footer graphics for generated documents."}
             </p>
           </div>
-          <div className="row-actions">
-            <button type="button" className="button-secondary" onClick={() => void loadConfiguration()} disabled={loading || saving}>
-              Refresh
-            </button>
-            <button type="button" className="button-secondary" onClick={discardChanges} disabled={!isDirty || saving}>
-              Discard changes
-            </button>
-            <button type="submit" disabled={saving}>
-              {saving ? "Saving..." : "Save Configuration"}
-            </button>
-          </div>
         </div>
 
-        <div className="span-all config-tabs" role="tablist" aria-label="Company configuration tabs">
+        <div className="config-tabs" role="tablist" aria-label="Company configuration tabs">
           <button
             type="button"
             className={activeTab === "general" ? "" : "button-secondary"}
@@ -1527,12 +1517,24 @@ export function CompanyConfigurationPage() {
           </>
         )}
 
-        {error ? <p className="error-text span-all">{error}</p> : null}
+        {error ? <p className="error-text">{error}</p> : null}
         {savedAt ? (
-          <p className="sidebar-subtitle span-all">
+          <p className="sidebar-subtitle">
             Last loaded version: {new Date(savedAt).toLocaleString()}
           </p>
         ) : null}
+
+        <FormActionBar hint={isDirty ? "You have unsaved changes." : undefined}>
+          <button type="button" className="button-secondary" onClick={() => void loadConfiguration()} disabled={loading || saving}>
+            Refresh
+          </button>
+          <button type="button" className="button-secondary" onClick={discardChanges} disabled={!isDirty || saving}>
+            Discard changes
+          </button>
+          <button type="submit" disabled={saving}>
+            {saving ? "Saving..." : "Save Configuration"}
+          </button>
+        </FormActionBar>
       </form>
     </section>
   );

@@ -10,6 +10,8 @@ import { DEFAULT_ORG_ID } from "@/lib/config";
 import type { AttachmentRef, CompanyConfiguration, Contract } from "@/types/models";
 import { CenteredLoader } from "@/components/ui/centered-loader";
 import { AttachmentsField } from "@/components/ui/attachments";
+import { FormActionBar } from "@/components/ui/form-action-bar";
+import { FormSection } from "@/components/ui/form-section";
 import { useToast } from "@/components/ui/toast";
 import { useUnsavedChangesGuard } from "@/components/ui/use-unsaved-changes-guard";
 
@@ -79,6 +81,7 @@ export function ShippingInstructionForm({
   const [savedContractId, setSavedContractId] = useState<string | null>(null);
   const [loadingExisting, setLoadingExisting] = useState(false);
   const [packagingOptions, setPackagingOptions] = useState<string[]>([]);
+  const attachmentsInputRef = useRef<HTMLInputElement>(null);
   const [attachments, setAttachments] = useState<AttachmentRef[]>([]);
   const [highlightDirty, setHighlightDirty] = useState(false);
   const lastSavedRef = useRef<{ form: Partial<FormData>; attachments: AttachmentRef[] }>({ form: {}, attachments: [] });
@@ -318,26 +321,38 @@ export function ShippingInstructionForm({
       </header>
 
       <form
-        className="card form-grid"
+        className="form-workspace"
         onSubmit={handleSubmit(onSubmit, () => toast.error("Fill in the required fields."))}
       >
-        <h3 className="span-all">Contract Link</h3>
+        <FormSection title="Contract Link" description="Link this shipping instruction to an existing contract.">
         <label className={`col-4 ${requiredLabelClass(Boolean(errors.contractId))}`}>
           <span className="label-text">Contract Number (link only, no auto-fill)</span>
           <input className={dirtyControlClass("contractId")} {...register("contractId")} readOnly={Boolean(initialContractId)} />
           <small>{errors.contractId?.message}</small>
         </label>
+        </FormSection>
 
-        <AttachmentsField
-          orgId={DEFAULT_ORG_ID}
-          contractId={savedContractId ?? contractIdInput ?? "draft"}
-          stage="shipping_instruction_sheet"
-          value={attachments}
-          onChange={setAttachments}
-          helperText="Attach supporting shipping instruction documents (multiple files allowed)."
-        />
+        <FormSection
+          title="Attachments"
+          description="Attach supporting shipping instruction documents (multiple files allowed)."
+          actions={(
+            <button type="button" className="button-secondary" onClick={() => attachmentsInputRef.current?.click()}>
+              Add files
+            </button>
+          )}
+        >
+          <AttachmentsField
+            embedded
+            inputRef={attachmentsInputRef}
+            orgId={DEFAULT_ORG_ID}
+            contractId={savedContractId ?? contractIdInput ?? "draft"}
+            stage="shipping_instruction_sheet"
+            value={attachments}
+            onChange={setAttachments}
+          />
+        </FormSection>
 
-        <h3 className="span-all">Route and Carrier</h3>
+        <FormSection title="Route and Carrier" description="Destination, port of loading, and carrier options.">
         <label className={`col-6 ${requiredLabelClass(Boolean(errors.destinationPort))}`}>
           <span className="label-text">Destination (Port, Country)</span>
           <input className={dirtyControlClass("destinationPort")} {...register("destinationPort")} />
@@ -373,8 +388,9 @@ export function ShippingInstructionForm({
           Alternative 2 Service Contract
           <input className={dirtyControlClass("alternative2ServiceContract")} {...register("alternative2ServiceContract")} />
         </label>
+        </FormSection>
 
-        <h3 className="span-all">Cargo Details</h3>
+        <FormSection title="Cargo Details" description="Quantity, packaging, markings, and container details.">
         <label className={`col-4 ${requiredLabelClass(Boolean(errors.quantityValue))}`}>
           <span className="label-text">Quantity</span>
           <input className={dirtyControlClass("quantityValue")} {...register("quantityValue")} />
@@ -424,8 +440,9 @@ export function ShippingInstructionForm({
           Description
           <textarea className={dirtyControlClass("description")} rows={8} {...register("description")} />
         </label>
+        </FormSection>
 
-        <h3 className="span-all">Consignee and Notify Parties</h3>
+        <FormSection title="Consignee and Notify Parties" description="Consignee and notify party details for this shipment.">
         <label className="col-6">
           Consignee
           <textarea className={dirtyControlClass("consignee")} rows={4} {...register("consignee")} />
@@ -438,8 +455,12 @@ export function ShippingInstructionForm({
           2nd Notify
           <textarea className={dirtyControlClass("secondNotify")} rows={4} {...register("secondNotify")} />
         </label>
+        </FormSection>
 
-        <div className="row-actions">
+        {savedContractId ? <p>Saved to Contract ID: {savedContractId}</p> : null}
+        {apiError ? <p className="error-text">{apiError}</p> : null}
+
+        <FormActionBar hint={isDirty ? "You have unsaved changes." : undefined}>
           <button type="submit" disabled={saving}>{saving ? "Saving..." : "Save Shipping Instruction"}</button>
           <button type="button" className="button-secondary" disabled={!isDirty || saving} onClick={discardChanges}>
             Discard changes
@@ -447,9 +468,7 @@ export function ShippingInstructionForm({
           <Link href={bankLcHref}>
             <button type="button" className="button-secondary">Continue to Bank & LC</button>
           </Link>
-        </div>
-        {savedContractId ? <p>Saved to Contract ID: {savedContractId}</p> : null}
-        {apiError ? <p className="error-text">{apiError}</p> : null}
+        </FormActionBar>
       </form>
     </section>
   );

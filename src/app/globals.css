@@ -20,6 +20,13 @@
   --radius-sm: 12px;
   --radius-md: 16px;
   --radius-lg: 22px;
+  --space-1: 0.5rem;
+  --space-2: 1rem;
+  --space-3: 1.5rem;
+  --space-4: 2rem;
+  --form-section-gap: var(--space-4);
+  --form-field-gap: var(--space-2);
+  --form-label-gap: var(--space-1);
 }
 
 * {
@@ -203,8 +210,8 @@ button.button-danger:hover {
 
 label {
   display: grid;
-  gap: 0.45rem;
-  font-size: 0.92rem;
+  gap: var(--form-label-gap);
+  font-size: 0.8125rem;
   color: var(--muted);
   position: relative;
 }
@@ -1811,8 +1818,8 @@ tbody tr:hover {
 .form-grid {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
-  column-gap: 1rem;
-  row-gap: 1.2rem;
+  column-gap: var(--space-2);
+  row-gap: var(--form-field-gap);
   align-items: start;
 }
 
@@ -1893,6 +1900,193 @@ tbody tr:hover {
 
 .form-pair-row > .col-8 {
   grid-column: span 8;
+}
+
+/* ── Renovated form workspace (inset sections + sticky actions) ── */
+.form-workspace {
+  display: grid;
+  gap: var(--form-section-gap);
+  width: 100%;
+  max-width: 72rem;
+  padding-bottom: 5.5rem;
+}
+
+.form-section {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.form-section__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.form-section__intro {
+  min-width: 0;
+}
+
+.form-section__title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+.form-section__description {
+  margin-top: 0.3rem;
+  font-size: 0.8125rem;
+  color: var(--muted);
+  line-height: 1.45;
+  max-width: 72ch;
+}
+
+.form-section__actions {
+  flex-shrink: 0;
+}
+
+.form-section__body {
+  background: var(--bg-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.35rem 1.4rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
+.form-section__body.form-grid {
+  row-gap: var(--space-2);
+  column-gap: var(--space-2);
+}
+
+.form-section__body .form-pair-row {
+  margin: 0;
+}
+
+.form-action-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 24;
+  margin-top: 0.25rem;
+  padding: 0.65rem 0 0.35rem;
+  background: linear-gradient(180deg, transparent 0%, var(--bg) 28%);
+}
+
+.form-action-bar__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  max-width: 72rem;
+  padding: 0.8rem 1rem;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.form-action-bar__hint {
+  font-size: 0.8125rem;
+  color: var(--muted);
+  min-width: 0;
+}
+
+.form-action-bar__actions {
+  margin-left: auto;
+}
+
+.attachments-panel {
+  grid-column: 1 / -1;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.9rem 1rem;
+  background: var(--bg-elevated);
+}
+
+.attachments-panel--filled {
+  background: rgba(34, 197, 94, 0.05);
+  border-color: rgba(34, 197, 94, 0.22);
+}
+
+.attachments-list {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.attachments-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.65rem;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.65rem 0.75rem;
+  background: #fff;
+}
+
+.attachments-badge {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  text-transform: uppercase;
+}
+
+.attachments-empty {
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+
+.attachments-badge {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  text-transform: uppercase;
+}
+
+.attachments-badge--pdf {
+  background: rgba(239, 68, 68, 0.14);
+  border: 1px solid rgba(239, 68, 68, 0.55);
+  color: #b91c1c;
+}
+
+.attachments-badge--doc {
+  background: rgba(59, 130, 246, 0.14);
+  border: 1px solid rgba(59, 130, 246, 0.55);
+  color: #1d4ed8;
+}
+
+.attachments-badge--xls {
+  background: rgba(34, 197, 94, 0.14);
+  border: 1px solid rgba(34, 197, 94, 0.55);
+  color: #15803d;
+}
+
+.attachments-badge--img {
+  background: rgba(168, 85, 247, 0.14);
+  border: 1px solid rgba(168, 85, 247, 0.55);
+  color: #7e22ce;
+}
+
+.attachments-badge--file {
+  background: rgba(148, 163, 184, 0.18);
+  border: 1px solid rgba(148, 163, 184, 0.65);
+  color: #0f172a;
+}
+
+input:read-only:not([type="checkbox"]):not([type="radio"]),
+input:disabled:not([type="checkbox"]):not([type="radio"]),
+select:disabled,
+textarea:read-only,
+textarea:disabled {
+  background: #f4f7fa;
+  color: var(--muted);
+  cursor: default;
 }
 
 /* Dense rows for grouped short fields */
