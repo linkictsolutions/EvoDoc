@@ -195,11 +195,11 @@ export function BookingsPage({ contractId }: { contractId: string }) {
       </header>
 
       <section className="card form-grid bookings-header-grid">
-        <label className="col-3 field-w-md">
+        <label className="col-3">
           Booking Number
           <input className={headerControlClass} value={form.bookingNumber ?? ""} onChange={(event) => updateHeader("bookingNumber", event.target.value)} />
         </label>
-        <label className="col-4 field-w-xl">
+        <label className="col-4">
           Shipping Line
           <select
             className={headerControlClass}
@@ -217,19 +217,19 @@ export function BookingsPage({ contractId }: { contractId: string }) {
               : ""}
           </small>
         </label>
-        <label className="col-4 field-w-xl">
+        <label className="col-5">
           Vessel Name
           <input className={headerControlClass} value={form.vesselName ?? ""} onChange={(event) => updateHeader("vesselName", event.target.value)} />
         </label>
-        <label className="col-2 field-w-sm">
+        <label className="col-2">
           Voyage No
           <input className={headerControlClass} value={form.voyageNo ?? ""} onChange={(event) => updateHeader("voyageNo", event.target.value)} />
         </label>
-        <label className="col-2 field-w-xs">
+        <label className="col-2">
           Free Days
           <input className={headerControlClass} value={form.freeDays ?? ""} onChange={(event) => updateHeader("freeDays", event.target.value)} />
         </label>
-        <label className="col-5 field-w-xl">
+        <label className="col-8">
           Bill of Lading Number
           <input className={headerControlClass} value={form.billOfLadingNumber ?? ""} onChange={(event) => updateHeader("billOfLadingNumber", event.target.value)} />
         </label>

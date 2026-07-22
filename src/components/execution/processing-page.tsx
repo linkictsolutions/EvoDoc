@@ -113,7 +113,7 @@ export function ProcessingPage({ contractId }: { contractId: string }) {
       </header>
 
       <section className="card form-grid">
-        <label className="col-2 field-w-xs">
+        <label className="col-3">
           Moisture
           <input
             className={highlightDirty && moistureDirty ? "field-error-control" : undefined}
@@ -123,7 +123,7 @@ export function ProcessingPage({ contractId }: { contractId: string }) {
             onChange={(event) => setForm((current) => current ? { ...current, moisturePercent: Number(event.target.value) } : current)}
           />
         </label>
-        <label className="col-5 field-w-xl">
+        <label className="col-6">
           Processing Station
           <input
             className={highlightDirty && stationDirty ? "field-error-control" : undefined}
@@ -131,7 +131,7 @@ export function ProcessingPage({ contractId }: { contractId: string }) {
             onChange={(event) => setForm((current) => current ? { ...current, stationName: event.target.value } : current)}
           />
         </label>
-        <label className="col-5 field-w-xl">
+        <label className="col-8">
           Local Station Name
           <input
             className={highlightDirty && stationLocalDirty ? "field-error-control" : undefined}
@@ -139,7 +139,7 @@ export function ProcessingPage({ contractId }: { contractId: string }) {
             onChange={(event) => setForm((current) => current ? { ...current, stationNameLocal: event.target.value } : current)}
           />
         </label>
-        <label className="col-8 field-w-2xl">
+        <label className="span-all">
           Station Address
           <textarea
             className={highlightDirty && addressDirty ? "field-error-control" : undefined}

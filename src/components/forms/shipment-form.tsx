@@ -114,24 +114,24 @@ export function ShipmentForm({ contractId }: { contractId: string }) {
       className="card form-grid"
       onSubmit={handleSubmit(onSubmit, () => toast.error("Fill in the required fields."))}
     >
-      <label className="col-5 field-w-xl">
+      <label className="col-6">
         Vessel
         <input className={dirtyControlClass("vessel")} {...register("vessel")} />
       </label>
-      <label className="col-2 field-w-sm">
+      <label className="col-3">
         Voyage Number
         <input className={dirtyControlClass("voyageNo")} {...register("voyageNo")} />
       </label>
-      <label className={`col-2 field-w-sm ${requiredLabelClass(Boolean(errors.bags))}`}>
+      <label className={`col-3 ${requiredLabelClass(Boolean(errors.bags))}`}>
         <span className="label-text">Bags</span>
         <input className={dirtyControlClass("bags")} type="number" {...register("bags", { valueAsNumber: true })} />
         <small>{errors.bags?.message}</small>
       </label>
-      <label className="col-5 field-w-xl">
+      <label className="col-8">
         Booking Reference
         <input className={dirtyControlClass("bookingReference")} {...register("bookingReference")} />
       </label>
-      <label className={`col-3 field-w-md ${requiredLabelClass(Boolean(errors.grossWeightKg))}`}>
+      <label className={`col-4 ${requiredLabelClass(Boolean(errors.grossWeightKg))}`}>
         <span className="label-text">Gross Weight (kg)</span>
         <input
           className={dirtyControlClass("grossWeightKg")}
@@ -141,7 +141,7 @@ export function ShipmentForm({ contractId }: { contractId: string }) {
         />
         <small>{errors.grossWeightKg?.message}</small>
       </label>
-      <label className={`col-3 field-w-md ${requiredLabelClass(Boolean(errors.tareWeightKg))}`}>
+      <label className={`col-4 ${requiredLabelClass(Boolean(errors.tareWeightKg))}`}>
         <span className="label-text">Tare Weight (kg)</span>
         <input
           className={dirtyControlClass("tareWeightKg")}
@@ -151,11 +151,11 @@ export function ShipmentForm({ contractId }: { contractId: string }) {
         />
         <small>{errors.tareWeightKg?.message}</small>
       </label>
-      <label className="col-5 field-w-xl">
+      <label className="col-6">
         Container Number
         <input className={dirtyControlClass("containerNumber")} {...register("containerNumber")} />
       </label>
-      <label className="col-3 field-w-md">
+      <label className="col-2">
         Seal Number
         <input className={dirtyControlClass("sealNumber")} {...register("sealNumber")} />
       </label>

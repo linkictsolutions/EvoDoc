@@ -860,23 +860,23 @@ export function CompanyConfigurationPage() {
 
         {activeTab === "general" ? (
           <>
-            <label className={`col-6 field-w-xl ${requiredLabelClass(attemptedSubmit && form.sellerName.trim().length === 0)}`}>
+            <label className={`col-8 ${requiredLabelClass(attemptedSubmit && form.sellerName.trim().length === 0)}`}>
               <span className="label-text">Seller Name</span>
               <input className={dirtyControlClass("sellerName")} value={form.sellerName} onChange={(event) => updateField("sellerName", event.target.value)} required />
             </label>
-            <label className="col-4 field-w-xl">
+            <label className="col-4">
               Company Email
               <input className={dirtyControlClass("companyEmail")} type="email" value={form.companyEmail} onChange={(event) => updateField("companyEmail", event.target.value)} />
             </label>
-            <label className={`col-8 field-w-2xl ${requiredLabelClass(attemptedSubmit && form.sellerAddress.trim().length === 0)}`}>
+            <label className={`span-all ${requiredLabelClass(attemptedSubmit && form.sellerAddress.trim().length === 0)}`}>
               <span className="label-text">Seller Address</span>
               <textarea className={dirtyControlClass("sellerAddress")} rows={3} value={form.sellerAddress} onChange={(event) => updateField("sellerAddress", event.target.value)} required />
             </label>
-            <label className="col-5 field-w-xl">
+            <label className="col-8">
               Amharic Name
               <input className={dirtyControlClass("sellerAmharicName")} value={form.sellerAmharicName} onChange={(event) => updateField("sellerAmharicName", event.target.value)} />
             </label>
-            <label className="col-3 field-w-md">
+            <label className="col-4">
               Company Phone
               <input className={dirtyControlClass("companyPhone")} value={form.companyPhone} onChange={(event) => updateField("companyPhone", event.target.value)} />
             </label>
@@ -888,20 +888,20 @@ export function CompanyConfigurationPage() {
               </div>
             </div>
 
-            <label className={`col-3 field-w-lg ${requiredLabelClass(attemptedSubmit && form.defaultOrigin.trim().length === 0)}`}>
+            <label className={`col-4 ${requiredLabelClass(attemptedSubmit && form.defaultOrigin.trim().length === 0)}`}>
               <span className="label-text">Default Origin</span>
               <input className={dirtyControlClass("defaultOrigin")} value={form.defaultOrigin} onChange={(event) => updateField("defaultOrigin", event.target.value)} required />
             </label>
-            <label className={`col-2 field-w-sm ${requiredLabelClass(attemptedSubmit && form.defaultHsCode.trim().length === 0)}`}>
+            <label className={`col-3 ${requiredLabelClass(attemptedSubmit && form.defaultHsCode.trim().length === 0)}`}>
               <span className="label-text">Default HS Code</span>
               <input className={dirtyControlClass("defaultHsCode")} value={form.defaultHsCode} onChange={(event) => updateField("defaultHsCode", event.target.value)} required />
             </label>
-            <label className={`col-3 field-w-md ${requiredLabelClass(attemptedSubmit && form.icoReferencePrefix.trim().length === 0)}`}>
+            <label className={`col-3 ${requiredLabelClass(attemptedSubmit && form.icoReferencePrefix.trim().length === 0)}`}>
               <span className="label-text">ICO Reference Prefix</span>
               <input className={dirtyControlClass("icoReferencePrefix")} value={form.icoReferencePrefix} onChange={(event) => updateField("icoReferencePrefix", event.target.value)} required />
             </label>
             <label
-              className={`col-2 field-w-sm ${requiredLabelClass(attemptedSubmit && (!Number.isFinite(Number(form.bulkReferenceKg)) || Number(form.bulkReferenceKg) <= 0))}`}
+              className={`col-2 ${requiredLabelClass(attemptedSubmit && (!Number.isFinite(Number(form.bulkReferenceKg)) || Number(form.bulkReferenceKg) <= 0))}`}
             >
               <span className="label-text">Bulk Reference Kg</span>
               <input
@@ -914,7 +914,7 @@ export function CompanyConfigurationPage() {
                 required
               />
             </label>
-            <label className={`col-4 field-w-xl ${requiredLabelClass(attemptedSubmit && form.placeOfIssue.trim().length === 0)}`}>
+            <label className={`col-6 ${requiredLabelClass(attemptedSubmit && form.placeOfIssue.trim().length === 0)}`}>
               <span className="label-text">Place of Issue</span>
               <input className={dirtyControlClass("placeOfIssue")} value={form.placeOfIssue} onChange={(event) => updateField("placeOfIssue", event.target.value)} required />
             </label>
@@ -1184,15 +1184,15 @@ export function CompanyConfigurationPage() {
                 <p className="sidebar-subtitle">Transit partner details used in shipping-related documents.</p>
               </div>
             </div>
-            <label className="col-5 field-w-xl">
+            <label className="col-8">
               Transitor Company Name
               <input className={dirtyControlClass("transitorCompanyName")} value={form.transitorCompanyName} onChange={(event) => updateField("transitorCompanyName", event.target.value)} />
             </label>
-            <label className="col-3 field-w-md">
+            <label className="col-4">
               Transitor Phone Number
               <input className={dirtyControlClass("transitorPhoneNumber")} value={form.transitorPhoneNumber} onChange={(event) => updateField("transitorPhoneNumber", event.target.value)} />
             </label>
-            <label className="col-8 field-w-2xl">
+            <label className="col-12">
               Transitor Location
               <textarea className={dirtyControlClass("transitorLocation")} rows={2} value={form.transitorLocation} onChange={(event) => updateField("transitorLocation", event.target.value)} />
             </label>
@@ -1305,7 +1305,7 @@ export function CompanyConfigurationPage() {
                 </div>
 
                 <div className="form-grid mt-sm">
-                  <label className="col-6 field-w-xl">
+                  <label className="col-8">
                     Beneficiary Bank
                     <input
                       value={bank.beneficiaryBank}
@@ -1314,7 +1314,7 @@ export function CompanyConfigurationPage() {
                     />
                   </label>
 
-                  <label className="col-2 field-w-sm">
+                  <label className="col-2">
                     SWIFT Number
                     <input
                       value={bank.swiftNumber ?? ""}
@@ -1323,7 +1323,7 @@ export function CompanyConfigurationPage() {
                     />
                   </label>
 
-                  <label className="col-8 field-w-2xl">
+                  <label className="col-12">
                     Address of Bank
                     <textarea
                       rows={2}
@@ -1350,7 +1350,7 @@ export function CompanyConfigurationPage() {
                   </div>
 
                   {bank.beneficiaryAccountNumbers.map((account, accountIndex) => (
-                    <label key={`${bankIndex}-${accountIndex}`} className="col-4 field-w-md">
+                    <label key={`${bankIndex}-${accountIndex}`} className="col-4">
                       Account No {accountIndex + 1}
                       <input
                         value={account}
@@ -1418,7 +1418,7 @@ export function CompanyConfigurationPage() {
                     />
                   </label>
 
-                  <label className="col-2 field-w-xs">
+                  <label className="col-2">
                     Height (mm)
                     <input
                       type="number"
@@ -1429,7 +1429,7 @@ export function CompanyConfigurationPage() {
                       onChange={(event) => updateBrandingSlot(slot, "heightMm", Number(event.target.value))}
                     />
                   </label>
-                  <label className="col-3 field-w-lg">
+                  <label className="col-3">
                     Fit
                     <select
                       value={settings.fit}

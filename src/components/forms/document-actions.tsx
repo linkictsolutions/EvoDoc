@@ -210,7 +210,7 @@ export function ReviewActions({
               : "Mark as Final"}
       </button>
 
-      <label className="col-8 field-w-2xl">
+      <label className="col-12">
         Decision Comment
         <textarea value={comment} onChange={(event) => setComment(event.target.value)} rows={8} />
       </label>

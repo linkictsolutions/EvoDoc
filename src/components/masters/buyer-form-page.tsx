@@ -173,7 +173,7 @@ export function BuyerFormPage({ buyerId }: { buyerId?: string }) {
       </header>
 
       <form className="card form-grid" onSubmit={handleSubmit} noValidate>
-        <label className={`col-5 field-w-xl ${requiredLabelClass(attemptedSubmit && form.name.trim().length === 0)}`}>
+        <label className={`col-8 ${requiredLabelClass(attemptedSubmit && form.name.trim().length === 0)}`}>
           <span className="label-text">Legal Name</span>
           <input
             className={dirtyControlClass("name")}
@@ -182,7 +182,7 @@ export function BuyerFormPage({ buyerId }: { buyerId?: string }) {
             required
           />
         </label>
-        <label className={`col-8 field-w-2xl ${requiredLabelClass(attemptedSubmit && form.address.trim().length === 0)}`}>
+        <label className={`span-all ${requiredLabelClass(attemptedSubmit && form.address.trim().length === 0)}`}>
           <span className="label-text">Address</span>
           <textarea
             className={dirtyControlClass("address")}
@@ -192,7 +192,7 @@ export function BuyerFormPage({ buyerId }: { buyerId?: string }) {
             required
           />
         </label>
-        <label className={`col-3 field-w-lg ${requiredLabelClass(attemptedSubmit && form.country.trim().length === 0)}`}>
+        <label className={`col-4 ${requiredLabelClass(attemptedSubmit && form.country.trim().length === 0)}`}>
           <span className="label-text">Country</span>
           <input
             className={dirtyControlClass("country")}
@@ -201,7 +201,7 @@ export function BuyerFormPage({ buyerId }: { buyerId?: string }) {
             required
           />
         </label>
-        <label className="col-3 field-w-md">
+        <label className="col-4">
           Tax ID
           <input
             className={dirtyControlClass("taxId")}
@@ -209,7 +209,7 @@ export function BuyerFormPage({ buyerId }: { buyerId?: string }) {
             onChange={(event) => updateField("taxId", event.target.value)}
           />
         </label>
-        <label className="col-4 field-w-xl">
+        <label className="col-6">
           Contact Name
           <input
             className={dirtyControlClass("contactName")}
@@ -217,7 +217,7 @@ export function BuyerFormPage({ buyerId }: { buyerId?: string }) {
             onChange={(event) => updateField("contactName", event.target.value)}
           />
         </label>
-        <label className="col-4 field-w-xl">
+        <label className="col-6">
           Contact Email
           <input
             className={dirtyControlClass("contactEmail")}
