@@ -379,11 +379,11 @@ export default function ContractDocumentFamilyPage({
         {payload.unavailableReason ? (
           <p>{payload.unavailableReason}</p>
         ) : payload.currentPreview ? (
-          <>
+          <div className="document-preview-panel span-all">
             {payload.previewWarnings.length > 0 ? (
-              <div>
+              <div className="document-preview-warnings">
                 <strong>Warnings</strong>
-                <ul className="list-indent mt-sm">
+                <ul className="document-preview-warnings__list">
                   {payload.previewWarnings.map((warning) => (
                     <li key={warning}>{warning}</li>
                   ))}
@@ -393,12 +393,14 @@ export default function ContractDocumentFamilyPage({
 
             {payload.docType === "way_bill" && wayBillSections.length > 0 ? (
               <>
-                <div className="workspace-tabs">
+                <div className="document-preview-tabs" role="tablist" aria-label="Way bill drivers">
                   {wayBillSections.map((section, index) => (
                     <button
                       key={section.heading}
                       type="button"
-                      className={index === safeWayBillTabIndex ? "" : "button-secondary"}
+                      role="tab"
+                      aria-selected={index === safeWayBillTabIndex}
+                      className={index === safeWayBillTabIndex ? "document-preview-tabs__tab is-active" : "document-preview-tabs__tab"}
                       onClick={() => setActiveWayBillTab(index)}
                     >
                       {section.heading.replace(/^Driver\s+\d+\s+-\s+/, "")}
@@ -424,7 +426,7 @@ export default function ContractDocumentFamilyPage({
                 ))}
               </div>
             )}
-          </>
+          </div>
         ) : null}
       </FormSection>
 
