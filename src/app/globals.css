@@ -103,9 +103,28 @@ select:focus {
 }
 
 textarea {
-  resize: vertical;
+  resize: none;
+  field-sizing: content;
+  min-height: 2.75rem;
+  max-height: min(40vh, 20rem);
+  overflow-y: auto;
   padding: 0.55rem 0.7rem;
   font-size: 0.8125rem;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(63, 77, 99, 0.35) transparent;
+}
+
+textarea::-webkit-scrollbar {
+  width: 6px;
+}
+
+textarea::-webkit-scrollbar-thumb {
+  background: rgba(63, 77, 99, 0.28);
+  border-radius: 999px;
+}
+
+textarea::-webkit-resizer {
+  display: none;
 }
 
 input[type="checkbox"] {
@@ -2342,7 +2361,7 @@ tbody tr:hover {
 .form-field-stretch > textarea {
   flex: 1 1 auto;
   min-height: 7.25rem;
-  resize: vertical;
+  max-height: none;
 }
 
 .form-pair-row > .form-stack {

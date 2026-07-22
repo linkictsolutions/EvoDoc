@@ -46,6 +46,7 @@ export const AutoGrowTextarea = forwardRef<
     <textarea
       {...props}
       ref={setRefs}
+      style={{ resize: "none", ...props.style }}
       onChange={(event) => {
         resize(event.currentTarget);
         onChange?.(event);
