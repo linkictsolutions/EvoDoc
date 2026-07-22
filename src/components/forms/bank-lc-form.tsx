@@ -364,7 +364,7 @@ export function BankLcForm({
         onSubmit={handleSubmit(onSubmit, () => toast.error("Fill in the required fields."))}
       >
         <h3 className="span-all">Contract Link</h3>
-        <label className={`col-4 ${requiredLabelClass(Boolean(errors.contractId))}`}>
+        <label className={`col-3 field-w-md ${requiredLabelClass(Boolean(errors.contractId))}`}>
           <span className="label-text">Contract Number (link only)</span>
           <input className={dirtyControlClass("contractId")} {...register("contractId")} readOnly={Boolean(initialContractId)} />
           <small>{errors.contractId?.message}</small>
@@ -380,67 +380,67 @@ export function BankLcForm({
         />
 
         <h3 className="span-all">LC Information</h3>
-        <label className="col-4">
+        <label className="col-3 field-w-md">
           LC No
           <input className={dirtyControlClass("lcNumber")} {...register("lcNumber")} />
         </label>
-        <label className="col-3">
+        <label className="col-3 field-w-md">
           Latest Date of Shipment
           <input className={dirtyControlClass("latestShipmentDate")} type="date" {...register("latestShipmentDate")} />
         </label>
-        <label className="col-5">
+        <label className="col-2 field-w-sm">
           Number of Bags
           <input className={dirtyControlClass("noOfBags")} {...register("noOfBags")} />
         </label>
-        <label className="col-12">
+        <label className="col-8 field-w-2xl">
           Applicant
           <textarea className={dirtyControlClass("applicant")} rows={3} {...register("applicant")} />
         </label>
-        <label className="col-4">
+        <label className="col-4 field-w-xl">
           Port of Loading / Airport of Departure
           <input className={dirtyControlClass("portOfLoading")} {...register("portOfLoading")} />
         </label>
-        <label className="col-4">
+        <label className="col-4 field-w-xl">
           Port of Discharge / Airport of Destination
           <input className={dirtyControlClass("portOfDischarge")} {...register("portOfDischarge")} />
         </label>
-        <label className="span-all">
+        <label className="col-8 field-w-2xl">
           Description of Goods
           <textarea className={dirtyControlClass("goodsDescription")} rows={8} {...register("goodsDescription")} />
         </label>
-        <label className="col-4">
+        <label className="col-3 field-w-md">
           Currency Amount
           <input className={dirtyControlClass("currencyAmount")} {...register("currencyAmount")} />
         </label>
-        <label className="col-4">
+        <label className="col-4 field-w-xl">
           Sender
           <input className={dirtyControlClass("sender")} {...register("sender")} />
         </label>
-        <label className="col-4">
+        <label className="col-4 field-w-xl">
           Receiver
           <input className={dirtyControlClass("receiver")} {...register("receiver")} />
         </label>
 
         <h3 className="span-all">Consignee and Notify Parties</h3>
-        <label className="col-6">
+        <label className="col-6 field-w-2xl">
           Consignee
           <AutoGrowTextarea className={dirtyControlClass("consignee")} rows={2} {...register("consignee")} />
         </label>
-        <label className="col-6">
+        <label className="col-6 field-w-2xl">
           Notify
           <AutoGrowTextarea className={dirtyControlClass("notify")} rows={2} {...register("notify")} />
         </label>
-        <label className="col-12">
+        <label className="col-8 field-w-2xl">
           2nd Notify
           <AutoGrowTextarea className={dirtyControlClass("secondNotify")} rows={2} {...register("secondNotify")} />
         </label>
 
         <h3 className="span-all">Bank Details (Beneficiary)</h3>
-        <label className="col-3">
+        <label className="col-2 field-w-sm">
           Bank Permit
           <input className={dirtyControlClass("permitNumber")} {...register("permitNumber")} />
         </label>
-        <label className="col-5">
+        <label className="col-5 field-w-xl">
           Bank of Beneficiary
           <select
             className={dirtyControlClass("beneficiaryBank")}
@@ -462,7 +462,7 @@ export function BankLcForm({
             <small className="muted-text">Configure beneficiary banks in Company Config to enable dropdowns.</small>
           ) : null}
         </label>
-        <label className="col-4">
+        <label className="col-4 field-w-md">
           Beneficiary Account No
           <select
             className={dirtyControlClass("beneficiaryAccountNumber")}
@@ -484,33 +484,33 @@ export function BankLcForm({
             <small className="muted-text">No beneficiary account numbers configured for this bank.</small>
           ) : null}
         </label>
-        <label className="col-8">
+        <label className="col-6 field-w-xl">
           Name of Beneficiary
           <input value={companyConfiguration?.sellerName ?? ""} readOnly disabled />
         </label>
-        <label className="span-all">
+        <label className="col-8 field-w-2xl">
           Address of Bank
           <textarea className={dirtyControlClass("bankAddress")} rows={2} {...register("bankAddress")} />
         </label>
-        <label className="col-3">
+        <label className="col-2 field-w-sm">
           SWIFT Number
           <input className={dirtyControlClass("beneficiarySwiftCode")} {...register("beneficiarySwiftCode")} />
         </label>
 
         <h3 className="span-all">Correspondent Bank</h3>
-        <label className="col-6">
+        <label className="col-5 field-w-xl">
           Bank Name
           <input className={dirtyControlClass("correspondentBank")} {...register("correspondentBank")} />
         </label>
-        <label className="col-3">
+        <label className="col-2 field-w-sm">
           SWIFT Number
           <input className={dirtyControlClass("correspondentSwiftCode")} {...register("correspondentSwiftCode")} />
         </label>
-        <label className="col-3">
+        <label className="col-3 field-w-md">
           Acc. No
           <input className={dirtyControlClass("accountNumber")} {...register("accountNumber")} />
         </label>
-        <label className="span-all">
+        <label className="col-8 field-w-2xl">
           Address
           <textarea className={dirtyControlClass("correspondentBankAddress")} rows={2} {...register("correspondentBankAddress")} />
         </label>

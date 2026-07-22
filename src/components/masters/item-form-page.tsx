@@ -205,7 +205,7 @@ export function ItemFormPage({ itemId }: { itemId?: string }) {
       </header>
 
       <form className="card form-grid" onSubmit={handleSubmit} noValidate>
-        <label className={`col-3 ${requiredLabelClass(attemptedSubmit && form.itemCode.trim().length === 0)}`}>
+        <label className={`col-3 field-w-md ${requiredLabelClass(attemptedSubmit && form.itemCode.trim().length === 0)}`}>
           <span className="label-text">Item Code</span>
           <input
             className={dirtyControlClass("itemCode")}
@@ -214,7 +214,7 @@ export function ItemFormPage({ itemId }: { itemId?: string }) {
             required
           />
         </label>
-        <label className={`col-9 ${requiredLabelClass(attemptedSubmit && form.name.trim().length === 0)}`}>
+        <label className={`col-5 field-w-xl ${requiredLabelClass(attemptedSubmit && form.name.trim().length === 0)}`}>
           <span className="label-text">Item Name</span>
           <input
             className={dirtyControlClass("name")}
@@ -223,7 +223,7 @@ export function ItemFormPage({ itemId }: { itemId?: string }) {
             required
           />
         </label>
-        <label className="span-all">
+        <label className="col-8 field-w-2xl">
           Description
           <textarea
             className={dirtyControlClass("description")}
@@ -232,7 +232,7 @@ export function ItemFormPage({ itemId }: { itemId?: string }) {
             onChange={(event) => updateField("description", event.target.value)}
           />
         </label>
-        <label className="col-3">
+        <label className="col-2 field-w-sm">
           HS Code
           <input
             className={dirtyControlClass("hsCode")}
@@ -240,7 +240,7 @@ export function ItemFormPage({ itemId }: { itemId?: string }) {
             onChange={(event) => updateField("hsCode", event.target.value)}
           />
         </label>
-        <label className="col-3">
+        <label className="col-3 field-w-lg">
           Origin
           <input
             className={dirtyControlClass("origin")}
@@ -248,7 +248,7 @@ export function ItemFormPage({ itemId }: { itemId?: string }) {
             onChange={(event) => updateField("origin", event.target.value)}
           />
         </label>
-        <label className="col-2">
+        <label className="col-2 field-w-xs">
           Grade
           <input
             className={dirtyControlClass("grade")}
@@ -256,7 +256,7 @@ export function ItemFormPage({ itemId }: { itemId?: string }) {
             onChange={(event) => updateField("grade", event.target.value)}
           />
         </label>
-        <label className="col-4">
+        <label className="col-4 field-w-lg">
           Default Packaging
           <input
             className={dirtyControlClass("defaultPackagingUnit")}
@@ -264,7 +264,7 @@ export function ItemFormPage({ itemId }: { itemId?: string }) {
             onChange={(event) => updateField("defaultPackagingUnit", event.target.value)}
           />
         </label>
-        <label className="col-3">
+        <label className="col-2 field-w-sm">
           Default Bag Weight (kg)
           <input
             className={dirtyControlClass("defaultBagWeightKg")}

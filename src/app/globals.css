@@ -1846,6 +1846,43 @@ tbody tr:hover {
 .col-10 { grid-column: span 10; }
 .col-12 { grid-column: span 12; }
 
+/* Cap field width to typical data length — label shrinks, not just the input */
+.field-w-xs { --field-max-width: 5.5rem; }
+.field-w-sm { --field-max-width: 9rem; }
+.field-w-md { --field-max-width: 12rem; }
+.field-w-lg { --field-max-width: 18rem; }
+.field-w-xl { --field-max-width: 24rem; }
+.field-w-2xl { --field-max-width: 36ch; }
+.field-w-full { --field-max-width: 100%; }
+
+.form-grid label[class*="field-w-"],
+.form-stack label[class*="field-w-"],
+.branding-slot label[class*="field-w-"] {
+  justify-self: start;
+  width: 100%;
+  max-width: var(--field-max-width);
+}
+
+.form-grid label[class*="field-w-"] > :is(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]):not([type="range"]),
+  select,
+  textarea
+),
+.form-stack label[class*="field-w-"] > :is(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]):not([type="range"]),
+  select,
+  textarea
+),
+.branding-slot label[class*="field-w-"] > :is(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]):not([type="range"]),
+  select,
+  textarea
+) {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
 /* Stack short fields in one column beside a taller field */
 .form-stack {
   display: grid;

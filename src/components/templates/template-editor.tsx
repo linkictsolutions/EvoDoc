@@ -95,6 +95,17 @@ function serializeTemplate(state: PersistedTemplate) {
   return JSON.stringify(state);
 }
 
+function computeSectionDropIndex(container: HTMLElement, clientY: number, sectionCount: number) {
+  const sectionEls = container.querySelectorAll<HTMLElement>("[data-section-id]");
+  for (let index = 0; index < sectionEls.length; index += 1) {
+    const rect = sectionEls[index].getBoundingClientRect();
+    if (clientY < rect.top + rect.height / 2) {
+      return index;
+    }
+  }
+  return sectionCount;
+}
+
 function readTemplate(storageKey: string): PersistedTemplate | null {
   if (typeof window === "undefined") return null;
   try {
@@ -587,6 +598,9 @@ export function TemplateEditor({
   const spacerCounterRef = useRef(1);
   const [savedSnapshot, setSavedSnapshot] = useState("");
   const [savedDesignSnapshot, setSavedDesignSnapshot] = useState("");
+  const [sectionDropIndex, setSectionDropIndex] = useState<number | null>(null);
+  const sectionDragIdRef = useRef<string | null>(null);
+  const sectionsContainerRef = useRef<HTMLDivElement | null>(null);
 
   const currentSnapshot = useMemo(() => serializeTemplate({
     version: 1,
@@ -629,6 +643,24 @@ export function TemplateEditor({
 
   const updateSection = useCallback((sectionId: string, updater: (section: TemplateSection) => TemplateSection) => {
     setSections((current) => relayoutSections(current.map((s) => (s.id === sectionId ? updater(s) : s))));
+  }, []);
+
+  const reorderSectionsByIndex = useCallback((dragId: string, targetIndex: number) => {
+    setSections((current) => {
+      const fromIndex = current.findIndex((section) => section.id === dragId);
+      if (fromIndex === -1) {
+        return current;
+      }
+      const next = [...current];
+      const [moved] = next.splice(fromIndex, 1);
+      let insertAt = targetIndex;
+      if (fromIndex < targetIndex) {
+        insertAt = targetIndex - 1;
+      }
+      insertAt = Math.max(0, Math.min(next.length, insertAt));
+      next.splice(insertAt, 0, moved);
+      return relayoutSections(next);
+    });
   }, []);
 
   const handleDropIntoSection = useCallback((sectionId: string, payload: { kind: DragKind; cellId: string; fromSectionId?: string; dropMode: DropMode }, next: { x: number; y: number }) => {
@@ -901,10 +933,70 @@ export function TemplateEditor({
             padding: 16,
           }}
         >
-          <div style={{ display: "grid", gap: 14, minWidth: 720 }}>
+          <div
+            ref={sectionsContainerRef}
+            style={{ display: "grid", gap: 14, minWidth: 720, position: "relative" }}
+            onDragOver={(event) => {
+              const sectionId = event.dataTransfer.getData("application/x-evodoc-section-id") || sectionDragIdRef.current;
+              if (!sectionId || !sectionsContainerRef.current) {
+                return;
+              }
+              event.preventDefault();
+              event.dataTransfer.dropEffect = "move";
+              setSectionDropIndex(computeSectionDropIndex(sectionsContainerRef.current, event.clientY, sections.length));
+            }}
+            onDragLeave={(event) => {
+              if (!sectionsContainerRef.current?.contains(event.relatedTarget as Node | null)) {
+                setSectionDropIndex(null);
+              }
+            }}
+            onDrop={(event) => {
+              const dragId = event.dataTransfer.getData("application/x-evodoc-section-id") || sectionDragIdRef.current;
+              if (!dragId) {
+                return;
+              }
+              event.preventDefault();
+              const targetIndex = sectionDropIndex ?? sections.length;
+              reorderSectionsByIndex(dragId, targetIndex);
+              setSectionDropIndex(null);
+              sectionDragIdRef.current = null;
+            }}
+          >
+            {sectionDropIndex !== null ? (
+              <div
+                aria-hidden
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  right: 0,
+                  top: (() => {
+                    if (!sectionsContainerRef.current) {
+                      return 0;
+                    }
+                    if (sectionDropIndex === 0) {
+                      return 0;
+                    }
+                    const sectionEls = sectionsContainerRef.current.querySelectorAll<HTMLElement>("[data-section-id]");
+                    const prev = sectionEls[sectionDropIndex - 1];
+                    if (!prev) {
+                      return 0;
+                    }
+                    const containerRect = sectionsContainerRef.current.getBoundingClientRect();
+                    const prevRect = prev.getBoundingClientRect();
+                    return prevRect.bottom - containerRect.top + 7;
+                  })(),
+                  height: 2,
+                  background: "rgba(59, 130, 246, 0.95)",
+                  boxShadow: "0 0 0 3px rgba(59, 130, 246, 0.18)",
+                  pointerEvents: "none",
+                  zIndex: 10,
+                }}
+              />
+            ) : null}
             {sections.map((section) => (
               <section
                 key={section.id}
+                data-section-id={section.id}
                 style={{
                   borderRadius: 14,
                   border: "1px solid rgba(148,163,184,0.7)",
@@ -914,6 +1006,17 @@ export function TemplateEditor({
                 }}
               >
                 <header
+                  draggable
+                  onDragStart={(event) => {
+                    event.dataTransfer.setData("application/x-evodoc-section-id", section.id);
+                    event.dataTransfer.setData("text/plain", JSON.stringify({ kind: "section", id: section.id }));
+                    event.dataTransfer.effectAllowed = "move";
+                    sectionDragIdRef.current = section.id;
+                  }}
+                  onDragEnd={() => {
+                    setSectionDropIndex(null);
+                    sectionDragIdRef.current = null;
+                  }}
                   style={{
                     display: "flex",
                     justifyContent: "space-between",
@@ -921,26 +1024,43 @@ export function TemplateEditor({
                     gap: 12,
                     flexWrap: "wrap",
                     marginBottom: 10,
+                    cursor: "grab",
+                    userSelect: "none",
                   }}
                 >
-                  <div style={{ minWidth: 0 }}>
-                    <div
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 10, minWidth: 0 }}>
+                    <span
+                      aria-hidden
+                      title="Drag to reorder section"
                       style={{
-                        fontWeight: 800,
-                        lineHeight: 1.15,
-                        wordBreak: "break-word",
+                        color: "rgba(71,85,105,0.75)",
+                        fontSize: "1rem",
+                        lineHeight: 1,
+                        letterSpacing: "-0.08em",
+                        flexShrink: 0,
                       }}
                     >
-                      {section.label}{" "}
-                      <span className="muted-text" style={{ fontWeight: 600 }}>
-                        — {section.id}
-                      </span>
-                    </div>
-                    {section.description ? (
-                      <div className="muted-text" style={{ fontSize: "0.82rem", marginTop: 4, maxWidth: 900 }}>
-                        {section.description}
+                      ⠿
+                    </span>
+                    <div style={{ minWidth: 0 }}>
+                      <div
+                        style={{
+                          fontWeight: 800,
+                          lineHeight: 1.15,
+                          wordBreak: "break-word",
+                        }}
+                      >
+                        {section.label}{" "}
+                        <span className="muted-text" style={{ fontWeight: 600 }}>
+                          — {section.id}
+                        </span>
                       </div>
-                    ) : null}
+                      {section.description ? (
+                        <div className="muted-text" style={{ fontSize: "0.82rem", marginTop: 4, maxWidth: 900 }}>
+                          {section.description}
+                        </div>
+                      ) : null}
+                    </div>
                   </div>
                   <div className="muted-text" style={{ fontWeight: 700, whiteSpace: "nowrap" }}>
                     {section.w}×{section.h}

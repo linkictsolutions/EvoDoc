@@ -270,7 +270,7 @@ export function BillOfLadingForm({
         onSubmit={handleSubmit(onSubmit, () => toast.error("Fill in the required fields."))}
       >
         <h3 className="span-all">Contract Link</h3>
-        <label className={`col-4 ${errors.contractId ? "is-required field-error" : "is-required"}`}>
+        <label className={`col-3 field-w-md ${errors.contractId ? "is-required field-error" : "is-required"}`}>
           <span className="label-text">Contract Number (link only)</span>
           <input className={dirtyControlClass("contractId")} {...register("contractId")} readOnly={Boolean(initialContractId)} />
           <small>{errors.contractId?.message}</small>
@@ -286,45 +286,45 @@ export function BillOfLadingForm({
         />
 
         <h3 className="span-all">Bill Meta</h3>
-        <label className="col-4">
+        <label className="col-4 field-w-lg">
           Bill Type
           <select className={dirtyControlClass("billType")} {...register("billType")}>
             <option value="ORIGINAL BILL No.">ORIGINAL BILL No.</option>
             <option value="WAYBILL No.">WAYBILL No.</option>
           </select>
         </label>
-        <label className="col-4">
+        <label className="col-3 field-w-md">
           Bill No.
           <input className={dirtyControlClass("billNo")} {...register("billNo")} />
         </label>
-        <label className="col-2">
+        <label className="col-2 field-w-xs">
           No. of Copy Bills
           <input className={dirtyControlClass("noOfCopyBills")} {...register("noOfCopyBills")} />
         </label>
-        <label className="col-4">
+        <label className="col-3 field-w-lg">
           Reference Type
           <select className={dirtyControlClass("shipperReferenceType")} {...register("shipperReferenceType")}>
             <option value="Booking Ref">Booking Ref</option>
             <option value="Shipper Ref.">Shipper Ref.</option>
           </select>
         </label>
-        <label className="col-8">
+        <label className="col-5 field-w-xl">
           Reference Value
           <input className={dirtyControlClass("shipperReferenceValue")} {...register("shipperReferenceValue")} />
         </label>
 
         <h3 className="span-all">Party Overrides</h3>
-        <label className="col-6">
+        <label className="col-6 field-w-2xl">
           Notify 2
           <textarea className={dirtyControlClass("notify2")} rows={4} {...register("notify2")} />
         </label>
-        <label className="col-6">
+        <label className="col-6 field-w-2xl">
           Notify 3
           <textarea className={dirtyControlClass("notify3")} rows={4} {...register("notify3")} />
         </label>
 
         <h3 className="span-all">Cargo and Freight Overrides</h3>
-        <label className={`col-4 ${errors.movementType ? "is-required field-error" : "is-required"}`}>
+        <label className={`col-3 field-w-lg ${errors.movementType ? "is-required field-error" : "is-required"}`}>
           <span className="label-text">Movement Type</span>
           <select className={dirtyControlClass("movementType")} {...register("movementType")} required>
             <option value="">Select movement type</option>
@@ -334,12 +334,12 @@ export function BillOfLadingForm({
           </select>
           <small>{errors.movementType?.message}</small>
         </label>
-        <label className={`col-8 ${errors.freightParty ? "is-required field-error" : "is-required"}`}>
+        <label className={`col-5 field-w-xl ${errors.freightParty ? "is-required field-error" : "is-required"}`}>
           <span className="label-text">Freight Party</span>
           <input className={dirtyControlClass("freightParty")} {...register("freightParty")} required />
           <small>{errors.freightParty?.message}</small>
         </label>
-        <label className="span-all">
+        <label className="col-8 field-w-2xl">
           Description Override
           <textarea className={dirtyControlClass("descriptionOverride")} rows={8} {...register("descriptionOverride")} />
         </label>
