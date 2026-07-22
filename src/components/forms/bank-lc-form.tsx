@@ -85,7 +85,6 @@ export function BankLcForm({
   const [savedContractId, setSavedContractId] = useState<string | null>(null);
   const [loadingExisting, setLoadingExisting] = useState(false);
   const [companyConfiguration, setCompanyConfiguration] = useState<CompanyConfiguration | null>(null);
-  const attachmentsInputRef = useRef<HTMLInputElement>(null);
   const [attachments, setAttachments] = useState<AttachmentRef[]>([]);
   const [highlightDirty, setHighlightDirty] = useState(false);
   const lastSavedRef = useRef<{ form: Partial<FormData>; attachments: AttachmentRef[] }>({ form: {}, attachments: [] });
@@ -373,15 +372,9 @@ export function BankLcForm({
         <FormSection
           title="Attachments"
           description="Attach LC documents, bank letters, or related files (multiple allowed)."
-          actions={(
-            <button type="button" className="button-secondary" onClick={() => attachmentsInputRef.current?.click()}>
-              Add files
-            </button>
-          )}
         >
           <AttachmentsField
             embedded
-            inputRef={attachmentsInputRef}
             orgId={DEFAULT_ORG_ID}
             contractId={savedContractId ?? contractIdInput ?? "draft"}
             stage="bank_lc_sheet"

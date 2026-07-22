@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState, type RefObject } from "react";
+import { useMemo, useRef, useState, type DragEvent } from "react";
 import { getDownloadURL, ref as storageRef, uploadBytesResumable } from "firebase/storage";
 import type { AttachmentRef } from "@/types/models";
 import { getFirebaseStorageClient } from "@/lib/firebase/client";
@@ -29,6 +29,13 @@ function badgeClassFor(mimeType: string, fileName: string) {
   return { label: "FILE", className: "attachments-badge attachments-badge--file" };
 }
 
+type UploadingEntry = {
+  id: string;
+  fileName: string;
+  progress: number;
+  replaceId?: string;
+};
+
 export function AttachmentsField({
   orgId,
   contractId,
@@ -38,7 +45,6 @@ export function AttachmentsField({
   label = "Attachments",
   helperText,
   embedded = false,
-  inputRef: externalInputRef,
 }: {
   orgId: string;
   contractId: string;
@@ -48,15 +54,16 @@ export function AttachmentsField({
   label?: string;
   helperText?: string;
   embedded?: boolean;
-  inputRef?: RefObject<HTMLInputElement | null>;
 }) {
   const toast = useToast();
-  const internalInputRef = useRef<HTMLInputElement | null>(null);
-  const inputRef = externalInputRef ?? internalInputRef;
-  const [uploadingIds, setUploadingIds] = useState<Record<string, number>>({});
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const replaceInputRef = useRef<HTMLInputElement | null>(null);
+  const [uploading, setUploading] = useState<UploadingEntry[]>([]);
+  const [dragActive, setDragActive] = useState(false);
+  const [replaceTargetId, setReplaceTargetId] = useState<string | null>(null);
+  const dragDepthRef = useRef(0);
 
   const attachments = value ?? [];
-  const hasUploads = attachments.length > 0;
 
   const stagePrefix = useMemo(() => {
     if (stage === "contract_sheet") return "contract";
@@ -65,27 +72,36 @@ export function AttachmentsField({
     return "bank-lc";
   }, [stage]);
 
-  async function uploadFiles(files: FileList) {
+  async function uploadFiles(files: FileList, replaceId?: string) {
     const storage = getFirebaseStorageClient();
     const list = Array.from(files);
+    let nextAttachments = [...attachments];
+
     for (const file of list) {
-      const id = (typeof crypto !== "undefined" && "randomUUID" in crypto) ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
+      const id = (typeof crypto !== "undefined" && "randomUUID" in crypto)
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random()}`;
       const safeName = file.name.replace(/[^\w.\-() ]+/g, "_");
       const path = `evodoc/${orgId}/contracts/${contractId}/attachments/${stagePrefix}/${id}_${safeName}`;
       const ref = storageRef(storage, path);
 
-      setUploadingIds((current) => ({ ...current, [id]: 0 }));
+      setUploading((current) => [...current, { id, fileName: file.name, progress: 0, replaceId }]);
+
       try {
         const task = uploadBytesResumable(ref, file, { contentType: file.type || "application/octet-stream" });
         await new Promise<void>((resolve, reject) => {
           task.on("state_changed", (snapshot) => {
-            const progress = snapshot.totalBytes > 0 ? Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100) : 0;
-            setUploadingIds((current) => ({ ...current, [id]: progress }));
+            const progress = snapshot.totalBytes > 0
+              ? Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100)
+              : 0;
+            setUploading((current) => current.map((entry) => (
+              entry.id === id ? { ...entry, progress } : entry
+            )));
           }, reject, () => resolve());
         });
 
         const downloadUrl = await getDownloadURL(ref);
-        const next: AttachmentRef = {
+        const uploaded: AttachmentRef = {
           id,
           fileName: file.name,
           mimeType: file.type || "application/octet-stream",
@@ -94,106 +110,203 @@ export function AttachmentsField({
           downloadUrl,
           uploadedAt: new Date().toISOString(),
         };
-        onChange([...attachments, next]);
-        toast.success(`Attached ${file.name}`);
+
+        if (replaceId) {
+          nextAttachments = [...nextAttachments.filter((item) => item.id !== replaceId), uploaded];
+          toast.success(`Replaced with ${file.name}`);
+          replaceId = undefined;
+        } else {
+          nextAttachments = [...nextAttachments, uploaded];
+          toast.success(`Attached ${file.name}`);
+        }
+
+        onChange(nextAttachments);
       } catch (error) {
         toast.error(`Upload failed: ${(error as Error).message}`);
       } finally {
-        setUploadingIds((current) => {
-          const { [id]: _, ...rest } = current;
-          return rest;
-        });
+        setUploading((current) => current.filter((entry) => entry.id !== id));
       }
     }
   }
 
-  const panel = (
-  <>
+  function openFilePicker(replaceId?: string) {
+    setReplaceTargetId(replaceId ?? null);
+    if (replaceId) {
+      replaceInputRef.current?.click();
+      return;
+    }
+    inputRef.current?.click();
+  }
+
+  function handleSelectedFiles(files: FileList | null, replaceId?: string | null) {
+    if (!files || files.length === 0) {
+      return;
+    }
+    void uploadFiles(files, replaceId ?? undefined);
+  }
+
+  function handleDragEnter(event: DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    dragDepthRef.current += 1;
+    setDragActive(true);
+  }
+
+  function handleDragLeave(event: DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    dragDepthRef.current -= 1;
+    if (dragDepthRef.current <= 0) {
+      dragDepthRef.current = 0;
+      setDragActive(false);
+    }
+  }
+
+  function handleDragOver(event: DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "copy";
+  }
+
+  function handleDrop(event: DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    dragDepthRef.current = 0;
+    setDragActive(false);
+    handleSelectedFiles(event.dataTransfer.files);
+  }
+
+  function removeAttachment(id: string) {
+    onChange(attachments.filter((item) => item.id !== id));
+    toast.info("Attachment removed.");
+  }
+
+  const field = (
+    <div className="attachments-field">
       <input
         ref={inputRef}
         type="file"
         multiple
+        className="attachments-input"
         onChange={(event) => {
-          const files = event.target.files;
-          if (files && files.length > 0) {
-            void uploadFiles(files);
-          }
+          handleSelectedFiles(event.target.files);
           event.target.value = "";
         }}
-        hidden
+      />
+      <input
+        ref={replaceInputRef}
+        type="file"
+        className="attachments-input"
+        onChange={(event) => {
+          handleSelectedFiles(event.target.files, replaceTargetId);
+          event.target.value = "";
+          setReplaceTargetId(null);
+        }}
       />
 
-      <div className={hasUploads ? "attachments-panel attachments-panel--filled" : "attachments-panel"}>
-        {Object.keys(uploadingIds).length > 0 ? (
-          <div className="attachments-empty" style={{ marginBottom: "0.65rem" }}>
-            Uploading {Object.keys(uploadingIds).length} file(s)…
-          </div>
-        ) : null}
-
-        {hasUploads ? (
-          <div className="attachments-list">
-            {attachments.map((att) => {
-              const badge = badgeClassFor(att.mimeType, att.fileName);
-              return (
-                <div key={att.id} className="attachments-item">
-                  <span className={badge.className}>{badge.label}</span>
-
-                  <div style={{ minWidth: 0 }}>
-                    <div style={{ fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                      {att.fileName}
-                    </div>
-                    <div className="muted-text" style={{ fontSize: "0.78rem" }}>
-                      {formatBytes(att.sizeBytes)}
-                    </div>
-                  </div>
-
-                  <div className="row-actions" style={{ justifyContent: "flex-end" }}>
-                    <a
-                      href={att.downloadUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="button-secondary"
-                      style={{ textDecoration: "none", padding: "6px 10px", borderRadius: 10 }}
-                    >
-                      Open
-                    </a>
-                    <button
-                      type="button"
-                      className="button-secondary"
-                      onClick={() => onChange(attachments.filter((x) => x.id !== att.id))}
-                      title="Remove"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="attachments-empty">No files attached yet.</div>
-        )}
+      <div
+        className={dragActive ? "attachments-dropzone is-dragging" : "attachments-dropzone"}
+        role="button"
+        tabIndex={0}
+        onClick={() => openFilePicker()}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            openFilePicker();
+          }
+        }}
+        onDragEnter={handleDragEnter}
+        onDragLeave={handleDragLeave}
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+      >
+        <div className="attachments-dropzone__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M12 16V8m0 0-3 3m3-3 3 3" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M5 16.5v1.2A2.3 2.3 0 0 0 7.3 20h9.4A2.3 2.3 0 0 0 19 17.7V16.5" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+          </svg>
+        </div>
+        <div className="attachments-dropzone__text">
+          <strong>Drag and drop files here</strong>
+          <span>or <button type="button" className="attachments-dropzone__browse" onClick={(event) => {
+            event.stopPropagation();
+            openFilePicker();
+          }}>click to browse</button></span>
+        </div>
+        <p className="attachments-dropzone__hint">PDF, Word, Excel, and image files supported</p>
       </div>
-  </>
+
+      {uploading.length > 0 ? (
+        <div className="attachments-list">
+          {uploading.map((entry) => (
+            <div key={`uploading-${entry.id}`} className="attachments-item attachments-item--uploading">
+              <span className="attachments-badge attachments-badge--file">···</span>
+              <div className="attachments-item__meta">
+                <div className="attachments-item__name">{entry.fileName}</div>
+                <div className="attachments-item__progress">
+                  <span style={{ width: `${entry.progress}%` }} />
+                </div>
+                <div className="attachments-item__subtle">
+                  {entry.replaceId ? "Replacing…" : "Uploading…"} {entry.progress}%
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      {attachments.length > 0 ? (
+        <div className="attachments-list">
+          {attachments.map((attachment) => {
+            const badge = badgeClassFor(attachment.mimeType, attachment.fileName);
+            return (
+              <div key={attachment.id} className="attachments-item">
+                <span className={badge.className}>{badge.label}</span>
+                <div className="attachments-item__meta">
+                  <div className="attachments-item__name" title={attachment.fileName}>{attachment.fileName}</div>
+                  <div className="attachments-item__subtle">{formatBytes(attachment.sizeBytes)}</div>
+                </div>
+                <div className="attachments-item__actions">
+                  <a
+                    href={attachment.downloadUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="attachments-action attachments-action--ghost"
+                  >
+                    Open
+                  </a>
+                  <button
+                    type="button"
+                    className="attachments-action attachments-action--ghost"
+                    onClick={() => openFilePicker(attachment.id)}
+                  >
+                    Replace
+                  </button>
+                  <button
+                    type="button"
+                    className="attachments-action attachments-action--danger"
+                    onClick={() => removeAttachment(attachment.id)}
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : uploading.length === 0 ? (
+        <p className="attachments-empty">No files attached yet.</p>
+      ) : null}
+    </div>
   );
 
   if (embedded) {
-    return <div className="span-all">{panel}</div>;
+    return <div className="span-all">{field}</div>;
   }
 
   return (
     <div className="span-all">
-      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "baseline" }}>
-        <div style={{ fontWeight: 700 }}>{label}</div>
-        <div className="row-actions">
-          <button type="button" className="button-secondary" onClick={() => inputRef.current?.click()}>
-            Add files
-          </button>
-        </div>
+      <div className="attachments-field__header">
+        <div className="attachments-field__title">{label}</div>
       </div>
-
-      {helperText ? <div className="muted-text" style={{ marginTop: 4 }}>{helperText}</div> : null}
-      <div style={{ marginTop: 10 }}>{panel}</div>
+      {helperText ? <p className="attachments-field__helper">{helperText}</p> : null}
+      {field}
     </div>
   );
 }

@@ -150,7 +150,6 @@ export function ContractCoreForm({
   const [savedContractId, setSavedContractId] = useState<string | null>(null);
   const [activeContractId, setActiveContractId] = useState<string | null>(initialContractId ?? null);
   const [savedNotice, setSavedNotice] = useState<string | null>(null);
-  const attachmentsInputRef = useRef<HTMLInputElement>(null);
   const [attachments, setAttachments] = useState<AttachmentRef[]>([]);
   const [saving, setSaving] = useState(false);
   const [loadingExisting, setLoadingExisting] = useState(false);
@@ -624,15 +623,9 @@ export function ContractCoreForm({
         <FormSection
           title="Attachments"
           description="Attach the original contract file(s) for this source document."
-          actions={(
-            <button type="button" className="button-secondary" onClick={() => attachmentsInputRef.current?.click()}>
-              Add files
-            </button>
-          )}
         >
           <AttachmentsField
             embedded
-            inputRef={attachmentsInputRef}
             orgId={DEFAULT_ORG_ID}
             contractId={activeContractId ?? savedContractId ?? values.contractNumber ?? "draft"}
             stage="contract_sheet"

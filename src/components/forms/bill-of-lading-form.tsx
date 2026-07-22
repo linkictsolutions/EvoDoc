@@ -49,7 +49,6 @@ export function BillOfLadingForm({
   continueHref,
 }: BillOfLadingFormProps) {
   const toast = useToast();
-  const attachmentsInputRef = useRef<HTMLInputElement>(null);
   const [apiError, setApiError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [savedContractId, setSavedContractId] = useState<string | null>(null);
@@ -279,15 +278,9 @@ export function BillOfLadingForm({
         <FormSection
           title="Attachments"
           description="Attach carrier drafts, booking confirmations, or B/L support files."
-          actions={(
-            <button type="button" className="button-secondary" onClick={() => attachmentsInputRef.current?.click()}>
-              Add files
-            </button>
-          )}
         >
           <AttachmentsField
             embedded
-            inputRef={attachmentsInputRef}
             orgId={DEFAULT_ORG_ID}
             contractId={savedContractId ?? contractIdInput ?? "draft"}
             stage="bill_of_lading_sheet"

@@ -81,7 +81,6 @@ export function ShippingInstructionForm({
   const [savedContractId, setSavedContractId] = useState<string | null>(null);
   const [loadingExisting, setLoadingExisting] = useState(false);
   const [packagingOptions, setPackagingOptions] = useState<string[]>([]);
-  const attachmentsInputRef = useRef<HTMLInputElement>(null);
   const [attachments, setAttachments] = useState<AttachmentRef[]>([]);
   const [highlightDirty, setHighlightDirty] = useState(false);
   const lastSavedRef = useRef<{ form: Partial<FormData>; attachments: AttachmentRef[] }>({ form: {}, attachments: [] });
@@ -327,15 +326,9 @@ export function ShippingInstructionForm({
         <FormSection
           title="Attachments"
           description="Attach supporting shipping instruction documents (multiple files allowed)."
-          actions={(
-            <button type="button" className="button-secondary" onClick={() => attachmentsInputRef.current?.click()}>
-              Add files
-            </button>
-          )}
         >
           <AttachmentsField
             embedded
-            inputRef={attachmentsInputRef}
             orgId={DEFAULT_ORG_ID}
             contractId={savedContractId ?? contractIdInput ?? "draft"}
             stage="shipping_instruction_sheet"
