@@ -689,7 +689,7 @@ tbody tr:hover {
   background: rgba(242, 245, 247, 0.82);
   backdrop-filter: blur(14px) saturate(130%);
   border-bottom: 1px solid var(--border);
-  transition: padding 0.32s ease, box-shadow 0.32s ease, background 0.32s ease;
+  transition: box-shadow 0.24s ease, background 0.24s ease;
 }
 
 .app-toolbar-copy {
@@ -701,7 +701,7 @@ tbody tr:hover {
   overflow: hidden;
   max-height: 5.5rem;
   opacity: 1;
-  transition: max-height 0.34s ease, opacity 0.28s ease, margin 0.32s ease;
+  transition: opacity 0.22s ease;
 }
 
 .app-content-shell.is-header-collapsed {
@@ -712,6 +712,7 @@ tbody tr:hover {
   padding-top: 0.62rem;
   padding-bottom: 0.62rem;
   box-shadow: 0 8px 18px rgba(9, 18, 31, 0.06);
+  transition: box-shadow 0.24s ease, background 0.24s ease;
 }
 
 .app-content-shell.is-header-collapsed .app-toolbar-details {
@@ -2213,14 +2214,14 @@ tbody tr:hover {
   background: rgba(242, 245, 247, 0.94);
   border: 1px solid var(--border);
   backdrop-filter: blur(12px) saturate(130%);
-  transition: top 0.32s ease, gap 0.32s ease, padding 0.32s ease, box-shadow 0.32s ease;
+  transition: gap 0.24s ease, padding 0.24s ease, box-shadow 0.24s ease;
 }
 
 .workspace-subnav-intro {
   overflow: hidden;
   max-height: 4.5rem;
   opacity: 1;
-  transition: max-height 0.34s ease, opacity 0.28s ease, margin 0.32s ease;
+  transition: opacity 0.22s ease;
 }
 
 .workspace-subnav.is-collapsed {
@@ -2247,7 +2248,7 @@ tbody tr:hover {
   opacity: 0;
   overflow: hidden;
   margin: 0;
-  transition: max-height 0.28s ease, opacity 0.24s ease;
+  transition: opacity 0.22s ease;
 }
 
 .workspace-subnav-links {
