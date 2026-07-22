@@ -198,24 +198,26 @@ export function ReviewActions({
   return (
     <section className="form-workspace">
       <FormSection title="Workflow Actions" description="Submit, approve, reject, or mark this document as final.">
-      <button type="button" onClick={submitForReview} disabled={busy !== null}>
-        {busy === "submit" ? "Submitting..." : "Submit for Review"}
-      </button>
+        <div className="document-workflow-actions">
+          <button type="button" className="button-secondary" onClick={submitForReview} disabled={busy !== null}>
+            {busy === "submit" ? "Submitting..." : "Submit for Review"}
+          </button>
 
-      <button type="button" onClick={markFinal} disabled={busy !== null || isFinal || !canMarkFinal}>
-        {isFinal
-          ? "Already Final"
-          : !canMarkFinal
-            ? "Approve to Mark Final"
-            : busy === "markFinal"
-              ? "Marking..."
-              : "Mark as Final"}
-      </button>
+          <button type="button" className="button-secondary" onClick={markFinal} disabled={busy !== null || isFinal || !canMarkFinal}>
+            {isFinal
+              ? "Already Final"
+              : !canMarkFinal
+                ? "Approve to Mark Final"
+                : busy === "markFinal"
+                  ? "Marking..."
+                  : "Mark as Final"}
+          </button>
+        </div>
 
-      <label className="col-12">
-        Decision Comment
-        <textarea value={comment} onChange={(event) => setComment(event.target.value)} rows={8} />
-      </label>
+        <label className="col-12">
+          Decision Comment
+          <textarea value={comment} onChange={(event) => setComment(event.target.value)} rows={6} />
+        </label>
       </FormSection>
 
       {error ? <p className="error-text">{error}</p> : null}
@@ -224,7 +226,7 @@ export function ReviewActions({
         <button type="button" onClick={() => decide("approve")} disabled={busy !== null}>
           {busy === "approve" ? "Approving..." : "Approve"}
         </button>
-        <button type="button" onClick={() => decide("reject")} disabled={busy !== null}>
+        <button type="button" className="button-secondary" onClick={() => decide("reject")} disabled={busy !== null}>
           {busy === "reject" ? "Rejecting..." : "Reject"}
         </button>
       </FormActionBar>

@@ -3,6 +3,9 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { DocumentPreviewBlock } from "@/components/documents/document-kv-list";
+import { RevisionHistoryModal } from "@/components/documents/revision-history-modal";
+import { FormSection } from "@/components/ui/form-section";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
 import type { DocumentFamily, DocumentOutputSnapshot, DocumentType } from "@/types/models";
@@ -52,18 +55,6 @@ type FamilyPayload = {
   }>;
   documentRevisionCount: number;
 };
-
-function renderValue(value: string) {
-  return value && value.trim() !== "" ? value : "-";
-}
-
-function valueCellClass(label: string, value: string) {
-  if (/\r?\n/.test(value) || /marking/i.test(label)) {
-    return "preserve-linebreaks";
-  }
-
-  return "wrap";
-}
 
 export default function ContractDocumentFamilyPage({
   params,
@@ -293,40 +284,41 @@ export default function ContractDocumentFamilyPage({
   const latestRevision = payload.revisions[0];
 
   return (
-    <section className="page-shell">
+    <section className="page-shell document-workspace">
       <header className="page-header">
         <h1>{payload.familyLabel}</h1>
         <p>Current preview is rebuilt from the latest resolved contract state. Each generation creates a new immutable revision.</p>
-        <div className="row-actions page-header-actions">
-          {latestRevision ? (
-            <Link href={`/app/contracts/${contractId}/documents/generated/${latestRevision.id}/review?family=${payload.family}`}>
-              <button type="button" className="button-secondary">View Latest</button>
-            </Link>
-          ) : null}
-          <button
-            type="button"
-            onClick={() => void generateRevision()}
-            disabled={generating || Boolean(payload.unavailableReason)}
-          >
-            {generating ? "Generating..." : `Generate ${payload.familyLabel}`}
-          </button>
-          <button type="button" className="button-secondary" onClick={() => setShowRevisionHistory(true)}>
-            Revision History
-          </button>
-        </div>
-        {generateError ? <p className="error-text mt-sm">{generateError}</p> : null}
       </header>
-      <section className="card">
-        <div className="section-heading">
-          <div>
-            <h3>Current Preview</h3>
-            <p className="sidebar-subtitle">Latest draft preview based on current resolved data.</p>
-          </div>
+
+      <div className="document-toolbar">
+        {latestRevision ? (
+          <Link href={`/app/contracts/${contractId}/documents/generated/${latestRevision.id}/review?family=${payload.family}`}>
+            <button type="button" className="button-secondary">View Latest</button>
+          </Link>
+        ) : null}
+        <button
+          type="button"
+          onClick={() => void generateRevision()}
+          disabled={generating || Boolean(payload.unavailableReason)}
+        >
+          {generating ? "Generating..." : `Generate ${payload.familyLabel}`}
+        </button>
+        <button type="button" className="button-secondary" onClick={() => setShowRevisionHistory(true)}>
+          Revision History
+        </button>
+      </div>
+      {generateError ? <p className="error-text">{generateError}</p> : null}
+
+      <FormSection
+        title="Current Preview"
+        description="Latest draft preview based on current resolved data."
+        actions={(
           <span className="source-badge source-lc">{payload.documentRevisionCount} total rev</span>
-        </div>
-        <div className="row-actions mt-md">
-          <label className="minw-320">
-            Ref No
+        )}
+      >
+        <div className="document-refno-row">
+          <label>
+            <span>Ref No</span>
             <input
               value={refNoInput}
               onChange={(event) => setRefNoInput(event.target.value)}
@@ -337,12 +329,13 @@ export default function ContractDocumentFamilyPage({
             {savingRefNo ? "Saving..." : "Save"}
           </button>
         </div>
-        {refNoNotice ? <p className="muted-text mt-sm">{refNoNotice}</p> : null}
+        {refNoNotice ? <p className="muted-text">{refNoNotice}</p> : null}
+
         {payload.family === "ico_certificate" ? (
-          <div className="mt-lg">
-            <h4>ICO Manual Inputs</h4>
+          <>
+            <h3>ICO Manual Inputs</h3>
             <p className="sidebar-subtitle">Grouped manual entries for fields like 1, 6, 8 and related boxes. Save once for all changes.</p>
-            <div className="form-grid mt-sm">
+            <div className="form-grid span-all">
               {([
                 ["exporterConsignor", "1 Exporter/Consignor", "col-12"],
                 ["notifyAddress", "2 Notify address", "col-12"],
@@ -374,13 +367,13 @@ export default function ContractDocumentFamilyPage({
                 </label>
               ))}
             </div>
-            <div className="row-actions mt-md">
+            <div className="document-workflow-actions">
               <button type="button" onClick={() => void saveIcoOverrides()} disabled={savingIcoOverrides}>
                 {savingIcoOverrides ? "Saving ICO Inputs..." : "Save ICO Inputs"}
               </button>
             </div>
-            {icoNotice ? <p className="muted-text mt-sm">{icoNotice}</p> : null}
-          </div>
+            {icoNotice ? <p className="muted-text">{icoNotice}</p> : null}
+          </>
         ) : null}
 
         {payload.unavailableReason ? (
@@ -388,7 +381,7 @@ export default function ContractDocumentFamilyPage({
         ) : payload.currentPreview ? (
           <>
             {payload.previewWarnings.length > 0 ? (
-              <div className="mt-md">
+              <div>
                 <strong>Warnings</strong>
                 <ul className="list-indent mt-sm">
                   {payload.previewWarnings.map((warning) => (
@@ -414,113 +407,34 @@ export default function ContractDocumentFamilyPage({
                 </div>
 
                 {activeWayBillSection ? (
-                  <div className="preview-section">
-                    <h4>{activeWayBillSection.heading}</h4>
-                    <div className="table-wrap">
-                      <table>
-                        <tbody>
-                          {activeWayBillSection.rows.map((row) => (
-                            <tr key={`${activeWayBillSection.heading}-${row.label}`}>
-                              <th className="wrap">{row.label}</th>
-                              <td className={valueCellClass(row.label, row.value)}>{renderValue(row.value)}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
+                  <DocumentPreviewBlock
+                    heading={activeWayBillSection.heading}
+                    rows={activeWayBillSection.rows}
+                  />
                 ) : null}
               </>
             ) : (
-              payload.currentPreview.sections.map((section) => (
-                <div key={section.heading} className="preview-section">
-                  <h4>{section.heading}</h4>
-                  <div className="table-wrap">
-                    <table>
-                      <tbody>
-                        {section.rows.map((row) => (
-                          <tr key={`${section.heading}-${row.label}`}>
-                            <th className="wrap">{row.label}</th>
-                            <td className={valueCellClass(row.label, row.value)}>{renderValue(row.value)}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              ))
+              <div className="document-preview-stack">
+                {payload.currentPreview.sections.map((section) => (
+                  <DocumentPreviewBlock
+                    key={section.heading}
+                    heading={section.heading}
+                    rows={section.rows}
+                  />
+                ))}
+              </div>
             )}
           </>
         ) : null}
-      </section>
+      </FormSection>
 
-      {showRevisionHistory ? (
-        <div className="confirm-modal-backdrop" onClick={() => setShowRevisionHistory(false)}>
-          <section
-            className="confirm-modal revision-history-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="revision-history-title"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="section-heading">
-              <div>
-                <h3 id="revision-history-title">Revision History</h3>
-                <p className="sidebar-subtitle">Previous generated versions for this document.</p>
-              </div>
-            </div>
-            <div className="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Revision</th>
-                    <th>Version</th>
-                    <th>Status</th>
-                    <th>Generated</th>
-                    <th>Open</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {payload.revisions.length === 0 ? (
-                    <tr><td colSpan={5}>No revisions yet.</td></tr>
-                  ) : (
-                    payload.revisions.map((revision) => (
-                      <tr key={revision.id}>
-                        <td>v{revision.revisionNumber}</td>
-                        <td>
-                          <span className={`status-pill ${revision.isFinal ? "status-approved" : "status-draft"}`}>
-                            {revision.isFinal ? "Final" : "Draft"}
-                          </span>
-                        </td>
-                        <td>
-                          <span className={`status-pill status-${revision.status.toLowerCase().replace(/\s+/g, "-")}`}>
-                            {revision.status}
-                          </span>
-                        </td>
-                        <td>{new Date(revision.generatedAt).toLocaleString()}</td>
-                        <td>
-                          <Link
-                            href={`/app/contracts/${contractId}/documents/generated/${revision.id}/review?family=${payload.family}`}
-                            className="button-link button-link-secondary"
-                            onClick={() => setShowRevisionHistory(false)}
-                          >
-                            Open
-                          </Link>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-            <div className="row-actions confirm-modal-actions">
-              <button type="button" className="button-secondary" onClick={() => setShowRevisionHistory(false)}>
-                Close
-              </button>
-            </div>
-          </section>
-        </div>
-      ) : null}
+      <RevisionHistoryModal
+        open={showRevisionHistory}
+        onClose={() => setShowRevisionHistory(false)}
+        revisions={payload.revisions}
+        contractId={contractId}
+        family={payload.family}
+      />
     </section>
   );
 }

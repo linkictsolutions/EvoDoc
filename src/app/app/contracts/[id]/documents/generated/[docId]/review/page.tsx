@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { DocumentMetadataGrid, DocumentMetadataItem } from "@/components/documents/document-metadata-grid";
 import { ReviewActions } from "@/components/forms/document-actions";
+import { FormSection } from "@/components/ui/form-section";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
 import type { DocumentFamily, DocumentOutputSnapshot, DocumentType } from "@/types/models";
@@ -123,7 +125,7 @@ export default function DocumentReviewPage({
   }, [contractId, data, docId, familyFromQuery, router]);
 
   return (
-    <section className="page-shell">
+    <section className="page-shell document-workspace">
       <header className="page-header">
         <h1>Document Review</h1>
         <p>Submit for review, approve/reject, and print output.</p>
@@ -132,26 +134,33 @@ export default function DocumentReviewPage({
       {error ? <section className="card"><p className="error-text">{error}</p></section> : null}
 
       {data ? (
-        <section className="card">
-          <p><strong>Type:</strong> {data.docType}</p>
-          {data.revisionNumber ? <p><strong>Revision:</strong> v{data.revisionNumber}</p> : null}
-          <p>
-            <strong>Status:</strong>{" "}
-            <span className={`status-pill status-${data.status.toLowerCase().replace(/\s+/g, "-")}`}>{data.status}</span>
-          </p>
-          <p>
-            <strong>Version:</strong>{" "}
-            <span className={`status-pill ${data.isFinal ? "status-approved" : "status-draft"}`}>
-              {data.isFinal ? "Final" : "Draft"}
-            </span>
-          </p>
-          <p><strong>Title:</strong> {data.outputSnapshot.title}</p>
-          <p><strong>Snapshot Hash:</strong> <code>{data.snapshotHash}</code></p>
-          {data.approvedSnapshotHash ? (
-            <p><strong>Approved Hash:</strong> <code>{data.approvedSnapshotHash}</code></p>
-          ) : null}
+        <FormSection title="Document Details" description="Revision metadata and validation state for this generated document.">
+          <DocumentMetadataGrid>
+            <DocumentMetadataItem label="Type">{data.docType}</DocumentMetadataItem>
+            {data.revisionNumber ? (
+              <DocumentMetadataItem label="Revision">v{data.revisionNumber}</DocumentMetadataItem>
+            ) : null}
+            <DocumentMetadataItem label="Status">
+              <span className={`status-pill status-${data.status.toLowerCase().replace(/\s+/g, "-")}`}>{data.status}</span>
+            </DocumentMetadataItem>
+            <DocumentMetadataItem label="Version">
+              <span className={`status-pill ${data.isFinal ? "status-approved" : "status-draft"}`}>
+                {data.isFinal ? "Final" : "Draft"}
+              </span>
+            </DocumentMetadataItem>
+            <DocumentMetadataItem label="Title" wide>{data.outputSnapshot.title}</DocumentMetadataItem>
+            <DocumentMetadataItem label="Snapshot Hash" wide>
+              <code>{data.snapshotHash}</code>
+            </DocumentMetadataItem>
+            {data.approvedSnapshotHash ? (
+              <DocumentMetadataItem label="Approved Hash" wide>
+                <code>{data.approvedSnapshotHash}</code>
+              </DocumentMetadataItem>
+            ) : null}
+          </DocumentMetadataGrid>
+
           {data.validationWarnings && data.validationWarnings.length > 0 ? (
-            <div className="mt-md">
+            <div>
               <strong>Validation Warnings</strong>
               <ul className="list-indent mt-sm">
                 {data.validationWarnings.map((warning) => (
@@ -160,10 +169,13 @@ export default function DocumentReviewPage({
               </ul>
             </div>
           ) : null}
-          <Link href={`/app/contracts/${contractId}/documents/generated/${docId}/print${familyQuery}`} target="_blank">
-            <button type="button" className="mt-md button-secondary">Open Print View</button>
-          </Link>
-        </section>
+
+          <div className="document-review-actions">
+            <Link href={`/app/contracts/${contractId}/documents/generated/${docId}/print${familyQuery}`} target="_blank">
+              <button type="button" className="button-secondary">Open Print View</button>
+            </Link>
+          </div>
+        </FormSection>
       ) : (
         <section className="card">
           <CenteredLoader label="Loading document..." />
