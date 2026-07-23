@@ -6,6 +6,7 @@ import type {
   BookingsSheet,
   CompanyConfiguration,
   Contract,
+  ContractDocumentSummary,
   ContractSourceInput,
   Customer,
   DocumentFamily,
@@ -564,6 +565,36 @@ export async function listGeneratedDocuments(orgId: string, contractId: string) 
     .get();
 
   return snapshot.docs.map((doc) => ({ id: doc.id, ...(doc.data() as Omit<GeneratedDocument, "id">) }));
+}
+
+export async function listDocumentSummariesByContract(orgId: string, contractIds: string[]) {
+  const entries = await Promise.all(
+    contractIds.map(async (contractId) => {
+      const documents = await listGeneratedDocuments(orgId, contractId);
+
+      if (documents.length === 0) {
+        return [contractId, {
+          revisionCount: 0,
+          latestUpdatedAt: null,
+          pendingReviewCount: 0,
+          latestStatus: null,
+        } satisfies ContractDocumentSummary] as const;
+      }
+
+      const latestUpdated = documents.reduce((latest, document) => (
+        new Date(document.updatedAt).getTime() > new Date(latest.updatedAt).getTime() ? document : latest
+      ));
+
+      return [contractId, {
+        revisionCount: documents.length,
+        latestUpdatedAt: latestUpdated.updatedAt,
+        pendingReviewCount: documents.filter((document) => document.status === "under_review").length,
+        latestStatus: latestUpdated.status,
+      } satisfies ContractDocumentSummary] as const;
+    }),
+  );
+
+  return Object.fromEntries(entries) as Record<string, ContractDocumentSummary>;
 }
 
 export async function getGeneratedDocument(orgId: string, contractId: string, docId: string) {

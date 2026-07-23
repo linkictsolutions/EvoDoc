@@ -477,6 +477,13 @@ export interface GeneratedDocument extends Timestamped {
   reviewComment?: string;
 }
 
+export interface ContractDocumentSummary {
+  revisionCount: number;
+  latestUpdatedAt: string | null;
+  pendingReviewCount: number;
+  latestStatus: DocumentStatus | null;
+}
+
 export interface AuditLog {
   id: string;
   orgId: string;

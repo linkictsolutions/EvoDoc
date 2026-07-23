@@ -1,24 +1,37 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
 import { CenteredLoader } from "@/components/ui/centered-loader";
-import type { Contract } from "@/types/models";
+import {
+  contractStatusClass,
+  formatDocumentSummaryLabel,
+  formatListTimestamp,
+} from "@/lib/contracts/list-display";
+import type { Contract, ContractDocumentSummary, Customer } from "@/types/models";
 
 export default function DocumentsPage() {
   const [contracts, setContracts] = useState<Contract[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [documentSummaries, setDocumentSummaries] = useState<Record<string, ContractDocumentSummary>>({});
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let mounted = true;
 
-    apiClient<Contract[]>(`/api/contracts?orgId=${DEFAULT_ORG_ID}`)
-      .then((data) => {
+    Promise.all([
+      apiClient<Contract[]>(`/api/contracts?orgId=${DEFAULT_ORG_ID}`),
+      apiClient<Customer[]>(`/api/customers?orgId=${DEFAULT_ORG_ID}`),
+      apiClient<Record<string, ContractDocumentSummary>>(`/api/contracts/document-summaries?orgId=${DEFAULT_ORG_ID}`),
+    ])
+      .then(([contractData, customerData, summaryData]) => {
         if (mounted) {
-          setContracts(data);
+          setContracts(contractData);
+          setCustomers(customerData);
+          setDocumentSummaries(summaryData);
         }
       })
       .catch((loadError: Error) => {
@@ -36,6 +49,11 @@ export default function DocumentsPage() {
       mounted = false;
     };
   }, []);
+
+  const customerNameById = useMemo(
+    () => new Map(customers.map((customer) => [customer.id, customer.name])),
+    [customers],
+  );
 
   return (
     <section className="page-shell">
@@ -67,36 +85,54 @@ export default function DocumentsPage() {
               <thead>
                 <tr>
                   <th>Contract #</th>
+                  <th>Buyer</th>
                   <th>Status</th>
-                  <th>Buyer ID</th>
                   <th>Documents</th>
+                  <th>Last updated</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {contracts.length === 0 ? (
                   <tr>
-                    <td colSpan={4}>No contracts yet.</td>
+                    <td colSpan={6}>No contracts yet.</td>
                   </tr>
                 ) : (
-                  contracts.map((contract) => (
-                    <tr key={contract.id}>
-                      <td>{contract.contractNumber}</td>
-                      <td>
-                        <span className={`status-pill status-${contract.status.toLowerCase().replace(/\s+/g, "-")}`}>
-                          {contract.status}
-                        </span>
-                      </td>
-                      <td>{contract.customerId}</td>
-                      <td>
-                        <Link
-                          href={`/app/contracts/${encodeURIComponent(contract.contractNumber)}/documents`}
-                          className="button-link button-link-secondary"
-                        >
-                          Open Documents
-                        </Link>
-                      </td>
-                    </tr>
-                  ))
+                  contracts.map((contract) => {
+                    const summary = documentSummaries[contract.id] ?? {
+                      revisionCount: 0,
+                      latestUpdatedAt: null,
+                      pendingReviewCount: 0,
+                      latestStatus: null,
+                    };
+                    const lastUpdated = summary.latestUpdatedAt ?? contract.updatedAt;
+
+                    return (
+                      <tr key={contract.id}>
+                        <td>{contract.contractNumber}</td>
+                        <td>{customerNameById.get(contract.customerId) ?? "—"}</td>
+                        <td>
+                          <span className={contractStatusClass(contract.status)}>
+                            {contract.status}
+                          </span>
+                        </td>
+                        <td className="wrap">
+                          <span className={summary.pendingReviewCount > 0 ? "status-pill status-under-review" : undefined}>
+                            {formatDocumentSummaryLabel(summary)}
+                          </span>
+                        </td>
+                        <td>{formatListTimestamp(lastUpdated)}</td>
+                        <td>
+                          <Link
+                            href={`/app/contracts/${encodeURIComponent(contract.contractNumber)}/documents`}
+                            className="button-link button-link-secondary"
+                          >
+                            Open Documents
+                          </Link>
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>
