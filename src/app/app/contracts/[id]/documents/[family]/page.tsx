@@ -8,12 +8,9 @@ import { RevisionHistoryModal } from "@/components/documents/revision-history-mo
 import { FormSection } from "@/components/ui/form-section";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
+import { readTemplateLayoutForDocType } from "@/lib/documents/template-storage-keys";
 import type { DocumentFamily, DocumentOutputSnapshot, DocumentType } from "@/types/models";
 import { CenteredLoader } from "@/components/ui/centered-loader";
-
-const ICC_INVOICE_TEMPLATE_STORAGE_KEY = "evodoc.templates.commercial_invoice_icc.v1";
-const ICC_PACKING_TEMPLATE_STORAGE_KEY = "evodoc.templates.packing_list_icc.v1";
-const BILL_OF_LADING_TEMPLATE_STORAGE_KEY = "evodoc.templates.bill_of_lading.v1";
 
 type FamilyPayload = {
   family: DocumentFamily;
@@ -195,21 +192,7 @@ export default function ContractDocumentFamilyPage({
     setGenerateError(null);
 
     try {
-      const templateLayout = (() => {
-        if (typeof window === "undefined") {
-          return undefined;
-        }
-        if (payload.docType === "invoice") {
-          return window.localStorage.getItem(ICC_INVOICE_TEMPLATE_STORAGE_KEY) ?? undefined;
-        }
-        if (payload.docType === "packing_list") {
-          return window.localStorage.getItem(ICC_PACKING_TEMPLATE_STORAGE_KEY) ?? undefined;
-        }
-        if (payload.docType === "bill_of_lading") {
-          return window.localStorage.getItem(BILL_OF_LADING_TEMPLATE_STORAGE_KEY) ?? undefined;
-        }
-        return undefined;
-      })();
+      const templateLayout = readTemplateLayoutForDocType(payload.docType);
 
       const data = await apiClient<{ docId: string }>("/api/documents/generate", {
         method: "POST",

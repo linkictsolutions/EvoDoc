@@ -259,6 +259,8 @@ export const companyConfigurationInputSchema = z.object({
     priceUoms: z.array(z.string().min(1)).min(1),
     packagingUnits: z.array(z.string().min(1)).min(1).optional(),
     movementTypes: z.array(z.string().min(1)).min(1).optional(),
+    shippingLines: z.array(z.string().min(1)).optional(),
+    processingEnabled: z.boolean().optional(),
     documentBranding: z.object({
       header: z.object({
         imageDataUrl: z.string().optional(),
@@ -391,6 +393,7 @@ export const staffingSheetInputSchema = z.object({
   contractId: z.string().min(1),
   staffing: z.object({
     instructionRows: z.array(staffingInstructionRowSchema).min(1),
+    showDoNumber: z.boolean().optional(),
   }),
 });
 

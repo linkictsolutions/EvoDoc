@@ -306,6 +306,8 @@ export function mapDocumentOutput(
             {
               heading: "SI Sheet Values",
               rows: [
+                { label: "Date", value: formatDateDdMmYyyy(new Date().toISOString()) },
+                { label: "Ref No", value: clean(snapshot.contract.documentRefs?.shipping_instruction ?? snapshot.contract.contractNumber) },
                 { label: "Shipper (E10)", value: clean(sellerIdentity(snapshot)) },
                 { label: "Consignee (E11)", value: clean(finalFields.consignee) },
                 { label: "Notify (E12)", value: clean(finalFields.notify) },

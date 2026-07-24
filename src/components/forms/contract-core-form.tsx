@@ -634,7 +634,7 @@ export function ContractCoreForm({
           />
         </FormSection>
 
-        <FormSection title="Product Details" description="Origin, grade, packaging, and quality specifications.">
+        <FormSection title="Product Details" description="Origin, grade, packaging, and coffee type specifications.">
         <label className={`col-4 ${requiredLabelClass(Boolean(errors.origin))}`}>
           <span className="label-text">Origin</span>
           <input className={dirtyControlClass("origin")} {...register("origin")} />
@@ -659,7 +659,7 @@ export function ContractCoreForm({
           </select>
         </label>
         <label className={`col-8 ${requiredLabelClass(Boolean(errors.quality))}`}>
-          <span className="label-text">Quality</span>
+          <span className="label-text">Coffee Type</span>
           <textarea className={dirtyControlClass("quality")} rows={4} {...register("quality")} />
         </label>
         <label className="col-4">

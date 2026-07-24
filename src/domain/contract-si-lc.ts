@@ -85,7 +85,7 @@ export function buildContractSiLcReport(contract: Contract, customer: Customer):
   const rows: ContractSiLcRow[] = [
     makeRow({
       rowNumber: 7,
-      label: "Quality",
+      label: "Coffee Type",
       contractValue: clean(contract.terms.quality),
       shippingValue: clean(contract.shipping.qualityValue),
       revisedShippingValue: "",

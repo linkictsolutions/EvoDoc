@@ -143,6 +143,8 @@ export interface CompanyConfiguration extends Timestamped {
   priceUoms: string[];
   packagingUnits: string[];
   movementTypes: string[];
+  shippingLines: string[];
+  processingEnabled: boolean;
   documentBranding: DocumentBrandingSettings;
   bulkReferenceKg: number;
   packagingDefinitions: PackagingDefinition[];
@@ -345,6 +347,7 @@ export interface StaffingSheet extends Timestamped {
   orgId: string;
   contractId: string;
   instructionRows: StaffingInstructionRow[];
+  showDoNumber?: boolean;
 }
 
 export interface ProcessingSheet extends Timestamped {

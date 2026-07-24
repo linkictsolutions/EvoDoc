@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import clsx from "clsx";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
 import { computeContractExcelParity } from "@/domain/excel-parity";
@@ -29,6 +30,7 @@ export function StaffingPage({ contractId }: { contractId: string }) {
   const [error, setError] = useState<string | null>(null);
   const [highlightDirty, setHighlightDirty] = useState(false);
   const lastSavedRowsRef = useRef<StaffingSheet["instructionRows"]>([]);
+  const lastSavedShowDoNumberRef = useRef(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -41,14 +43,18 @@ export function StaffingPage({ contractId }: { contractId: string }) {
         apiClient<ContractDetailResponse>(`/api/contracts/${contractId}?orgId=${DEFAULT_ORG_ID}`),
       ]);
       const instructionRows = applyCalculatedStaffingWeights(staffingData.instructionRows, contractData.contract);
+      const showDoNumber = staffingData.showDoNumber
+        ?? instructionRows.some((row) => Boolean(row.doNumber?.trim()));
       const nextForm = {
         ...staffingData,
         instructionRows,
+        showDoNumber,
         finalRows: deriveFinalStaffingRows({ ...staffingData, instructionRows }),
       };
       setBookings(bookingsData);
       setForm(nextForm);
       lastSavedRowsRef.current = instructionRows;
+      lastSavedShowDoNumberRef.current = showDoNumber;
       setHighlightDirty(false);
       setContract(contractData.contract);
     } catch (loadError) {
@@ -66,7 +72,13 @@ export function StaffingPage({ contractId }: { contractId: string }) {
     if (!form) {
       return false;
     }
-    return JSON.stringify(form.instructionRows) !== JSON.stringify(lastSavedRowsRef.current);
+    return JSON.stringify({
+      instructionRows: form.instructionRows,
+      showDoNumber: form.showDoNumber ?? false,
+    }) !== JSON.stringify({
+      instructionRows: lastSavedRowsRef.current,
+      showDoNumber: lastSavedShowDoNumberRef.current,
+    });
   }, [form]);
 
   useUnsavedChangesGuard({ enabled: isDirty && !saving, onBlockedNavigation: () => setHighlightDirty(true) });
@@ -101,6 +113,10 @@ export function StaffingPage({ contractId }: { contractId: string }) {
     }
     return `Cert sequence: ${certOptions[0]} to ${certOptions[certOptions.length - 1]} (${containerCount} containers).`;
   }, [certOptions, containerCount]);
+
+  function toggleShowDoNumber(checked: boolean) {
+    setForm((current) => (current ? { ...current, showDoNumber: checked } : current));
+  }
 
   function updateRow(index: number, key: keyof StaffingSheet["instructionRows"][number], value: string) {
     setForm((current) => {
@@ -154,6 +170,7 @@ export function StaffingPage({ contractId }: { contractId: string }) {
           orgId: DEFAULT_ORG_ID,
           staffing: {
             instructionRows: form.instructionRows,
+            showDoNumber: form.showDoNumber ?? false,
           },
         }),
       });
@@ -184,6 +201,8 @@ export function StaffingPage({ contractId }: { contractId: string }) {
   }
 
   const controlClass = highlightDirty && isDirty ? "field-error-control" : undefined;
+  const showDoNumber = form.showDoNumber ?? false;
+  const doColumnClass = clsx("staffing-do-column", showDoNumber && "is-visible");
 
   return (
     <section className="page-shell staffing-page">
@@ -218,7 +237,16 @@ export function StaffingPage({ contractId }: { contractId: string }) {
                 <th>First Weight</th>
                 <th>Second Weight</th>
                 <th>Net Weight</th>
-                <th>DO No</th>
+                <th className={doColumnClass}>
+                  <label className="staffing-do-toggle">
+                    <input
+                      type="checkbox"
+                      checked={showDoNumber}
+                      onChange={(event) => toggleShowDoNumber(event.target.checked)}
+                    />
+                    <span>DO No</span>
+                  </label>
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -253,7 +281,11 @@ export function StaffingPage({ contractId }: { contractId: string }) {
                   <td>{formatWeightValue(row.firstWeightKg)}</td>
                   <td>{formatWeightValue(row.secondWeightKg)}</td>
                   <td>{formatWeightValue(row.netWeightKg)}</td>
-                  <td><input className={controlClass} value={row.doNumber ?? ""} onChange={(event) => updateRow(index, "doNumber", event.target.value)} /></td>
+                  <td className={doColumnClass}>
+                    <div className="staffing-do-cell">
+                      <input className={controlClass} value={row.doNumber ?? ""} onChange={(event) => updateRow(index, "doNumber", event.target.value)} disabled={!showDoNumber} />
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -282,7 +314,7 @@ export function StaffingPage({ contractId }: { contractId: string }) {
                 <th>First Weight</th>
                 <th>Second Weight</th>
                 <th>Net Weight</th>
-                <th>DO No</th>
+                <th className={doColumnClass}>DO No</th>
               </tr>
             </thead>
             <tbody>
@@ -302,7 +334,9 @@ export function StaffingPage({ contractId }: { contractId: string }) {
                   <td>{row.firstWeightKg ?? "-"}</td>
                   <td>{row.secondWeightKg ?? "-"}</td>
                   <td>{row.netWeightKg ?? "-"}</td>
-                  <td>{row.doNumber ?? "-"}</td>
+                  <td className={doColumnClass}>
+                    <div className="staffing-do-cell">{showDoNumber ? (row.doNumber ?? "-") : ""}</div>
+                  </td>
                 </tr>
               ))}
             </tbody>

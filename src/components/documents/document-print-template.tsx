@@ -33,6 +33,18 @@ function value(rows: Row[], label: string): string {
   return rows.find((row) => row.label === label)?.value ?? "-";
 }
 
+function pickRowValue(rows: Row[], ...labels: string[]): string {
+  for (const label of labels) {
+    const resolved = value(rows, label);
+    if (resolved !== "-") {
+      return resolved;
+    }
+  }
+
+  return "-";
+}
+
+
 function display(value: string | undefined): string {
   if (!value) {
     return "";
@@ -566,7 +578,7 @@ function IccInvoiceTemplatePrintView({ output, documentId, isFinal, template }: 
                           fontWeight: 500,
                           whiteSpace: "pre-wrap",
                           wordBreak: "break-word",
-                          verticalAlign: "top",
+                          verticalAlign: "middle",
                           ...templateCellLayoutStyle(cell, spacerRowScale),
                           border: isBorderlessSpacer ? "none" : undefined,
                           textAlign: (
@@ -733,7 +745,7 @@ function GenericTemplatePrintView({
                           fontWeight: 500,
                           whiteSpace: "pre-wrap",
                           wordBreak: "break-word",
-                          verticalAlign: "top",
+                          verticalAlign: "middle",
                           ...templateCellLayoutStyle(cell, spacerRowScale),
                           border: isBorderlessSpacer ? "none" : undefined,
                         }}
@@ -901,19 +913,21 @@ function IccInvoicePrintView({ output, documentId, isFinal, templateLayout }: Pr
           </tr>
           <tr>
             <td><strong>Incoterm:</strong> {display(value(rows, "Incoterm"))}</td>
-            <td><strong>Authorized Signature &amp; Company Seal/Stamp</strong></td>
           </tr>
           <tr>
             <td><strong>Term/Method of Payment:</strong> {display(value(rows, "Term/Method of Payment"))}</td>
-            <td></td>
           </tr>
           <tr>
             <td className="preserve-linebreaks"><strong>Packaging &amp; Marking (Label):</strong> {display(value(rows, "Packaging & Marking (Label)"))}</td>
-            <td></td>
           </tr>
+        </tbody>
+      </table>
+
+      <table className="print-table icc-table mt-sm icc-footer-table">
+        <tbody>
           <tr className="icc-full-marking-row">
             <td className="icc-full-marking-cell preserve-linebreaks"><strong>FULL MARKING</strong><br />{display(value(rows, "Full Marking"))}</td>
-            <td className="icc-signature-cell"></td>
+            <td className="icc-signature-cell"><strong>Authorized Signature &amp; Company Seal/Stamp</strong></td>
           </tr>
         </tbody>
       </table>
@@ -963,6 +977,28 @@ const PACKING_CELL_LABEL_MAP: Record<string, string> = {
   tt_address: "Address",
 
   fm_full_marking: "Full Marking",
+};
+
+const SHIPPING_CELL_LABEL_ALIASES: Record<string, string[]> = {
+  si_date: ["Date"],
+  si_ref: ["Ref No"],
+  si_shipper: ["Shipper", "Shipper (E10)"],
+  si_consignee: ["Consignee", "Consignee (E11)"],
+  si_notify: ["Notify", "Notify (E12)"],
+  si_notify2: ["Second Notify", "2nd Notify (E13)"],
+  si_service_contract: ["Shipping Line / Service Contract (E17)", "Service Contract No"],
+  si_cargo_desc: ["Cargo Description", "Cargo Description (E18)", "Description"],
+  si_hs: ["HS Code", "HS Code (E19)"],
+  si_qty: ["Quantity", "Quantity (E20)"],
+  si_gross: ["Gross Weight", "Gross Weight (KG)", "Gross Weight (H21)"],
+  si_net: ["Net Weight", "Net Weight (KG)", "Net Weight (O21)"],
+  si_cert_number: ["Cert Number", "Cert Number (E23)", "Cert No"],
+  si_container_size: ["Number Type and Size of Containers", "Number Type and Size of Containers (E27)"],
+  si_port_loading: ["Port of Loading", "Port of Loading (E29)"],
+  si_discharge: ["Place of Discharge", "Place of Discharge (E30)"],
+  si_booking: ["Booking Number", "Booking Number (E31)"],
+  si_etd: ["Vessel Departure (ETD) / Date", "Vessel Departure (ETD) / Date (E32)"],
+  si_additional: ["Additional Document / Remark", "Additional Document / Remark (E33)"],
 };
 
 const SHIPPING_CELL_LABEL_MAP: Record<string, string> = {
@@ -1114,8 +1150,12 @@ function shippingCellValue(rows: Row[], cell: TemplateCell): string {
     }).filter(Boolean);
     return lines.join("\n");
   }
-  const mapped = SHIPPING_CELL_LABEL_MAP[cell.id] ?? cell.label;
-  return value(rows, mapped);
+  const mapped = SHIPPING_CELL_LABEL_ALIASES[cell.id];
+  if (mapped) {
+    return pickRowValue(rows, ...mapped);
+  }
+  const label = SHIPPING_CELL_LABEL_MAP[cell.id] ?? cell.label;
+  return value(rows, label);
 }
 
 function qualityCellValue(rows: Row[], cell: TemplateCell): string {
@@ -1356,7 +1396,7 @@ function PackingListIccTemplatePrintView({ output, documentId, isFinal, template
                           fontWeight: 500,
                           whiteSpace: "pre-wrap",
                           wordBreak: "break-word",
-                          verticalAlign: "top",
+                          verticalAlign: "middle",
                           ...templateCellLayoutStyle(cell, spacerRowScale),
                           textAlign: cell.id === "pl_page" ? "right" : undefined,
                         }}

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { appendVehiclePair, removeLastVehiclePair, syncBookingEntryPairs } from "@/domain/execution";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
-import type { BookingsSheet } from "@/types/models";
+import type { BookingsSheet, CompanyConfiguration } from "@/types/models";
 import { CenteredLoader } from "@/components/ui/centered-loader";
 import { FormSection } from "@/components/ui/form-section";
 import { useToast } from "@/components/ui/toast";
@@ -21,10 +21,12 @@ type ContractShippingOptionsResponse = {
 };
 
 function buildShippingLineOptions(
+  companyConfiguration: CompanyConfiguration | null,
   contractData: ContractShippingOptionsResponse | null,
   currentShippingLine?: string,
 ): string[] {
   const options = [
+    ...(companyConfiguration?.shippingLines ?? []),
     contractData?.contract.shipping.shippingLine,
     contractData?.contract.shipping.alternative1,
     contractData?.contract.shipping.alternative2,
@@ -59,14 +61,15 @@ export function BookingsPage({ contractId }: { contractId: string }) {
     setLoading(true);
     setError(null);
     try {
-      const [bookingsData, contractData] = await Promise.all([
+      const [bookingsData, contractData, companyConfiguration] = await Promise.all([
         apiClient<BookingsSheet>(`/api/contracts/${contractId}/execution/bookings?orgId=${DEFAULT_ORG_ID}`),
         apiClient<ContractShippingOptionsResponse>(`/api/contracts/${contractId}?orgId=${DEFAULT_ORG_ID}`).catch(() => null),
+        apiClient<CompanyConfiguration>(`/api/company-configuration?orgId=${DEFAULT_ORG_ID}`).catch(() => null),
       ]);
       setForm(bookingsData);
       lastSavedRef.current = bookingsData;
       setHighlightDirty(false);
-      setShippingLineOptions(buildShippingLineOptions(contractData, bookingsData.shippingLine));
+      setShippingLineOptions(buildShippingLineOptions(companyConfiguration, contractData, bookingsData.shippingLine));
     } catch (loadError) {
       setError((loadError as Error).message);
     } finally {

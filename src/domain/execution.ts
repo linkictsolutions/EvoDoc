@@ -274,6 +274,7 @@ export function normalizeStaffingPayload(input: unknown) {
         netWeightKg: normalizeNumber(row.netWeightKg),
         doNumber: cleanOptional(row.doNumber),
       })),
+      showDoNumber: parsed.staffing.showDoNumber ?? false,
     } satisfies Omit<StaffingSheet, "createdAt" | "updatedAt">,
   };
 }

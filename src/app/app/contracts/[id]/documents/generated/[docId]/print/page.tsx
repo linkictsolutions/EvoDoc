@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { DocumentPrintTemplate } from "@/components/documents/document-print-template";
 import { buildBillOfLadingOutput } from "@/domain/documents/bill-of-lading";
 import { apiClient } from "@/lib/api/client";
+import { readTemplateLayoutForDocType } from "@/lib/documents/template-storage-keys";
 import { DEFAULT_ORG_ID } from "@/lib/config";
 import { useToast } from "@/components/ui/toast";
 import { CenteredLoader } from "@/components/ui/centered-loader";
@@ -69,6 +70,7 @@ export default function DocumentPrintPage({
   const [familyFromQuery, setFamilyFromQuery] = useState<string | null>(null);
   const [contractNumber, setContractNumber] = useState("");
   const [savingField, setSavingField] = useState<"billType" | "shipperReferenceType" | null>(null);
+  const [regenerating, setRegenerating] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -151,6 +153,43 @@ export default function DocumentPrintPage({
     }
   }
 
+  async function regenerateDocument() {
+    if (!payload) {
+      return;
+    }
+
+    const docType = payload.outputSnapshot.docType;
+    const docVariant = payload.outputSnapshot.docVariant;
+    const resolvedContractId = contractNumber || payload.inputSnapshot.contract.contractNumber;
+    const family = familyFromQuery ?? resolveFamilyFromDocType(docType);
+
+    setRegenerating(true);
+    try {
+      const templateLayout = readTemplateLayoutForDocType(docType, docVariant) ?? payload.templateLayout;
+      const data = await apiClient<{ docId: string }>("/api/documents/generate", {
+        method: "POST",
+        body: JSON.stringify({
+          orgId: DEFAULT_ORG_ID,
+          contractId: resolvedContractId,
+          shipmentId: payload.inputSnapshot.shipment?.id,
+          docType,
+          docVariant,
+          templateVersion: "v1",
+          ...(templateLayout ? { templateLayout } : {}),
+        }),
+      });
+
+      toast.success("Document regenerated.");
+      router.push(
+        `/app/contracts/${encodeURIComponent(resolvedContractId)}/documents/generated/${data.docId}/print?family=${encodeURIComponent(family)}`,
+      );
+    } catch (regenerateError) {
+      toast.error((regenerateError as Error).message || "Unable to regenerate document.");
+    } finally {
+      setRegenerating(false);
+    }
+  }
+
   useEffect(() => {
     if (familyFromQuery || !payload?.outputSnapshot.docType) {
       return;
@@ -229,7 +268,10 @@ export default function DocumentPrintPage({
             </label>
           </div>
         ) : null}
-        <button type="button" onClick={() => window.print()}>
+        <button type="button" className="button-secondary" onClick={() => void regenerateDocument()} disabled={regenerating || savingField !== null}>
+          {regenerating ? "Regenerating..." : "Regenerate"}
+        </button>
+        <button type="button" onClick={() => window.print()} disabled={regenerating}>
           Print
         </button>
       </section>

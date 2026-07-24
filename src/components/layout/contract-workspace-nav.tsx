@@ -2,8 +2,12 @@
 
 import Link from "next/link";
 import clsx from "clsx";
+import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
+import { apiClient } from "@/lib/api/client";
+import { DEFAULT_ORG_ID } from "@/lib/config";
 import { useWorkspaceScrollCollapsed } from "@/components/layout/workspace-scroll-context";
+import type { CompanyConfiguration } from "@/types/models";
 
 interface ContractWorkspaceNavProps {
   contractId: string;
@@ -97,31 +101,60 @@ export function SourceDocumentsSubnav({ contractId }: ContractWorkspaceNavProps)
 
 export function ExecutionSubnav({ contractId }: ContractWorkspaceNavProps) {
   const base = `/app/contracts/${contractId}`;
+  const [processingEnabled, setProcessingEnabled] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+    apiClient<CompanyConfiguration>(`/api/company-configuration?orgId=${DEFAULT_ORG_ID}`)
+      .then((configuration) => {
+        if (mounted) {
+          setProcessingEnabled(configuration.processingEnabled ?? true);
+        }
+      })
+      .catch(() => {
+        if (mounted) {
+          setProcessingEnabled(true);
+        }
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const items = useMemo(() => {
+    const executionItems: SubnavItem[] = [
+      {
+        href: `${base}/execution/bookings`,
+        label: "Bookings",
+        code: "BK",
+        hint: "Containers, seals, and booking references.",
+      },
+      {
+        href: `${base}/execution/staffing`,
+        label: "Staffing",
+        code: "ST",
+        hint: "Weights, certificates, vehicles, and drivers.",
+      },
+    ];
+
+    if (processingEnabled) {
+      executionItems.push({
+        href: `${base}/execution/processing`,
+        label: "Processing",
+        code: "PR",
+        hint: "Station and moisture inputs.",
+      });
+    }
+
+    return executionItems;
+  }, [base, processingEnabled]);
 
   return (
     <ContractSubnav
       title="Execution"
       subtitle="Attach operational shipment data used by generated documents."
-      items={[
-        {
-          href: `${base}/execution/bookings`,
-          label: "Bookings",
-          code: "BK",
-          hint: "Containers, seals, and booking references.",
-        },
-        {
-          href: `${base}/execution/staffing`,
-          label: "Staffing",
-          code: "ST",
-          hint: "Weights, certificates, vehicles, and drivers.",
-        },
-        {
-          href: `${base}/execution/processing`,
-          label: "Processing",
-          code: "PR",
-          hint: "Station and moisture inputs.",
-        },
-      ]}
+      items={items}
     />
   );
 }

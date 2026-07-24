@@ -35,6 +35,8 @@ type CompanyConfigurationFormState = {
   priceUoms: string[];
   packagingUnits: string[];
   movementTypes: string[];
+  shippingLines: string[];
+  processingEnabled: boolean;
   documentBranding: DocumentBrandingSettings;
   bulkReferenceKg: string;
   packagingDefinitions: PackagingDefinition[];
@@ -75,6 +77,8 @@ function toFormState(configuration: CompanyConfiguration): CompanyConfigurationF
     priceUoms: configuration.priceUoms,
     packagingUnits: packagingUnits.length > 0 ? packagingUnits : ["Bag of 60Kg"],
     movementTypes: configuration.movementTypes,
+    shippingLines: (configuration.shippingLines ?? []).filter((entry) => entry.trim().length > 0),
+    processingEnabled: configuration.processingEnabled ?? true,
     documentBranding: configuration.documentBranding,
     bulkReferenceKg: String(configuration.bulkReferenceKg),
     packagingDefinitions: configuration.packagingDefinitions,
@@ -658,6 +662,47 @@ export function CompanyConfigurationPage() {
     });
   }
 
+  function updateShippingLine(index: number, value: string) {
+    setForm((current) => {
+      if (!current) {
+        return current;
+      }
+
+      return {
+        ...current,
+        shippingLines: current.shippingLines.map((line, lineIndex) => (
+          lineIndex === index ? value : line
+        )),
+      };
+    });
+  }
+
+  function addShippingLine() {
+    setForm((current) => {
+      if (!current) {
+        return current;
+      }
+
+      return {
+        ...current,
+        shippingLines: [...current.shippingLines, ""],
+      };
+    });
+  }
+
+  function removeShippingLine(index: number) {
+    setForm((current) => {
+      if (!current) {
+        return current;
+      }
+
+      return {
+        ...current,
+        shippingLines: current.shippingLines.filter((_, lineIndex) => lineIndex !== index),
+      };
+    });
+  }
+
   function updateBrandingSlot(
     slot: "header" | "footer",
     key: "heightMm" | "fit" | "positionXPercent" | "positionYPercent" | "imageDataUrl",
@@ -1141,6 +1186,63 @@ export function CompanyConfigurationPage() {
                 </button>
               </div>
             </div>
+            </div>
+            </FormSection>
+
+            <FormSection title="Execution & Shipping" description="Control execution workflow steps and shipping line options used in Shipping Instruction and Bookings.">
+            <label className="col-12 config-toggle-row">
+              <input
+                type="checkbox"
+                checked={form.processingEnabled}
+                onChange={(event) => updateField("processingEnabled", event.target.checked)}
+              />
+              <span>Enable Processing step in contract execution</span>
+            </label>
+
+            <div className="table-wrap config-option-table span-all">
+              <table>
+                <thead>
+                  <tr>
+                    <th style={{ width: "72px" }}>#</th>
+                    <th>Shipping Line</th>
+                    <th style={{ width: "130px" }}>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {form.shippingLines.length === 0 ? (
+                    <tr>
+                      <td colSpan={3}>No shipping lines configured yet.</td>
+                    </tr>
+                  ) : (
+                    form.shippingLines.map((line, index) => (
+                      <tr key={`shipping-line-${index + 1}`}>
+                        <td>{index + 1}</td>
+                        <td>
+                          <input
+                            className={dirtyControlClass("shippingLines")}
+                            value={line}
+                            onChange={(event) => updateShippingLine(index, event.target.value)}
+                          />
+                        </td>
+                        <td>
+                          <button
+                            type="button"
+                            className="button-secondary"
+                            onClick={() => removeShippingLine(index)}
+                          >
+                            Remove
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+              <div className="row-actions mt-sm">
+                <button type="button" className="button-secondary" onClick={addShippingLine}>
+                  Add Shipping Line
+                </button>
+              </div>
             </div>
             </FormSection>
 

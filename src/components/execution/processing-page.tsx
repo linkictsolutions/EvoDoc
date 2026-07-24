@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
-import type { ProcessingSheet } from "@/types/models";
+import type { CompanyConfiguration, ProcessingSheet } from "@/types/models";
 import { CenteredLoader } from "@/components/ui/centered-loader";
 import { FormActionBar } from "@/components/ui/form-action-bar";
 import { FormSection } from "@/components/ui/form-section";
@@ -16,6 +16,7 @@ export function ProcessingPage({ contractId }: { contractId: string }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [processingEnabled, setProcessingEnabled] = useState(true);
   const [highlightDirty, setHighlightDirty] = useState(false);
   const lastSavedRef = useRef<ProcessingSheet | null>(null);
 
@@ -32,7 +33,11 @@ export function ProcessingPage({ contractId }: { contractId: string }) {
     setLoading(true);
     setError(null);
     try {
-      const data = await apiClient<ProcessingSheet>(`/api/contracts/${contractId}/execution/processing?orgId=${DEFAULT_ORG_ID}`);
+      const [data, companyConfiguration] = await Promise.all([
+        apiClient<ProcessingSheet>(`/api/contracts/${contractId}/execution/processing?orgId=${DEFAULT_ORG_ID}`),
+        apiClient<CompanyConfiguration>(`/api/company-configuration?orgId=${DEFAULT_ORG_ID}`).catch(() => null),
+      ]);
+      setProcessingEnabled(companyConfiguration?.processingEnabled ?? true);
       setForm(data);
       lastSavedRef.current = data;
       setHighlightDirty(false);
@@ -98,6 +103,15 @@ export function ProcessingPage({ contractId }: { contractId: string }) {
     return (
       <section className="card">
         <p className="error-text">{error ?? "Unable to load processing."}</p>
+      </section>
+    );
+  }
+
+  if (!processingEnabled) {
+    return (
+      <section className="card">
+        <h3>Processing Disabled</h3>
+        <p className="sidebar-subtitle">Processing is turned off in company configuration. Enable it under Masters → Company Configuration → Execution & Shipping if this contract needs processing data.</p>
       </section>
     );
   }

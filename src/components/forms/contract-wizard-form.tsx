@@ -309,9 +309,9 @@ export function ContractWizardForm() {
       ) : null}
 
       {step === 1 ? (
-        <FormSection title="Product & Commercial" description="Quality, quantity, pricing, and payment terms.">
+        <FormSection title="Product & Commercial" description="Coffee type, quantity, pricing, and payment terms.">
           <label className={`col-12 ${requiredLabelClass(Boolean(errors.quality))}`}>
-            <span className="label-text">Quality</span>
+            <span className="label-text">Coffee Type</span>
             <textarea className={dirtyControlClass("quality")} rows={3} {...register("quality")} />
             <small>{errors.quality?.message}</small>
           </label>

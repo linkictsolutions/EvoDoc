@@ -26,7 +26,7 @@ const schema = z.object({
   alternative2ServiceContract: z.string().optional(),
   portOfLoading: z.string().min(1, "Port of loading is required"),
   quantityValue: z.string().min(1, "Quantity is required"),
-  qualityValue: z.string().min(1, "Quality is required"),
+  qualityValue: z.string().min(1, "Coffee type is required"),
   packagingValue: z.string().min(1, "Packaging is required"),
   noOfBagsValue: z.string().min(1, "No of bags is required"),
   containerCountValue: z.string().min(1, "Containers is required"),
@@ -81,6 +81,7 @@ export function ShippingInstructionForm({
   const [savedContractId, setSavedContractId] = useState<string | null>(null);
   const [loadingExisting, setLoadingExisting] = useState(false);
   const [packagingOptions, setPackagingOptions] = useState<string[]>([]);
+  const [shippingLineOptions, setShippingLineOptions] = useState<string[]>([]);
   const [attachments, setAttachments] = useState<AttachmentRef[]>([]);
   const [highlightDirty, setHighlightDirty] = useState(false);
   const lastSavedRef = useRef<{ form: Partial<FormData>; attachments: AttachmentRef[] }>({ form: {}, attachments: [] });
@@ -120,6 +121,7 @@ export function ShippingInstructionForm({
 
   const contractIdInput = watch("contractId");
   const selectedPackagingValue = watch("packagingValue");
+  const selectedShippingLine = watch("shippingLine");
 
   useUnsavedChangesGuard({ enabled: isDirty && !saving, onBlockedNavigation: () => setHighlightDirty(true) });
 
@@ -234,10 +236,12 @@ export function ShippingInstructionForm({
         }
         const units = configuration.packagingUnits?.filter((unit) => unit.trim().length > 0) ?? [];
         setPackagingOptions(units);
+        setShippingLineOptions(configuration.shippingLines?.filter((line) => line.trim().length > 0) ?? []);
       })
       .catch(() => {
         if (mounted) {
           setPackagingOptions([]);
+          setShippingLineOptions([]);
         }
       });
 
@@ -350,7 +354,15 @@ export function ShippingInstructionForm({
         </label>
         <label className={`col-6 ${requiredLabelClass(Boolean(errors.shippingLine))}`}>
           <span className="label-text">Shipping Line</span>
-          <input className={dirtyControlClass("shippingLine")} {...register("shippingLine")} />
+          <select className={dirtyControlClass("shippingLine")} {...register("shippingLine")}>
+            <option value="">Select shipping line</option>
+            {selectedShippingLine && !shippingLineOptions.includes(selectedShippingLine) ? (
+              <option value={selectedShippingLine}>{selectedShippingLine}</option>
+            ) : null}
+            {shippingLineOptions.map((line) => (
+              <option key={line} value={line}>{line}</option>
+            ))}
+          </select>
           <small>{errors.shippingLine?.message}</small>
         </label>
         <label className="col-6">
@@ -401,7 +413,7 @@ export function ShippingInstructionForm({
         </label>
         <div className="form-pair-row">
           <label className={`col-8 form-field-stretch ${requiredLabelClass(Boolean(errors.qualityValue))}`}>
-            <span className="label-text">Quality</span>
+            <span className="label-text">Coffee Type</span>
             <textarea className={dirtyControlClass("qualityValue")} {...register("qualityValue")} />
             <small>{errors.qualityValue?.message}</small>
           </label>

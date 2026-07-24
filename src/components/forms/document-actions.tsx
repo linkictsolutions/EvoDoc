@@ -2,21 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { readTemplateLayoutForDocType } from "@/lib/documents/template-storage-keys";
 import type { DocumentFamily, DocumentType, DocumentVariant } from "@/types/models";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
 import { useToast } from "@/components/ui/toast";
 import { FormActionBar } from "@/components/ui/form-action-bar";
 import { FormSection } from "@/components/ui/form-section";
-
-const ICC_INVOICE_TEMPLATE_STORAGE_KEY = "evodoc.templates.commercial_invoice_icc.v1";
-const ICC_PACKING_TEMPLATE_STORAGE_KEY = "evodoc.templates.packing_list_icc.v1";
-const SHIPPING_INSTRUCTIONS_TEMPLATE_STORAGE_KEY = "evodoc.templates.shipping_instructions.v1";
-const QUALITY_CERT_TEMPLATE_STORAGE_KEY = "evodoc.templates.quality_certificate.v1";
-const WEIGHT_CERT_TEMPLATE_STORAGE_KEY = "evodoc.templates.weight_certificate.v1";
-const WAY_BILL_TEMPLATE_STORAGE_KEY = "evodoc.templates.way_bill.v1";
-const ICO_CERT_TEMPLATE_STORAGE_KEY = "evodoc.templates.ico_certificate.v1";
-const BILL_OF_LADING_TEMPLATE_STORAGE_KEY = "evodoc.templates.bill_of_lading.v1";
 
 export function GenerateDocumentButton({
   contractId,
@@ -42,36 +34,7 @@ export function GenerateDocumentButton({
     setLoading(true);
       setError(null);
     try {
-      const templateLayout = (() => {
-        if (typeof window === "undefined") {
-          return undefined;
-        }
-        if (docType === "invoice") {
-          return window.localStorage.getItem(ICC_INVOICE_TEMPLATE_STORAGE_KEY) ?? undefined;
-        }
-        if (docType === "packing_list" && docVariant !== "permit") {
-          return window.localStorage.getItem(ICC_PACKING_TEMPLATE_STORAGE_KEY) ?? undefined;
-        }
-        if (docType === "shipping_instructions") {
-          return window.localStorage.getItem(SHIPPING_INSTRUCTIONS_TEMPLATE_STORAGE_KEY) ?? undefined;
-        }
-        if (docType === "quality_certificate") {
-          return window.localStorage.getItem(QUALITY_CERT_TEMPLATE_STORAGE_KEY) ?? undefined;
-        }
-        if (docType === "weight_certificate") {
-          return window.localStorage.getItem(WEIGHT_CERT_TEMPLATE_STORAGE_KEY) ?? undefined;
-        }
-        if (docType === "way_bill") {
-          return window.localStorage.getItem(WAY_BILL_TEMPLATE_STORAGE_KEY) ?? undefined;
-        }
-        if (docType === "ico_certificate") {
-          return window.localStorage.getItem(ICO_CERT_TEMPLATE_STORAGE_KEY) ?? undefined;
-        }
-        if (docType === "bill_of_lading") {
-          return window.localStorage.getItem(BILL_OF_LADING_TEMPLATE_STORAGE_KEY) ?? undefined;
-        }
-        return undefined;
-      })();
+      const templateLayout = readTemplateLayoutForDocType(docType, docVariant);
 
       const data = await apiClient<{ docId: string }>("/api/documents/generate", {
         method: "POST",
