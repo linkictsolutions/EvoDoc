@@ -145,6 +145,7 @@ export interface CompanyConfiguration extends Timestamped {
   movementTypes: string[];
   shippingLines: string[];
   processingEnabled: boolean;
+  staffingShowDoNumber: boolean;
   documentBranding: DocumentBrandingSettings;
   bulkReferenceKg: number;
   packagingDefinitions: PackagingDefinition[];

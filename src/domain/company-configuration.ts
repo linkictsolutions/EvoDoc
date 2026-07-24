@@ -179,6 +179,10 @@ function resolveProcessingEnabled(configuration?: Partial<CompanyConfiguration> 
   return configuration?.processingEnabled ?? true;
 }
 
+function resolveStaffingShowDoNumber(configuration?: Partial<CompanyConfiguration> | null): boolean {
+  return configuration?.staffingShowDoNumber ?? false;
+}
+
 function resolveMovementTypes(configuration?: Partial<CompanyConfiguration> | null): string[] {
   const fromList = normalizePaymentTerms(configuration?.movementTypes);
   if (fromList.length > 0) {
@@ -366,6 +370,7 @@ export function defaultCompanyConfiguration(orgId: string): CompanyConfiguration
     movementTypes: DEFAULT_MOVEMENT_TYPES,
     shippingLines: DEFAULT_SHIPPING_LINES,
     processingEnabled: true,
+    staffingShowDoNumber: false,
     documentBranding: DEFAULT_DOCUMENT_BRANDING,
     bulkReferenceKg: 19200,
     packagingDefinitions: DEFAULT_PACKAGING_DEFINITIONS,
@@ -407,6 +412,7 @@ export function resolveCompanyConfiguration(
     movementTypes: resolveMovementTypes(configuration),
     shippingLines: resolveShippingLines(configuration),
     processingEnabled: resolveProcessingEnabled(configuration),
+    staffingShowDoNumber: resolveStaffingShowDoNumber(configuration),
     documentBranding: resolveDocumentBranding(configuration),
     bulkReferenceKg: configuration?.bulkReferenceKg ?? defaults.bulkReferenceKg,
     beneficiaryBanks: normalizeBeneficiaryBanks(configuration?.beneficiaryBanks),
@@ -451,6 +457,7 @@ export function validateAndNormalizeCompanyConfigurationPayload(
       movementTypes: normalizePaymentTerms(normalized.movementTypes),
       shippingLines: normalizePaymentTerms(normalized.shippingLines),
       processingEnabled: normalized.processingEnabled,
+      staffingShowDoNumber: normalized.staffingShowDoNumber,
       documentBranding: resolveDocumentBranding(normalized),
       bulkReferenceKg: normalized.bulkReferenceKg,
       beneficiaryBanks: normalizeBeneficiaryBanks(normalized.beneficiaryBanks),

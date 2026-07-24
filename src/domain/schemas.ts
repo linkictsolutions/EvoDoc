@@ -261,6 +261,7 @@ export const companyConfigurationInputSchema = z.object({
     movementTypes: z.array(z.string().min(1)).min(1).optional(),
     shippingLines: z.array(z.string().min(1)).optional(),
     processingEnabled: z.boolean().optional(),
+    staffingShowDoNumber: z.boolean().optional(),
     documentBranding: z.object({
       header: z.object({
         imageDataUrl: z.string().optional(),

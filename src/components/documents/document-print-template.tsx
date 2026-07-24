@@ -404,13 +404,6 @@ function isSignatureBoxCell(cell: TemplateCell) {
   return label.includes("signature box") || cell.id.toLowerCase().includes("sign_box");
 }
 
-function isAuthorizedSignatureCell(cell: TemplateCell) {
-  const label = cell.label.toLowerCase();
-  return cell.id === "ts_signature"
-    || cell.id === "fm_signature"
-    || label.includes("authorized signature");
-}
-
 function templateRowHeightMm(cell: TemplateCell, rowScale: number) {
   return `${Math.max(1, cell.h) * ICC_PRINT_GRID_ROW_MM * rowScale}mm`;
 }
@@ -418,9 +411,6 @@ function templateRowHeightMm(cell: TemplateCell, rowScale: number) {
 function templateCellLayoutStyle(cell: TemplateCell, rowScale: number): CSSProperties {
   if (isSpacerCell(cell) || isSignatureBoxCell(cell)) {
     return { height: templateRowHeightMm(cell, rowScale) };
-  }
-  if (isAuthorizedSignatureCell(cell)) {
-    return { minHeight: templateRowHeightMm(cell, rowScale) };
   }
   return {};
 }
@@ -587,7 +577,7 @@ function IccInvoiceTemplatePrintView({ output, documentId, isFinal, template }: 
                           fontWeight: 500,
                           whiteSpace: "pre-wrap",
                           wordBreak: "break-word",
-                          verticalAlign: "middle",
+                          verticalAlign: "top",
                           ...templateCellLayoutStyle(cell, spacerRowScale),
                           border: cellShowsBorder(cell) ? undefined : "none",
                           textAlign: (
@@ -754,7 +744,7 @@ function GenericTemplatePrintView({
                           fontWeight: 500,
                           whiteSpace: "pre-wrap",
                           wordBreak: "break-word",
-                          verticalAlign: "middle",
+                          verticalAlign: "top",
                           ...templateCellLayoutStyle(cell, spacerRowScale),
                           border: cellShowsBorder(cell) ? undefined : "none",
                         }}
@@ -1405,7 +1395,7 @@ function PackingListIccTemplatePrintView({ output, documentId, isFinal, template
                           fontWeight: 500,
                           whiteSpace: "pre-wrap",
                           wordBreak: "break-word",
-                          verticalAlign: "middle",
+                          verticalAlign: "top",
                           ...templateCellLayoutStyle(cell, spacerRowScale),
                           textAlign: cell.id === "pl_page" ? "right" : undefined,
                         }}

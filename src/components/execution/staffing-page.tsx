@@ -6,7 +6,7 @@ import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
 import { computeContractExcelParity } from "@/domain/excel-parity";
 import { applyCalculatedStaffingWeights, collectSealOptions, deriveFinalStaffingRows } from "@/domain/execution";
-import type { BookingsSheet, Contract, StaffingFinalRow, StaffingSheet } from "@/types/models";
+import type { BookingsSheet, CompanyConfiguration, Contract, StaffingFinalRow, StaffingSheet } from "@/types/models";
 import { CenteredLoader } from "@/components/ui/centered-loader";
 import { useToast } from "@/components/ui/toast";
 import { useUnsavedChangesGuard } from "@/components/ui/use-unsaved-changes-guard";
@@ -25,36 +25,34 @@ export function StaffingPage({ contractId }: { contractId: string }) {
   const [bookings, setBookings] = useState<BookingsSheet | null>(null);
   const [form, setForm] = useState<StaffingPayload | null>(null);
   const [contract, setContract] = useState<ContractDetailResponse["contract"] | null>(null);
+  const [showDoNumber, setShowDoNumber] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [highlightDirty, setHighlightDirty] = useState(false);
   const lastSavedRowsRef = useRef<StaffingSheet["instructionRows"]>([]);
-  const lastSavedShowDoNumberRef = useRef(false);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
 
     try {
-      const [bookingsData, staffingData, contractData] = await Promise.all([
+      const [bookingsData, staffingData, contractData, companyConfiguration] = await Promise.all([
         apiClient<BookingsSheet>(`/api/contracts/${contractId}/execution/bookings?orgId=${DEFAULT_ORG_ID}`),
         apiClient<StaffingPayload>(`/api/contracts/${contractId}/execution/staffing?orgId=${DEFAULT_ORG_ID}`),
         apiClient<ContractDetailResponse>(`/api/contracts/${contractId}?orgId=${DEFAULT_ORG_ID}`),
+        apiClient<CompanyConfiguration>(`/api/company-configuration?orgId=${DEFAULT_ORG_ID}`),
       ]);
       const instructionRows = applyCalculatedStaffingWeights(staffingData.instructionRows, contractData.contract);
-      const showDoNumber = staffingData.showDoNumber
-        ?? instructionRows.some((row) => Boolean(row.doNumber?.trim()));
       const nextForm = {
         ...staffingData,
         instructionRows,
-        showDoNumber,
         finalRows: deriveFinalStaffingRows({ ...staffingData, instructionRows }),
       };
       setBookings(bookingsData);
       setForm(nextForm);
+      setShowDoNumber(companyConfiguration.staffingShowDoNumber ?? false);
       lastSavedRowsRef.current = instructionRows;
-      lastSavedShowDoNumberRef.current = showDoNumber;
       setHighlightDirty(false);
       setContract(contractData.contract);
     } catch (loadError) {
@@ -72,13 +70,7 @@ export function StaffingPage({ contractId }: { contractId: string }) {
     if (!form) {
       return false;
     }
-    return JSON.stringify({
-      instructionRows: form.instructionRows,
-      showDoNumber: form.showDoNumber ?? false,
-    }) !== JSON.stringify({
-      instructionRows: lastSavedRowsRef.current,
-      showDoNumber: lastSavedShowDoNumberRef.current,
-    });
+    return JSON.stringify(form.instructionRows) !== JSON.stringify(lastSavedRowsRef.current);
   }, [form]);
 
   useUnsavedChangesGuard({ enabled: isDirty && !saving, onBlockedNavigation: () => setHighlightDirty(true) });
@@ -113,10 +105,6 @@ export function StaffingPage({ contractId }: { contractId: string }) {
     }
     return `Cert sequence: ${certOptions[0]} to ${certOptions[certOptions.length - 1]} (${containerCount} containers).`;
   }, [certOptions, containerCount]);
-
-  function toggleShowDoNumber(checked: boolean) {
-    setForm((current) => (current ? { ...current, showDoNumber: checked } : current));
-  }
 
   function updateRow(index: number, key: keyof StaffingSheet["instructionRows"][number], value: string) {
     setForm((current) => {
@@ -170,7 +158,6 @@ export function StaffingPage({ contractId }: { contractId: string }) {
           orgId: DEFAULT_ORG_ID,
           staffing: {
             instructionRows: form.instructionRows,
-            showDoNumber: form.showDoNumber ?? false,
           },
         }),
       });
@@ -201,7 +188,6 @@ export function StaffingPage({ contractId }: { contractId: string }) {
   }
 
   const controlClass = highlightDirty && isDirty ? "field-error-control" : undefined;
-  const showDoNumber = form.showDoNumber ?? false;
   const doColumnClass = clsx("staffing-do-column", showDoNumber && "is-visible");
 
   return (
@@ -237,16 +223,7 @@ export function StaffingPage({ contractId }: { contractId: string }) {
                 <th>First Weight</th>
                 <th>Second Weight</th>
                 <th>Net Weight</th>
-                <th className={doColumnClass}>
-                  <label className="staffing-do-toggle">
-                    <input
-                      type="checkbox"
-                      checked={showDoNumber}
-                      onChange={(event) => toggleShowDoNumber(event.target.checked)}
-                    />
-                    <span>DO No</span>
-                  </label>
-                </th>
+                <th className={doColumnClass}>DO No</th>
               </tr>
             </thead>
             <tbody>

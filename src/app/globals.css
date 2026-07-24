@@ -3581,7 +3581,7 @@ textarea:disabled {
 .print-table td {
   border: 1px solid #8f8f8f;
   padding: 0.35rem 0.45rem;
-  vertical-align: middle;
+  vertical-align: top;
   font-size: 0.83rem;
 }
 
@@ -3616,7 +3616,7 @@ textarea:disabled {
 .icc-footer-table .icc-full-marking-cell,
 .icc-footer-table .icc-signature-cell {
   min-height: 42mm;
-  vertical-align: middle;
+  vertical-align: top;
 }
 
 .packing-icc-sheet {
@@ -3640,13 +3640,13 @@ textarea:disabled {
 .packing-icc-declaration-cell {
   font-size: 0.72rem;
   line-height: 1.25;
-  vertical-align: middle;
+  vertical-align: top;
 }
 
 .packing-icc-footer-table .packing-icc-marking-cell,
 .packing-icc-footer-table .packing-icc-signature-cell {
   min-height: 34mm;
-  vertical-align: middle;
+  vertical-align: top;
 }
 
 .si-sheet {
@@ -3697,6 +3697,10 @@ textarea:disabled {
 .document-print-root {
   width: min(980px, 100%);
   margin: 0 auto;
+}
+
+.print-controls-actions {
+  margin-top: 0.85rem;
 }
 
 .document-branded-page {
@@ -4971,10 +4975,10 @@ textarea:disabled {
   .document-branded-page {
     width: calc(210mm - (var(--print-page-inset) * 2));
     min-height: calc(297mm - (var(--print-page-inset) * 2));
-    height: calc(297mm - (var(--print-page-inset) * 2));
+    height: auto;
     margin: var(--print-page-inset) auto;
     box-shadow: none;
-    overflow: hidden;
+    overflow: visible;
     box-sizing: border-box;
     break-inside: avoid-page;
     page-break-inside: avoid;
@@ -4988,7 +4992,7 @@ textarea:disabled {
   }
 
   .document-branded-content {
-    height: 100%;
+    height: auto;
     overflow: visible;
     box-sizing: border-box;
   }
@@ -5009,7 +5013,7 @@ textarea:disabled {
 
   .icc-footer-table .icc-full-marking-cell,
   .icc-footer-table .icc-signature-cell {
-    min-height: 48mm;
+    min-height: 42mm;
   }
 
   .packing-icc-sheet {
@@ -5033,7 +5037,7 @@ textarea:disabled {
 
   .packing-icc-footer-table .packing-icc-marking-cell,
   .packing-icc-footer-table .packing-icc-signature-cell {
-    min-height: 40mm;
+    min-height: 34mm;
   }
 
   .si-sheet {

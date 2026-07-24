@@ -37,6 +37,7 @@ type CompanyConfigurationFormState = {
   movementTypes: string[];
   shippingLines: string[];
   processingEnabled: boolean;
+  staffingShowDoNumber: boolean;
   documentBranding: DocumentBrandingSettings;
   bulkReferenceKg: string;
   packagingDefinitions: PackagingDefinition[];
@@ -79,6 +80,7 @@ function toFormState(configuration: CompanyConfiguration): CompanyConfigurationF
     movementTypes: configuration.movementTypes,
     shippingLines: (configuration.shippingLines ?? []).filter((entry) => entry.trim().length > 0),
     processingEnabled: configuration.processingEnabled ?? true,
+    staffingShowDoNumber: configuration.staffingShowDoNumber ?? false,
     documentBranding: configuration.documentBranding,
     bulkReferenceKg: String(configuration.bulkReferenceKg),
     packagingDefinitions: configuration.packagingDefinitions,
@@ -1197,6 +1199,14 @@ export function CompanyConfigurationPage() {
                 onChange={(event) => updateField("processingEnabled", event.target.checked)}
               />
               <span>Enable Processing step in contract execution</span>
+            </label>
+            <label className="col-12 config-toggle-row">
+              <input
+                type="checkbox"
+                checked={form.staffingShowDoNumber}
+                onChange={(event) => updateField("staffingShowDoNumber", event.target.checked)}
+              />
+              <span>Show DO No column in Staffing</span>
             </label>
 
             <div className="table-wrap config-option-table span-all">

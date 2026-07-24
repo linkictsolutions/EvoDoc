@@ -273,12 +273,14 @@ export default function DocumentPrintPage({
             </label>
           </div>
         ) : null}
-        <button type="button" className="button-secondary" onClick={() => void regenerateDocument()} disabled={regenerating || savingField !== null}>
-          {regenerating ? "Regenerating..." : "Regenerate"}
-        </button>
-        <button type="button" onClick={() => window.print()} disabled={regenerating}>
-          Print
-        </button>
+        <div className="print-controls-actions row-actions">
+          <button type="button" className="button-secondary" onClick={() => void regenerateDocument()} disabled={regenerating || savingField !== null}>
+            {regenerating ? "Regenerating..." : "Regenerate"}
+          </button>
+          <button type="button" onClick={() => window.print()} disabled={regenerating}>
+            Print
+          </button>
+        </div>
       </section>
       <section className="document-print-root">
         <DocumentPrintTemplate
