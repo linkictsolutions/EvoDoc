@@ -1,8 +1,15 @@
 "use client";
 
 import { Children, useMemo, useState, type CSSProperties, type ReactNode } from "react";
+import { DocumentSinglePageFit } from "@/components/documents/document-single-page-fit";
 import { resolveCompanyConfiguration } from "@/domain/company-configuration";
-import type { DocumentInputSnapshot, DocumentOutputSnapshot, DocumentType } from "@/types/models";
+import { getFactoryDefaultTemplateLayout } from "@/domain/template-factory-defaults";
+import {
+  applyStaticTokens,
+  isTemplateStaticTextCell,
+  resolveTemplateCellStaticHtml,
+} from "@/domain/template-static-content";
+import type { DocumentInputSnapshot, DocumentOutputSnapshot, DocumentType, DocumentVariant } from "@/types/models";
 
 const ICC_INVOICE_TEMPLATE_STORAGE_KEY = "evodoc.templates.commercial_invoice_icc.v1";
 const ICC_PACKING_TEMPLATE_STORAGE_KEY = "evodoc.templates.packing_list_icc.v1";
@@ -66,6 +73,8 @@ type TemplateCell = {
   w: number;
   h: number;
   showBorder?: boolean;
+  contentKind?: "field" | "static";
+  staticHtml?: string;
 };
 
 type TemplateSection = {
@@ -152,6 +161,7 @@ const ICC_CELL_LABEL_MAP: Record<string, string> = {
   ts_payment: "Term/Method of Payment",
   ts_packaging_label: "Packaging & Marking (Label)",
   ts_full_marking: "Full Marking",
+  ts_declaration: "Declaration",
 };
 
 const ICC_GOODS_COLUMN_IDS = new Set([
@@ -204,6 +214,54 @@ function parseIccTemplate(raw: string | undefined): PersistedIccTemplate | null 
   } catch {
     return null;
   }
+}
+
+function resolveTemplateLayout(
+  templateLayout: string | undefined,
+  docType: DocumentType,
+  docVariant?: DocumentVariant,
+): PersistedIccTemplate | null {
+  const fromPayload = parseIccTemplate(templateLayout);
+  if (fromPayload) {
+    return fromPayload;
+  }
+
+  const factoryLayout = getFactoryDefaultTemplateLayout(docType, docVariant);
+  return parseIccTemplate(factoryLayout);
+}
+
+function buildStaticTokens(rows: Row[], cell: TemplateCell, isFinal?: boolean): Record<string, string> {
+  const tokens: Record<string, string> = {
+    DESCRIPTION: display(value(rows, "Description of Goods")) || display(value(rows, "Statement")),
+    AMOUNT_IN_WORDS: display(value(rows, "Amount in Words")),
+    DRIVER_NAME: display(value(rows, "Driver Name")),
+    SELLER_NAME: display(pickRowValue(rows, "Shipper", "Exporter/Beneficiary/Seller")),
+  };
+
+  if (cell.id === "inv_page" || cell.id === "pl_page") {
+    tokens.PAGE_STATUS = isFinal ? "FINAL" : "ORIGINAL";
+  }
+
+  return tokens;
+}
+
+function renderStaticTemplateCell(cell: TemplateCell, rows: Row[], isFinal?: boolean) {
+  if (!isTemplateStaticTextCell(cell.id) && cell.contentKind !== "static") {
+    return null;
+  }
+
+  let html = resolveTemplateCellStaticHtml(cell);
+  if ((cell.id === "inv_page" || cell.id === "pl_page") && html.includes("ORIGINAL/FINAL")) {
+    html = html.replace("ORIGINAL/FINAL", isFinal ? "FINAL" : "ORIGINAL");
+  }
+
+  const resolved = applyStaticTokens(html, buildStaticTokens(rows, cell, isFinal));
+  return (
+    <div
+      className="template-static-html"
+      dangerouslySetInnerHTML={{ __html: resolved }}
+    />
+  );
 }
 
 function normalizeTemplateSections(sections: TemplateSection[]): TemplateSection[] {
@@ -513,6 +571,11 @@ function IccInvoiceTemplatePrintView({ output, documentId, isFinal, template }: 
                     const labelWithColon = cell.label.endsWith(":") ? cell.label : `${cell.label}:`;
 
                     const content: ReactNode = (() => {
+                      const staticContent = renderStaticTemplateCell(cell, rows, isFinal);
+                      if (staticContent) {
+                        return staticContent;
+                      }
+
                       if (cell.id === "inv_title") {
                         return <strong>{cell.label}</strong>;
                       }
@@ -709,6 +772,11 @@ function GenericTemplatePrintView({
                     const labelWithColon = cell.label.trim().endsWith(":") ? cell.label.trim() : `${cell.label.trim()}:`;
 
                     const content = (() => {
+                      const staticContent = renderStaticTemplateCell(cell, rows, isFinal);
+                      if (staticContent) {
+                        return staticContent;
+                      }
+
                       if (isSpacer || isSignatureBoxCell(cell)) return null;
                       if (isTableHeader) {
                         return <strong>{cell.label}</strong>;
@@ -765,13 +833,10 @@ function GenericTemplatePrintView({
 
 function IccInvoicePrintView({ output, documentId, isFinal, templateLayout }: Props) {
   const rows = flattenRows(output);
-  const template = useMemo(() => {
-    const fromPayload = parseIccTemplate(templateLayout);
-    if (fromPayload) {
-      return fromPayload;
-    }
-    return readIccInvoiceTemplateFromStorage();
-  }, [templateLayout]);
+  const template = useMemo(
+    () => resolveTemplateLayout(templateLayout, "invoice", output.docVariant),
+    [templateLayout, output.docVariant],
+  );
   if (template) {
     return (
       <IccInvoiceTemplatePrintView output={output} input={undefined} documentId={documentId} isFinal={isFinal} template={template} />
@@ -1332,6 +1397,11 @@ function PackingListIccTemplatePrintView({ output, documentId, isFinal, template
                     const labelWithColon = cell.label.endsWith(":") ? cell.label : `${cell.label}:`;
 
                     const content: ReactNode = (() => {
+                      const staticContent = renderStaticTemplateCell(cell, rows, isFinal);
+                      if (staticContent) {
+                        return staticContent;
+                      }
+
                       if (cell.id === "pl_title") {
                         return <strong>{cell.label}</strong>;
                       }
@@ -1415,13 +1485,10 @@ function PackingListIccTemplatePrintView({ output, documentId, isFinal, template
 }
 
 function PackingListIccPrintViewWithTemplate({ output, documentId, isFinal, templateLayout }: Props) {
-  const template = useMemo(() => {
-    const fromPayload = parseIccTemplate(templateLayout);
-    if (fromPayload) {
-      return fromPayload;
-    }
-    return readPackingListTemplateFromStorage();
-  }, [templateLayout]);
+  const template = useMemo(
+    () => resolveTemplateLayout(templateLayout, "packing_list", output.docVariant),
+    [templateLayout, output.docVariant],
+  );
 
   if (template) {
     return (
@@ -1432,13 +1499,10 @@ function PackingListIccPrintViewWithTemplate({ output, documentId, isFinal, temp
 }
 
 function ShippingInstructionsPrintViewWithTemplate({ output, documentId, isFinal, templateLayout }: Props) {
-  const template = useMemo(() => {
-    const fromPayload = parseIccTemplate(templateLayout);
-    if (fromPayload) {
-      return fromPayload;
-    }
-    return readTemplateFromStorage(SHIPPING_INSTRUCTIONS_TEMPLATE_STORAGE_KEY);
-  }, [templateLayout]);
+  const template = useMemo(
+    () => resolveTemplateLayout(templateLayout, "shipping_instructions", output.docVariant),
+    [templateLayout, output.docVariant],
+  );
 
   if (!template) {
     return <SiPrintView output={output} documentId={documentId} />;
@@ -1456,13 +1520,10 @@ function ShippingInstructionsPrintViewWithTemplate({ output, documentId, isFinal
 }
 
 function CertificateOfQualityPrintViewWithTemplate({ output, documentId, isFinal, templateLayout }: Props) {
-  const template = useMemo(() => {
-    const fromPayload = parseIccTemplate(templateLayout);
-    if (fromPayload) {
-      return fromPayload;
-    }
-    return readTemplateFromStorage(QUALITY_CERT_TEMPLATE_STORAGE_KEY);
-  }, [templateLayout]);
+  const template = useMemo(
+    () => resolveTemplateLayout(templateLayout, "quality_certificate", output.docVariant),
+    [templateLayout, output.docVariant],
+  );
 
   if (!template) {
     return <CertificateOfQualityPrintView output={output} documentId={documentId} />;
@@ -1483,13 +1544,10 @@ function CertificateOfQualityPrintViewWithTemplate({ output, documentId, isFinal
 }
 
 function CertificateOfWeightPrintViewWithTemplate({ output, documentId, isFinal, templateLayout }: Props) {
-  const template = useMemo(() => {
-    const fromPayload = parseIccTemplate(templateLayout);
-    if (fromPayload) {
-      return fromPayload;
-    }
-    return readTemplateFromStorage(WEIGHT_CERT_TEMPLATE_STORAGE_KEY);
-  }, [templateLayout]);
+  const template = useMemo(
+    () => resolveTemplateLayout(templateLayout, "weight_certificate", output.docVariant),
+    [templateLayout, output.docVariant],
+  );
 
   if (!template) {
     return <CertificateOfWeightPrintView output={output} documentId={documentId} />;
@@ -1510,13 +1568,10 @@ function CertificateOfWeightPrintViewWithTemplate({ output, documentId, isFinal,
 }
 
 function WayBillPrintViewWithTemplate({ output, documentId, isFinal, templateLayout }: Props) {
-  const template = useMemo(() => {
-    const fromPayload = parseIccTemplate(templateLayout);
-    if (fromPayload) {
-      return fromPayload;
-    }
-    return readTemplateFromStorage(WAY_BILL_TEMPLATE_STORAGE_KEY);
-  }, [templateLayout]);
+  const template = useMemo(
+    () => resolveTemplateLayout(templateLayout, "way_bill", output.docVariant),
+    [templateLayout, output.docVariant],
+  );
 
   if (!template) {
     return <WayBillPrintView output={output} documentId={documentId} />;
@@ -1542,13 +1597,10 @@ function WayBillPrintViewWithTemplate({ output, documentId, isFinal, templateLay
 }
 
 function IcoCertificatePrintViewWithTemplate({ output, documentId, isFinal, templateLayout }: Props) {
-  const template = useMemo(() => {
-    const fromPayload = parseIccTemplate(templateLayout);
-    if (fromPayload) {
-      return fromPayload;
-    }
-    return readTemplateFromStorage(ICO_CERT_TEMPLATE_STORAGE_KEY);
-  }, [templateLayout]);
+  const template = useMemo(
+    () => resolveTemplateLayout(templateLayout, "ico_certificate", output.docVariant),
+    [templateLayout, output.docVariant],
+  );
 
   if (!template) {
     return <IcoCertificatePrintView output={output} documentId={documentId} />;
@@ -2945,7 +2997,9 @@ function DocumentPrintPageFrame(
           ) : null}
 
           <div className="document-branded-content">
-            {page}
+            <DocumentSinglePageFit enabled={docType !== "bill_of_lading"}>
+              {page}
+            </DocumentSinglePageFit>
           </div>
 
           {showFooter ? (

@@ -7,6 +7,7 @@ import { computeContractExcelParity, resolveContractSiLcFinalFields } from "@/do
 import { buildPackingListIccSample } from "@/domain/packing-list-icc";
 import { formatMoney, formatWeight } from "@/domain/rounding";
 import { buildWayBillSample } from "@/domain/way-bill";
+import { ICC_DECLARATION_TEXT } from "@/domain/template-static-content";
 import type {
   DocumentInputSnapshot,
   DocumentOutputSnapshot,
@@ -166,6 +167,7 @@ export function mapDocumentOutput(
                 "Term/Method of Payment": sample.footer.termMethodOfPayment,
                 "Packaging & Marking (Label)": sample.footer.packagingAndMarkingLabel,
                 "Full Marking": sample.footer.fullMarking,
+                Declaration: ICC_DECLARATION_TEXT,
               }),
             },
           ],

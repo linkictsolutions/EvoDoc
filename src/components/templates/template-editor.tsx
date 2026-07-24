@@ -15,6 +15,7 @@ import {
   type TemplateGridCell,
   type TemplateSection,
 } from "@/domain/template-layout";
+import { applyStaticDefaultsToCell } from "@/domain/template-static-content";
 import { TemplateCellEditModal } from "@/components/templates/template-cell-edit-modal";
 import { SaveNamedTemplateModal } from "@/components/templates/save-named-template-modal";
 import { useToast } from "@/components/ui/toast";
@@ -555,6 +556,13 @@ function GridPreview({
   );
 }
 
+function withStaticDefaults(sections: TemplateSection[]) {
+  return sections.map((section) => ({
+    ...section,
+    cells: (section.cells ?? []).map(applyStaticDefaultsToCell),
+  }));
+}
+
 export function TemplateEditor({
   storageKey,
   docType,
@@ -580,7 +588,7 @@ export function TemplateEditor({
     }
     return map;
   }, [defaultSections12Col]);
-  const [sections, setSections] = useState<TemplateSection[]>(() => relayoutSections(scaleSections12To24(defaultSections12Col)));
+  const [sections, setSections] = useState<TemplateSection[]>(() => relayoutSections(withStaticDefaults(scaleSections12To24(defaultSections12Col))));
   const [availableFields, setAvailableFields] = useState<Record<string, TemplateGridCell[]>>({});
   const [showGrid, setShowGrid] = useState(true);
   const spacerCounterRef = useRef(1);
@@ -637,7 +645,7 @@ export function TemplateEditor({
     } else {
       const baseline = serializeTemplate({
         version: 1,
-        sections: relayoutSections(scaleSections12To24(defaultSections12Col)),
+        sections: relayoutSections(withStaticDefaults(scaleSections12To24(defaultSections12Col))),
         availableFields: {},
         spacerCounter: 1,
       });
@@ -808,7 +816,7 @@ export function TemplateEditor({
   const resetTemplate = useCallback(() => {
     spacerCounterRef.current = 1;
     setAvailableFields({});
-    const defaults = scaleSections12To24(defaultSections12Col).map((section) => ({
+    const defaults = withStaticDefaults(scaleSections12To24(defaultSections12Col)).map((section) => ({
       ...section,
       cells: section.cells.map((cell) => normalizeTemplateCell({
         ...cell,

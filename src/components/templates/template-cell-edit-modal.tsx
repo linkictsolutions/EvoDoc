@@ -2,6 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { ModalPanel } from "@/components/ui/modal-panel";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
+import {
+  getDefaultStaticHtml,
+  isTemplateStaticTextCell,
+  resolveTemplateCellStaticHtml,
+} from "@/domain/template-static-content";
 import type { TemplateGridCell } from "@/domain/template-layout";
 
 type TemplateCellEditModalProps = {
@@ -19,6 +25,9 @@ export function TemplateCellEditModal({
 }: TemplateCellEditModalProps) {
   const [label, setLabel] = useState("");
   const [showBorder, setShowBorder] = useState(true);
+  const [staticHtml, setStaticHtml] = useState("");
+
+  const isStaticCell = cell ? isTemplateStaticTextCell(cell.id) : false;
 
   useEffect(() => {
     if (!open || !cell) {
@@ -27,6 +36,7 @@ export function TemplateCellEditModal({
 
     setLabel(cell.label);
     setShowBorder(cell.showBorder !== false);
+    setStaticHtml(resolveTemplateCellStaticHtml(cell));
   }, [cell, open]);
 
   if (!cell) {
@@ -37,16 +47,34 @@ export function TemplateCellEditModal({
     <ModalPanel
       open={open}
       onClose={onDiscard}
-      title="Edit Field"
-      description={`Configure how "${cell.id}" appears in the generated PDF.`}
+      title={isStaticCell ? "Edit Static Text" : "Edit Field"}
+      description={
+        isStaticCell
+          ? `Edit the fixed content for "${cell.label}". Use tokens like {{DESCRIPTION}} where needed.`
+          : `Configure how "${cell.id}" appears in the generated PDF.`
+      }
+      wide={isStaticCell}
       closeOnBackdropClick={false}
       closeOnEscape={false}
     >
       <div className="template-cell-edit-form">
         <label className="col-12">
-          <span className="label-text">Label</span>
-          <input value={label} onChange={(event) => setLabel(event.target.value)} autoFocus />
+          <span className="label-text">Field label</span>
+          <input value={label} onChange={(event) => setLabel(event.target.value)} autoFocus={!isStaticCell} />
         </label>
+
+        {isStaticCell ? (
+          <div className="col-12">
+            <span className="label-text">Content</span>
+            <RichTextEditor value={staticHtml} onChange={setStaticHtml} />
+            {getDefaultStaticHtml(cell.id) ? (
+              <p className="template-cell-edit-hint">
+                Default text is pre-filled. Tokens such as {"{{DESCRIPTION}}"} are replaced when the document is generated.
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+
         <label className="col-12 template-checkbox-row">
           <input
             type="checkbox"
@@ -65,8 +93,14 @@ export function TemplateCellEditModal({
               ...cell,
               label: label.trim() || cell.label,
               showBorder,
+              ...(isStaticCell
+                ? {
+                    contentKind: "static" as const,
+                    staticHtml: staticHtml.trim() || getDefaultStaticHtml(cell.id) || staticHtml,
+                  }
+                : {}),
             })}
-            disabled={label.trim().length === 0}
+            disabled={label.trim().length === 0 || (isStaticCell && staticHtml.trim().length === 0)}
           >
             Save
           </button>

@@ -8,6 +8,8 @@ export type TemplateGridCell = {
   w: number;
   h: number;
   showBorder?: boolean;
+  contentKind?: "field" | "static";
+  staticHtml?: string;
 };
 
 export type TemplateSection = {
