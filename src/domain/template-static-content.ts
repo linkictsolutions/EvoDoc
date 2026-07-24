@@ -76,14 +76,25 @@ export function isTemplateStaticTextCell(cellId: string): boolean {
   return STATIC_TEXT_CELL_IDS.has(cellId);
 }
 
+export function isTemplateNoteCell(cell: Pick<TemplateGridCell, "id" | "contentKind">): boolean {
+  return cell.contentKind === "note" || cell.id.startsWith("note_");
+}
+
+export function isTemplateRichContentCell(cell: Pick<TemplateGridCell, "id" | "contentKind">): boolean {
+  return isTemplateStaticTextCell(cell.id) || isTemplateNoteCell(cell);
+}
+
 export function getDefaultStaticHtml(cellId: string): string | undefined {
   return DEFAULT_STATIC_HTML[cellId];
 }
 
-export function resolveTemplateCellStaticHtml(cell: Pick<TemplateGridCell, "id" | "staticHtml">): string {
+export function resolveTemplateCellStaticHtml(cell: Pick<TemplateGridCell, "id" | "staticHtml" | "contentKind">): string {
   const custom = cell.staticHtml?.trim();
   if (custom) {
     return custom;
+  }
+  if (isTemplateNoteCell(cell)) {
+    return "<p></p>";
   }
   return getDefaultStaticHtml(cell.id) ?? "";
 }

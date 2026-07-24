@@ -7,6 +7,8 @@ type DocumentSinglePageFitProps = {
   enabled?: boolean;
 };
 
+const supportsZoom = typeof CSS !== "undefined" && CSS.supports("zoom", "1");
+
 export function DocumentSinglePageFit({ children, enabled = true }: DocumentSinglePageFitProps) {
   const outerRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
@@ -22,13 +24,23 @@ export function DocumentSinglePageFit({ children, enabled = true }: DocumentSing
       return;
     }
 
+    function resetFit() {
+      if (!outer || !inner) {
+        return;
+      }
+
+      inner.style.zoom = "1";
+      inner.style.transform = "none";
+      inner.style.width = "100%";
+      outer.style.height = "";
+    }
+
     function fitToPage() {
       if (!outer || !inner) {
         return;
       }
 
-      inner.style.transform = "none";
-      inner.style.width = "100%";
+      resetFit();
 
       const availableHeight = outer.clientHeight;
       const contentHeight = inner.scrollHeight;
@@ -37,9 +49,15 @@ export function DocumentSinglePageFit({ children, enabled = true }: DocumentSing
       }
 
       const scale = Math.max(0.55, availableHeight / contentHeight);
-      inner.style.transform = `scale(${scale})`;
-      inner.style.transformOrigin = "top left";
-      inner.style.width = `${100 / scale}%`;
+
+      if (supportsZoom) {
+        inner.style.zoom = String(scale);
+      } else {
+        inner.style.transform = `scale(${scale})`;
+        inner.style.transformOrigin = "top left";
+        inner.style.width = `${100 / scale}%`;
+        outer.style.height = `${availableHeight}px`;
+      }
     }
 
     fitToPage();

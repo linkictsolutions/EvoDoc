@@ -1,103 +1,7 @@
 "use client";
 
-import { TemplateEditorPage, type TemplateSection } from "@/components/templates/template-editor-page";
-
-const DEFAULT_SECTIONS: TemplateSection[] = [
-  {
-    id: "header_meta",
-    label: "Header + Meta",
-    description: "Shipping instruction header, date, reference number.",
-    x: 0,
-    y: 0,
-    w: 12,
-    h: 12,
-    minH: 12,
-    cells: [
-      { id: "si_title", label: "SHIPPING INSTRUCTION", x: 0, y: 0, w: 8, h: 2 },
-      { id: "si_page", label: "PAGE 1 OF 1", x: 8, y: 0, w: 4, h: 2 },
-      { id: "si_date", label: "Date", x: 0, y: 2, w: 6, h: 2 },
-      { id: "si_ref", label: "Ref No", x: 6, y: 2, w: 6, h: 2 },
-    ],
-  },
-  {
-    id: "parties",
-    label: "Parties",
-    description: "Shipper, consignee, notify parties.",
-    x: 0,
-    y: 0,
-    w: 12,
-    h: 18,
-    minH: 18,
-    cells: [
-      { id: "si_shipper", label: "Shipper", x: 0, y: 0, w: 12, h: 4 },
-      { id: "si_consignee", label: "Consignee", x: 0, y: 4, w: 12, h: 4 },
-      { id: "si_notify", label: "Notify", x: 0, y: 8, w: 12, h: 4 },
-      { id: "si_notify2", label: "Second Notify", x: 0, y: 12, w: 12, h: 4 },
-    ],
-  },
-  {
-    id: "cargo",
-    label: "Cargo",
-    description: "Cargo description, HS code, quantities, weights.",
-    x: 0,
-    y: 0,
-    w: 12,
-    h: 18,
-    minH: 18,
-    cells: [
-      { id: "si_service_contract", label: "Service Contract No", x: 0, y: 0, w: 12, h: 2 },
-      { id: "si_cargo_desc", label: "Cargo Description", x: 0, y: 2, w: 12, h: 4 },
-      { id: "si_hs", label: "HS Code", x: 0, y: 6, w: 6, h: 2 },
-      { id: "si_qty", label: "Quantity", x: 6, y: 6, w: 6, h: 2 },
-      { id: "si_gross", label: "Gross Weight", x: 0, y: 8, w: 6, h: 2 },
-      { id: "si_net", label: "Net Weight", x: 6, y: 8, w: 6, h: 2 },
-      { id: "si_cert_number", label: "Cert Number", x: 0, y: 10, w: 6, h: 2 },
-      { id: "si_container_size", label: "Number Type and Size of Containers", x: 0, y: 12, w: 12, h: 2 },
-      { id: "si_additional", label: "Additional Document / Remark", x: 0, y: 14, w: 12, h: 4 },
-    ],
-  },
-  {
-    id: "routing",
-    label: "Routing + Booking",
-    description: "Ports, booking number, vessel departure.",
-    x: 0,
-    y: 0,
-    w: 12,
-    h: 12,
-    minH: 12,
-    cells: [
-      { id: "si_port_loading", label: "Port of Loading", x: 0, y: 0, w: 12, h: 2 },
-      { id: "si_discharge", label: "Place of Discharge", x: 0, y: 2, w: 12, h: 2 },
-      { id: "si_booking", label: "Booking Number", x: 0, y: 4, w: 12, h: 2 },
-      { id: "si_etd", label: "Vessel Departure (ETD) / Date", x: 0, y: 6, w: 12, h: 2 },
-    ],
-  },
-  {
-    id: "containers",
-    label: "Containers",
-    description: "Container / seal / certificate numbers list.",
-    x: 0,
-    y: 0,
-    w: 12,
-    h: 12,
-    minH: 12,
-    cells: [
-      { id: "si_container_hdr", label: "Container / Seal / Cert", x: 0, y: 0, w: 12, h: 2 },
-      { id: "si_container_rows", label: "Container rows…", x: 0, y: 2, w: 12, h: 6 },
-    ],
-  },
-  {
-    id: "document_id",
-    label: "Document ID",
-    description: "Footer document ID line.",
-    x: 0,
-    y: 0,
-    w: 12,
-    h: 4,
-    minH: 4,
-    cells: [],
-  },
-];
+import { TemplateEditorPage } from "@/components/templates/template-editor-page";
+import { SHIPPING_INSTRUCTIONS_DEFAULT_SECTIONS } from "@/domain/template-defaults/shipping_instructions";
 
 export function ShippingInstructionsTemplatePage() {
   return (
@@ -106,8 +10,7 @@ export function ShippingInstructionsTemplatePage() {
       docType="shipping_instructions"
       title="Shipping Instruction Template"
       subtitle="Template-driven layout for Shipping Instructions (A4 grid representation)."
-      defaultSections12Col={DEFAULT_SECTIONS}
+      defaultSections12Col={SHIPPING_INSTRUCTIONS_DEFAULT_SECTIONS}
     />
   );
 }
-

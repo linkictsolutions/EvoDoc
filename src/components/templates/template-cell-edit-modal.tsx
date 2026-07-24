@@ -5,6 +5,8 @@ import { ModalPanel } from "@/components/ui/modal-panel";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import {
   getDefaultStaticHtml,
+  isTemplateNoteCell,
+  isTemplateRichContentCell,
   isTemplateStaticTextCell,
   resolveTemplateCellStaticHtml,
 } from "@/domain/template-static-content";
@@ -27,7 +29,9 @@ export function TemplateCellEditModal({
   const [showBorder, setShowBorder] = useState(true);
   const [staticHtml, setStaticHtml] = useState("");
 
+  const isRichContentCell = cell ? isTemplateRichContentCell(cell) : false;
   const isStaticCell = cell ? isTemplateStaticTextCell(cell.id) : false;
+  const isNoteCell = cell ? isTemplateNoteCell(cell) : false;
 
   useEffect(() => {
     if (!open || !cell) {
@@ -47,23 +51,23 @@ export function TemplateCellEditModal({
     <ModalPanel
       open={open}
       onClose={onDiscard}
-      title={isStaticCell ? "Edit Static Text" : "Edit Field"}
+      title={isNoteCell ? "Edit Note" : isStaticCell ? "Edit Static Text" : "Edit Field"}
       description={
-        isStaticCell
-          ? `Edit the fixed content for "${cell.label}". Use tokens like {{DESCRIPTION}} where needed.`
+        isRichContentCell
+          ? `Edit the content for "${cell.label}". Use tokens like {{DESCRIPTION}} where needed.`
           : `Configure how "${cell.id}" appears in the generated PDF.`
       }
-      wide={isStaticCell}
+      wide={isRichContentCell}
       closeOnBackdropClick={false}
       closeOnEscape={false}
     >
       <div className="template-cell-edit-form">
         <label className="col-12">
           <span className="label-text">Field label</span>
-          <input value={label} onChange={(event) => setLabel(event.target.value)} autoFocus={!isStaticCell} />
+          <input value={label} onChange={(event) => setLabel(event.target.value)} autoFocus={!isRichContentCell} />
         </label>
 
-        {isStaticCell ? (
+        {isRichContentCell ? (
           <div className="col-12">
             <span className="label-text">Content</span>
             <RichTextEditor value={staticHtml} onChange={setStaticHtml} />
@@ -93,14 +97,14 @@ export function TemplateCellEditModal({
               ...cell,
               label: label.trim() || cell.label,
               showBorder,
-              ...(isStaticCell
+              ...(isRichContentCell
                 ? {
-                    contentKind: "static" as const,
-                    staticHtml: staticHtml.trim() || getDefaultStaticHtml(cell.id) || staticHtml,
+                    contentKind: isNoteCell ? "note" as const : "static" as const,
+                    staticHtml: staticHtml.trim() || (isStaticCell ? getDefaultStaticHtml(cell.id) : "<p></p>") || staticHtml,
                   }
                 : {}),
             })}
-            disabled={label.trim().length === 0 || (isStaticCell && staticHtml.trim().length === 0)}
+            disabled={label.trim().length === 0 || (isRichContentCell && staticHtml.trim().length === 0)}
           >
             Save
           </button>

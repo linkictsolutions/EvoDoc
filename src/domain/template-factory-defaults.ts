@@ -1,6 +1,6 @@
 import { getFactoryDefaultSections } from "@/domain/template-defaults";
 import { applyStaticDefaultsToCell } from "@/domain/template-static-content";
-import { serializeTemplateLayout, type TemplateSection } from "@/domain/template-layout";
+import { scaleSections12To24, serializeTemplateLayout, type TemplateSection } from "@/domain/template-layout";
 import type { DocumentType, DocumentVariant } from "@/types/models";
 
 function withStaticDefaults(sections: TemplateSection[]): TemplateSection[] {
@@ -21,7 +21,7 @@ export function getFactoryDefaultTemplateLayout(
 
   return serializeTemplateLayout({
     version: 1,
-    sections: withStaticDefaults(sections),
+    sections: withStaticDefaults(scaleSections12To24(sections)),
     availableFields: {},
     spacerCounter: 1,
   });

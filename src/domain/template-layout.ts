@@ -1,5 +1,7 @@
 import type { DocumentType } from "@/types/models";
 
+export const TEMPLATE_GRID_COLS = 24;
+
 export type TemplateGridCell = {
   id: string;
   label: string;
@@ -8,7 +10,7 @@ export type TemplateGridCell = {
   w: number;
   h: number;
   showBorder?: boolean;
-  contentKind?: "field" | "static";
+  contentKind?: "field" | "static" | "note";
   staticHtml?: string;
 };
 
@@ -30,6 +32,19 @@ export type PersistedTemplateLayout = {
   availableFields: Record<string, TemplateGridCell[]>;
   spacerCounter: number;
 };
+
+export function scaleSections12To24(sections: TemplateSection[]): TemplateSection[] {
+  return sections.map((section) => ({
+    ...section,
+    x: section.x * 2,
+    w: Math.max(section.w * 2, TEMPLATE_GRID_COLS),
+    cells: (section.cells ?? []).map((cell) => ({
+      ...cell,
+      x: cell.x * 2,
+      w: cell.w * 2,
+    })),
+  }));
+}
 
 export function isTemplateSpacerCell(cell: Pick<TemplateGridCell, "id" | "label">) {
   return cell.label === "(spacer)"

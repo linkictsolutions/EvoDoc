@@ -10,19 +10,21 @@ import { DEFAULT_ORG_ID } from "@/lib/config";
 import {
   normalizePersistedTemplateLayout,
   normalizeTemplateCell,
+  scaleSections12To24,
   serializeTemplateLayout,
+  TEMPLATE_GRID_COLS,
   type PersistedTemplateLayout,
   type TemplateGridCell,
   type TemplateSection,
 } from "@/domain/template-layout";
-import { applyStaticDefaultsToCell } from "@/domain/template-static-content";
+import { applyStaticDefaultsToCell, isTemplateNoteCell } from "@/domain/template-static-content";
 import { TemplateCellEditModal } from "@/components/templates/template-cell-edit-modal";
 import { SaveNamedTemplateModal } from "@/components/templates/save-named-template-modal";
 import { useToast } from "@/components/ui/toast";
 import { useUnsavedChangesGuard } from "@/components/ui/use-unsaved-changes-guard";
 import type { DocumentType, SavedDocumentTemplate } from "@/types/models";
 
-export const TEMPLATE_GRID_COLS = 24;
+export { TEMPLATE_GRID_COLS };
 export const TEMPLATE_GRID_ROW_PX = 14;
 export type { TemplateGridCell, TemplateSection } from "@/domain/template-layout";
 
@@ -32,7 +34,7 @@ const SECTION_GAP_ROWS = 1;
 
 type PersistedTemplate = PersistedTemplateLayout;
 type DropMode = "box" | "hline" | "vline";
-type DragKind = "move" | "add" | "add_spacer" | "add_spacer_borderless";
+type DragKind = "move" | "add" | "add_spacer" | "add_spacer_borderless" | "add_note";
 
 function collides(a: Pick<TemplateGridCell, "x" | "y" | "w" | "h">, b: Pick<TemplateGridCell, "x" | "y" | "w" | "h">) {
   const ax2 = a.x + a.w;
@@ -139,19 +141,6 @@ function hydrateTemplatePayload(
     }),
     spacerCounter,
   };
-}
-
-function scaleSections12To24(sections12: TemplateSection[]): TemplateSection[] {
-  return sections12.map((section) => ({
-    ...section,
-    x: section.x * 2,
-    w: section.w * 2,
-    cells: (section.cells ?? []).map((cell) => ({
-      ...cell,
-      x: cell.x * 2,
-      w: cell.w * 2,
-    })),
-  }));
 }
 
 function maxTemplateCols(sections: TemplateSection[]) {
@@ -273,7 +262,7 @@ function GridPreview({
 
     const kindRaw = event.dataTransfer.getData("application/x-evodoc-cell-kind");
     const kind: DragKind | null =
-      kindRaw === "add" || kindRaw === "move" || kindRaw === "add_spacer" || kindRaw === "add_spacer_borderless" ? kindRaw : null;
+      kindRaw === "add" || kindRaw === "move" || kindRaw === "add_spacer" || kindRaw === "add_spacer_borderless" || kindRaw === "add_note" ? kindRaw : null;
     const draggingId = event.dataTransfer.getData("application/x-evodoc-cell-id") || "";
     const rect = event.currentTarget.getBoundingClientRect();
     const colWidth = rect.width / cols;
@@ -328,7 +317,7 @@ function GridPreview({
     if (!cellId) return;
     const kindRaw = event.dataTransfer.getData("application/x-evodoc-cell-kind");
     const kind: DragKind | null =
-      kindRaw === "add" || kindRaw === "move" || kindRaw === "add_spacer" || kindRaw === "add_spacer_borderless" ? kindRaw : null;
+      kindRaw === "add" || kindRaw === "move" || kindRaw === "add_spacer" || kindRaw === "add_spacer_borderless" || kindRaw === "add_note" ? kindRaw : null;
     if (!kind) return;
     const fromSectionId = event.dataTransfer.getData("application/x-evodoc-cell-section") || undefined;
 
@@ -457,51 +446,6 @@ function GridPreview({
                 ×
               </button>
 
-              {/* top-left invisible resize */}
-              <div
-                role="presentation"
-                onPointerDown={(event) => {
-                  event.preventDefault();
-                  event.stopPropagation();
-                  const startClientX = event.clientX;
-                  const startClientY = event.clientY;
-                  const start = { x: cell.x, y: cell.y, w: cell.w, h: cell.h };
-                  const target = event.currentTarget as HTMLElement;
-                  target.setPointerCapture(event.pointerId);
-                  const parent = target.parentElement as HTMLElement | null;
-                  const parentRect = parent?.getBoundingClientRect();
-                  const colWidth = parentRect ? parentRect.width / cols : 1;
-
-                  const onMove = (moveEvent: PointerEvent) => {
-                    const dx = moveEvent.clientX - startClientX;
-                    const dy = moveEvent.clientY - startClientY;
-                    const dCols = Math.round(dx / colWidth);
-                    const dRows = Math.round(dy / rowHeightPx);
-                    const nextX = Math.max(0, Math.min(cols - 1, start.x + dCols));
-                    const nextY = Math.max(0, start.y + dRows);
-                    const nextW = Math.max(1, Math.min(cols - nextX, start.w - dCols));
-                    const nextH = Math.max(1, start.h - dRows);
-                    onTransformCell(cell.id, { x: nextX, y: nextY, w: nextW, h: nextH });
-                  };
-
-                  const onUp = () => {
-                    window.removeEventListener("pointermove", onMove);
-                    window.removeEventListener("pointerup", onUp);
-                  };
-
-                  window.addEventListener("pointermove", onMove);
-                  window.addEventListener("pointerup", onUp);
-                }}
-                style={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  width: 14,
-                  height: 14,
-                  cursor: "nwse-resize",
-                }}
-              />
-
               {/* bottom-right resize handle */}
               <div
                 role="presentation"
@@ -522,7 +466,7 @@ function GridPreview({
                     const dy = moveEvent.clientY - startClientY;
                     const dCols = Math.round(dx / colWidth);
                     const dRows = Math.round(dy / rowHeightPx);
-                    const nextW = Math.max(1, start.w + dCols);
+                    const nextW = Math.max(1, Math.min(cols - cell.x, start.w + dCols));
                     const nextH = Math.max(1, start.h + dRows);
                     onTransformCell(cell.id, { x: cell.x, y: cell.y, w: nextW, h: nextH });
                   };
@@ -698,6 +642,18 @@ export function TemplateEditor({
           moving = list.find((c) => c.id === payload.cellId) ?? null;
         } else if (payload.kind === "add_spacer") {
           moving = { id: `spacer_${spacerCounterRef.current++}`, label: "(spacer)", x: 0, y: 0, w: 6, h: 2, showBorder: true };
+        } else if (payload.kind === "add_note") {
+          moving = {
+            id: `note_${spacerCounterRef.current++}`,
+            label: "Note",
+            x: 0,
+            y: 0,
+            w: 12,
+            h: 4,
+            showBorder: true,
+            contentKind: "note",
+            staticHtml: "<p></p>",
+          };
         } else {
           moving = { id: `spacer_borderless_${spacerCounterRef.current++}`, label: "(spacer no border)", x: 0, y: 0, w: 6, h: 2, showBorder: false };
         }
@@ -742,7 +698,7 @@ export function TemplateEditor({
       const cell = section.cells.find((c) => c.id === cellId);
       if (!cell) return section;
       const nextCells = compactUp(section.cells.filter((c) => c.id !== cellId));
-      if (!cell.id.startsWith("spacer_")) {
+      if (!cell.id.startsWith("spacer_") && !isTemplateNoteCell(cell)) {
         const homeBucket = defaultBucketByCellId.get(cell.id) ?? sectionId;
         setAvailableFields((current) => {
           const list = current[homeBucket] ?? [];
@@ -990,6 +946,28 @@ export function TemplateEditor({
                   }}
                 >
                   (spacer no border)
+                </div>
+              </div>
+              <div>
+                <div className="muted-text" style={{ fontWeight: 700, marginBottom: 6 }}>Note</div>
+                <div
+                  draggable
+                  onDragStart={(event) => {
+                    event.dataTransfer.setData("application/x-evodoc-cell-id", "__note__");
+                    event.dataTransfer.setData("application/x-evodoc-cell-kind", "add_note");
+                    event.dataTransfer.setData("application/x-evodoc-cell-section", "__available__");
+                    event.dataTransfer.setData("text/plain", JSON.stringify({ w: 12, h: 4 }));
+                  }}
+                  style={{
+                    border: "1px dashed rgba(59,130,246,0.75)",
+                    borderRadius: 10,
+                    padding: "8px 10px",
+                    background: "rgba(239, 246, 255, 0.95)",
+                    cursor: "grab",
+                    fontSize: "0.78rem",
+                  }}
+                >
+                  Note (rich text)
                 </div>
               </div>
 

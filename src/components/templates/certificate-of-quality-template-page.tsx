@@ -1,92 +1,7 @@
 "use client";
 
-import { TemplateEditorPage, type TemplateSection } from "@/components/templates/template-editor-page";
-
-const DEFAULT_SECTIONS: TemplateSection[] = [
-  {
-    id: "header_meta",
-    label: "Header + Meta",
-    description: "Certificate header, date and reference number.",
-    x: 0,
-    y: 0,
-    w: 12,
-    h: 10,
-    minH: 10,
-    cells: [
-      { id: "qc_title", label: "CERTIFICATE OF QUALITY", x: 0, y: 0, w: 8, h: 2 },
-      { id: "qc_date", label: "Date", x: 0, y: 2, w: 6, h: 2 },
-      { id: "qc_ref", label: "Ref No", x: 6, y: 2, w: 6, h: 2 },
-      { id: "qc_statement", label: "Statement", x: 0, y: 4, w: 12, h: 4 },
-    ],
-  },
-  {
-    id: "details",
-    label: "Details",
-    description: "Key certificate fields (mode, moisture, parties, goods, weights).",
-    x: 0,
-    y: 0,
-    w: 12,
-    h: 26,
-    minH: 26,
-    cells: [
-      { id: "qc_mode", label: "Mode of Transportation", x: 0, y: 0, w: 6, h: 2 },
-      { id: "qc_moisture", label: "Moisture Content", x: 6, y: 0, w: 6, h: 2 },
-      { id: "qc_shipper", label: "Shipper", x: 0, y: 2, w: 6, h: 2 },
-      { id: "qc_notify", label: "Notify", x: 6, y: 2, w: 6, h: 2 },
-      { id: "qc_notify2", label: "Second Notify", x: 0, y: 4, w: 12, h: 2 },
-      { id: "qc_desc", label: "Description of Goods", x: 0, y: 6, w: 12, h: 2 },
-      { id: "qc_origin", label: "Origin", x: 0, y: 8, w: 6, h: 2 },
-      { id: "qc_quality", label: "Quality", x: 6, y: 8, w: 6, h: 2 },
-      { id: "qc_ico_no", label: "ICO No", x: 0, y: 10, w: 6, h: 2 },
-      { id: "qc_cert_no", label: "Cert No", x: 6, y: 10, w: 6, h: 2 },
-      { id: "qc_net_weight", label: "Net Weight", x: 0, y: 12, w: 6, h: 2 },
-      { id: "qc_gross_weight", label: "Gross Weight", x: 6, y: 12, w: 6, h: 2 },
-      { id: "qc_qty_lb", label: "Quantity in LB", x: 0, y: 14, w: 6, h: 2 },
-      { id: "qc_from", label: "From", x: 0, y: 16, w: 6, h: 2 },
-      { id: "qc_to", label: "To", x: 6, y: 16, w: 6, h: 2 },
-    ],
-  },
-  {
-    id: "container_table",
-    label: "Containers Table",
-    description: "Container No / Seal No / Bags per container list.",
-    x: 0,
-    y: 0,
-    w: 12,
-    h: 14,
-    minH: 14,
-    cells: [
-      { id: "qc_ct_container", label: "Container No", x: 0, y: 0, w: 4, h: 2 },
-      { id: "qc_ct_seal", label: "Seal No", x: 4, y: 0, w: 4, h: 2 },
-      { id: "qc_ct_bags", label: "Quantity of Bags per Container", x: 8, y: 0, w: 4, h: 2 },
-      { id: "qc_ct_row", label: "Row values…", x: 0, y: 2, w: 12, h: 4 },
-    ],
-  },
-  {
-    id: "footer",
-    label: "Footer",
-    description: "Signatory company line.",
-    x: 0,
-    y: 0,
-    w: 12,
-    h: 6,
-    minH: 6,
-    cells: [
-      { id: "qc_signatory", label: "Signatory Company", x: 0, y: 0, w: 12, h: 2 },
-    ],
-  },
-  {
-    id: "document_id",
-    label: "Document ID",
-    description: "Footer document ID line.",
-    x: 0,
-    y: 0,
-    w: 12,
-    h: 4,
-    minH: 4,
-    cells: [],
-  },
-];
+import { TemplateEditorPage } from "@/components/templates/template-editor-page";
+import { CERTIFICATE_OF_QUALITY_DEFAULT_SECTIONS } from "@/domain/template-defaults/quality_certificate";
 
 export function CertificateOfQualityTemplatePage() {
   return (
@@ -95,8 +10,7 @@ export function CertificateOfQualityTemplatePage() {
       docType="quality_certificate"
       title="Certificate of Quality Template"
       subtitle="Template-driven layout for the certificate of quality."
-      defaultSections12Col={DEFAULT_SECTIONS}
+      defaultSections12Col={CERTIFICATE_OF_QUALITY_DEFAULT_SECTIONS}
     />
   );
 }
-

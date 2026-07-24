@@ -4,9 +4,10 @@ import { Children, useMemo, useState, type CSSProperties, type ReactNode } from 
 import { DocumentSinglePageFit } from "@/components/documents/document-single-page-fit";
 import { resolveCompanyConfiguration } from "@/domain/company-configuration";
 import { getFactoryDefaultTemplateLayout } from "@/domain/template-factory-defaults";
+import { TEMPLATE_GRID_COLS } from "@/domain/template-layout";
 import {
   applyStaticTokens,
-  isTemplateStaticTextCell,
+  isTemplateRichContentCell,
   resolveTemplateCellStaticHtml,
 } from "@/domain/template-static-content";
 import type { DocumentInputSnapshot, DocumentOutputSnapshot, DocumentType, DocumentVariant } from "@/types/models";
@@ -73,7 +74,7 @@ type TemplateCell = {
   w: number;
   h: number;
   showBorder?: boolean;
-  contentKind?: "field" | "static";
+  contentKind?: "field" | "static" | "note";
   staticHtml?: string;
 };
 
@@ -246,7 +247,7 @@ function buildStaticTokens(rows: Row[], cell: TemplateCell, isFinal?: boolean): 
 }
 
 function renderStaticTemplateCell(cell: TemplateCell, rows: Row[], isFinal?: boolean) {
-  if (!isTemplateStaticTextCell(cell.id) && cell.contentKind !== "static") {
+  if (!isTemplateRichContentCell(cell)) {
     return null;
   }
 
@@ -278,85 +279,56 @@ function cellValue(rows: Row[], cell: TemplateCell): string {
   return value(rows, mapped);
 }
 
-const PRINT_TEMPLATE_COLS = 12;
+const PRINT_TEMPLATE_COLS = TEMPLATE_GRID_COLS;
 
-function scaleTemplateCellToPrintCols(cell: TemplateCell, sourceCols: number, printCols = PRINT_TEMPLATE_COLS): TemplateCell {
-  if (sourceCols <= printCols) {
-    const x = Math.max(0, Math.min(printCols - 1, cell.x));
-    const w = Math.max(1, Math.min(printCols - x, cell.w));
-    return { ...cell, x, w };
+function ensureTemplateColumnGrid(section: TemplateSection): TemplateSection {
+  const cells = [...(section.cells ?? [])];
+  const maxCellCol = cells.reduce((max, cell) => Math.max(max, cell.x + cell.w), 0);
+  const sourceCols = Math.max(maxCellCol, 1);
+  const targetCols = PRINT_TEMPLATE_COLS;
+
+  if (sourceCols === targetCols) {
+    return { ...section, w: targetCols, cells };
   }
 
-  if (sourceCols % printCols === 0) {
-    const factor = sourceCols / printCols;
-    const x = Math.max(0, Math.min(printCols - 1, Math.floor(cell.x / factor)));
-    const w = Math.max(1, Math.min(printCols - x, Math.max(1, Math.ceil(cell.w / factor))));
-    return { ...cell, x, w };
-  }
-
-  const ratio = printCols / sourceCols;
-  const start = cell.x * ratio;
-  const end = (cell.x + cell.w) * ratio;
-  const x = Math.max(0, Math.min(printCols - 1, Math.round(start)));
-  const w = Math.max(1, Math.min(printCols - x, Math.max(1, Math.round(end - start))));
-  return { ...cell, x, w };
-}
-
-function resolvePrintColumnCollisions(
-  cells: TemplateCell[],
-  printCols: number,
-  sourceCells: TemplateCell[] = cells,
-): TemplateCell[] {
-  const sourceXById = new Map(sourceCells.map((cell) => [cell.id, cell.x]));
-  const next = cells.map((cell) => ({ ...cell }));
-  const maxY = next.reduce((acc, cell) => Math.max(acc, cell.y + cell.h), 0);
-
-  for (let y = 0; y < maxY; y += 1) {
-    const starters = next
-      .filter((cell) => cell.y === y)
-      .sort((a, b) => {
-        const sourceDelta = (sourceXById.get(a.id) ?? a.x) - (sourceXById.get(b.id) ?? b.x);
-        return sourceDelta || a.x - b.x || a.id.localeCompare(b.id);
-      });
-
-    let cursor = 0;
-    for (const cell of starters) {
-      if (cell.x < cursor) {
-        cell.x = cursor;
-      }
-      if (cell.x >= printCols) {
-        cell.x = Math.max(0, printCols - 1);
-      }
-      if (cell.x + cell.w > printCols) {
-        cell.w = Math.max(1, printCols - cell.x);
-      }
-      cursor = cell.x + cell.w;
-    }
-  }
-
-  return next;
-}
-
-function scaleTemplateSectionToPrintColumns(section: TemplateSection, printCols = PRINT_TEMPLATE_COLS): TemplateSection {
-  const sourceCols = Math.max(1, section.w);
-  const sourceCells = [...(section.cells ?? [])];
-  const scaledCells = resolvePrintColumnCollisions(
-    sourceCells.map((cell) => scaleTemplateCellToPrintCols(cell, sourceCols, printCols)),
-    printCols,
-    sourceCells,
-  );
-
+  const factor = targetCols / sourceCols;
   return {
     ...section,
-    w: Math.min(sourceCols, printCols),
-    cells: scaledCells,
+    w: targetCols,
+    cells: cells.map((cell) => {
+      const scaledX = Math.round(cell.x * factor);
+      const scaledW = Math.max(1, Math.round(cell.w * factor));
+      const x = Math.max(0, Math.min(targetCols - 1, scaledX));
+      const w = Math.max(1, Math.min(targetCols - x, scaledW));
+      return { ...cell, x, w };
+    }),
   };
 }
 
-function templateColumnCount(sections: TemplateSection[]): number {
-  const maxCol = sections.reduce((acc, section) => Math.max(acc, section.x + section.w), 0);
-  // Backward compatible default.
-  return maxCol > 12 ? maxCol : 12;
+function sectionHasVisibleCells(section: TemplateSection): boolean {
+  return (section.cells ?? []).some((cell) => {
+    if (isSpacerCell(cell) || isBorderlessSpacerCell(cell)) {
+      return false;
+    }
+
+    if (isTemplateRichContentCell(cell)) {
+      const html = resolveTemplateCellStaticHtml(cell);
+      const stripped = html.replace(/<[^>]+>/g, "").replace(/&nbsp;/g, " ").trim();
+      return stripped.length > 0;
+    }
+
+    return true;
+  });
+}
+
+function renderTemplateColGroup(cols: number) {
+  return (
+    <colgroup>
+      {Array.from({ length: cols }).map((_, index) => (
+        <col key={index} style={{ width: `${100 / cols}%` }} />
+      ))}
+    </colgroup>
+  );
 }
 
 function buildTemplateTableRows(section: TemplateSection, cols: number) {
@@ -488,6 +460,10 @@ function IccInvoiceTemplatePrintView({ output, documentId, isFinal, template }: 
           );
         }
 
+        if (!sectionHasVisibleCells(section)) {
+          return null;
+        }
+
         let normalizedSection: TemplateSection = section;
         let spacerRowScale = 1;
         let goodsHeaderY: number | null = null;
@@ -517,9 +493,10 @@ function IccInvoiceTemplatePrintView({ output, documentId, isFinal, template }: 
           spacerRowScale = scaled.rowScale;
         }
 
-        normalizedSection = scaleTemplateSectionToPrintColumns(normalizedSection);
+        normalizedSection = ensureTemplateColumnGrid(normalizedSection);
+        const sectionCols = normalizedSection.w;
 
-        const { rows: tableRows } = buildTemplateTableRows(normalizedSection, PRINT_TEMPLATE_COLS);
+        const { rows: tableRows } = buildTemplateTableRows(normalizedSection, sectionCols);
 
         return (
           <table
@@ -527,11 +504,7 @@ function IccInvoiceTemplatePrintView({ output, documentId, isFinal, template }: 
             className="print-table icc-table mt-sm"
             style={{ tableLayout: "fixed", borderCollapse: "collapse" }}
           >
-            <colgroup>
-              {Array.from({ length: PRINT_TEMPLATE_COLS }).map((_, index) => (
-                <col key={index} style={{ width: `${100 / PRINT_TEMPLATE_COLS}%` }} />
-              ))}
-            </colgroup>
+            {renderTemplateColGroup(sectionCols)}
             <tbody>
               {tableRows.map((rowCells, rowIndex) => (
                 <tr key={rowIndex}>
@@ -691,6 +664,10 @@ function GenericTemplatePrintView({
           );
         }
 
+        if (!sectionHasVisibleCells(section)) {
+          return null;
+        }
+
         let normalizedSection: TemplateSection = section;
         let spacerRowScale = 1;
         let tableHeaderY: number | null = null;
@@ -717,9 +694,10 @@ function GenericTemplatePrintView({
           spacerRowScale = scaled.rowScale;
         }
 
-        normalizedSection = scaleTemplateSectionToPrintColumns(normalizedSection);
+        normalizedSection = ensureTemplateColumnGrid(normalizedSection);
+        const sectionCols = normalizedSection.w;
 
-        const { rows: tableRows } = buildTemplateTableRows(normalizedSection, PRINT_TEMPLATE_COLS);
+        const { rows: tableRows } = buildTemplateTableRows(normalizedSection, sectionCols);
 
         return (
           <table
@@ -727,11 +705,7 @@ function GenericTemplatePrintView({
             className="print-table icc-table mt-sm"
             style={{ tableLayout: "fixed", borderCollapse: "collapse" }}
           >
-            <colgroup>
-              {Array.from({ length: PRINT_TEMPLATE_COLS }).map((_, index) => (
-                <col key={index} style={{ width: `${100 / PRINT_TEMPLATE_COLS}%` }} />
-              ))}
-            </colgroup>
+            {renderTemplateColGroup(sectionCols)}
             <tbody>
               {tableRows.map((rowCells, rowIndex) => (
                 <tr key={rowIndex}>
@@ -1298,6 +1272,10 @@ function PackingListIccTemplatePrintView({ output, documentId, isFinal, template
           );
         }
 
+        if (!sectionHasVisibleCells(section)) {
+          return null;
+        }
+
         let normalizedSection: TemplateSection = section;
         let spacerRowScale = 1;
 
@@ -1307,7 +1285,8 @@ function PackingListIccTemplatePrintView({ output, documentId, isFinal, template
           spacerRowScale = scaled.rowScale;
         }
 
-        normalizedSection = scaleTemplateSectionToPrintColumns(normalizedSection);
+        normalizedSection = ensureTemplateColumnGrid(normalizedSection);
+        const sectionCols = normalizedSection.w;
 
         if (section.id === "container_table") {
           const cells = [...(normalizedSection.cells ?? [])];
@@ -1320,11 +1299,7 @@ function PackingListIccTemplatePrintView({ output, documentId, isFinal, template
 
           return (
             <table key={section.id} className="print-table packing-icc-table mt-sm">
-              <colgroup>
-                {Array.from({ length: PRINT_TEMPLATE_COLS }).map((_, index) => (
-                  <col key={index} style={{ width: `${100 / PRINT_TEMPLATE_COLS}%` }} />
-                ))}
-              </colgroup>
+              {renderTemplateColGroup(sectionCols)}
               <thead>
                 <tr>
                   {active.map((cell) => (
@@ -1353,7 +1328,7 @@ function PackingListIccTemplatePrintView({ output, documentId, isFinal, template
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={active.reduce((acc, cell) => acc + Math.max(1, cell.w), 0) || PRINT_TEMPLATE_COLS}>
+                    <td colSpan={active.reduce((acc, cell) => acc + Math.max(1, cell.w), 0) || sectionCols}>
                       No container lines yet.
                     </td>
                   </tr>
@@ -1363,15 +1338,11 @@ function PackingListIccTemplatePrintView({ output, documentId, isFinal, template
           );
         }
 
-        const { rows: tableRows } = buildTemplateTableRows(normalizedSection, PRINT_TEMPLATE_COLS);
+        const { rows: tableRows } = buildTemplateTableRows(normalizedSection, sectionCols);
 
         return (
           <table key={section.id} className="print-table packing-icc-table mt-sm" style={{ tableLayout: "fixed", borderCollapse: "collapse" }}>
-            <colgroup>
-              {Array.from({ length: PRINT_TEMPLATE_COLS }).map((_, index) => (
-                <col key={index} style={{ width: `${100 / PRINT_TEMPLATE_COLS}%` }} />
-              ))}
-            </colgroup>
+            {renderTemplateColGroup(sectionCols)}
             <tbody>
               {tableRows.map((rowCells, rowIndex) => (
                 <tr key={rowIndex}>
