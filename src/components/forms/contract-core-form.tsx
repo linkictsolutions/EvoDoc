@@ -785,7 +785,7 @@ export function ContractCoreForm({
       </section>
 
       {buyerModalOpen ? (
-        <div className="confirm-modal-backdrop" onClick={closeBuyerModal}>
+        <div className="confirm-modal-backdrop">
           <section
             className="confirm-modal"
             role="dialog"

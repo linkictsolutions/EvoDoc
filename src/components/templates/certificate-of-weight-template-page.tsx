@@ -90,6 +90,7 @@ export function CertificateOfWeightTemplatePage() {
   return (
     <TemplateEditorPage
       storageKey="evodoc.templates.weight_certificate.v1"
+      docType="weight_certificate"
       title="Certificate of Weight Template"
       subtitle="Template-driven layout for the certificate of weight."
       defaultSections12Col={DEFAULT_SECTIONS}

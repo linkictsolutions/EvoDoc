@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTemplatePicker } from "@/components/documents/use-template-picker";
 import { DocumentPrintTemplate } from "@/components/documents/document-print-template";
 import { buildBillOfLadingOutput } from "@/domain/documents/bill-of-lading";
 import { apiClient } from "@/lib/api/client";
-import { readTemplateLayoutForDocType } from "@/lib/documents/template-storage-keys";
 import { DEFAULT_ORG_ID } from "@/lib/config";
 import { useToast } from "@/components/ui/toast";
 import { CenteredLoader } from "@/components/ui/centered-loader";
@@ -65,6 +65,7 @@ export default function DocumentPrintPage({
 }) {
   const router = useRouter();
   const toast = useToast();
+  const { chooseTemplateLayout, pickerModal } = useTemplatePicker();
   const [payload, setPayload] = useState<PrintPayload | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [familyFromQuery, setFamilyFromQuery] = useState<string | null>(null);
@@ -165,7 +166,7 @@ export default function DocumentPrintPage({
 
     setRegenerating(true);
     try {
-      const templateLayout = readTemplateLayoutForDocType(docType, docVariant) ?? payload.templateLayout;
+      const templateLayout = await chooseTemplateLayout(docType, docVariant);
       const data = await apiClient<{ docId: string }>("/api/documents/generate", {
         method: "POST",
         body: JSON.stringify({
@@ -175,7 +176,7 @@ export default function DocumentPrintPage({
           docType,
           docVariant,
           templateVersion: "v1",
-          ...(templateLayout ? { templateLayout } : {}),
+          templateLayout,
         }),
       });
 
@@ -184,7 +185,10 @@ export default function DocumentPrintPage({
         `/app/contracts/${encodeURIComponent(resolvedContractId)}/documents/generated/${data.docId}/print?family=${encodeURIComponent(family)}`,
       );
     } catch (regenerateError) {
-      toast.error((regenerateError as Error).message || "Unable to regenerate document.");
+      const message = (regenerateError as Error).message;
+      if (message !== "Template selection cancelled.") {
+        toast.error(message || "Unable to regenerate document.");
+      }
     } finally {
       setRegenerating(false);
     }
@@ -240,6 +244,7 @@ export default function DocumentPrintPage({
 
   return (
     <main className="document-print-page">
+      {pickerModal}
       <section className="card print-controls screen-only">
         <h1>Print Preview</h1>
         {payload.outputSnapshot.docType === "bill_of_lading" ? (

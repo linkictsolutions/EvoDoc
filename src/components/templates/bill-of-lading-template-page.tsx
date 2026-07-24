@@ -112,6 +112,7 @@ export function BillOfLadingTemplatePage() {
   return (
     <TemplateEditorPage
       storageKey="evodoc.templates.bill_of_lading.v1"
+      docType="bill_of_lading"
       title="Bill of Lading (MSC) Template"
       subtitle="Template-driven layout for the MSC bill of lading main page. Rider pages use the continuation layout."
       defaultSections12Col={DEFAULT_SECTIONS}

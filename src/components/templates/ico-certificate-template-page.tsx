@@ -51,6 +51,7 @@ export function IcoCertificateTemplatePage() {
   return (
     <TemplateEditorPage
       storageKey="evodoc.templates.ico_certificate.v1"
+      docType="ico_certificate"
       title="ICO Certificate of Origin Template"
       subtitle="Template editor for mapped ICO certificate fields (initially limited to text blocks)."
       defaultSections12Col={DEFAULT_SECTIONS}

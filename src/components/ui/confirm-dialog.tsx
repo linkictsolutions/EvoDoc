@@ -10,6 +10,8 @@ type ConfirmDialogProps = {
   cancelLabel?: string;
   destructive?: boolean;
   busy?: boolean;
+  closeOnBackdropClick?: boolean;
+  closeOnEscape?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
 };
@@ -22,6 +24,8 @@ export function ConfirmDialog({
   cancelLabel = "Cancel",
   destructive = false,
   busy = false,
+  closeOnBackdropClick = true,
+  closeOnEscape = true,
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
@@ -31,7 +35,7 @@ export function ConfirmDialog({
     }
 
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape" && !busy) {
+      if (closeOnEscape && event.key === "Escape" && !busy) {
         onCancel();
       }
     }
@@ -40,14 +44,17 @@ export function ConfirmDialog({
     return () => {
       window.removeEventListener("keydown", onKeyDown);
     };
-  }, [open, busy, onCancel]);
+  }, [busy, closeOnEscape, onCancel, open]);
 
   if (!open) {
     return null;
   }
 
   return (
-    <div className="confirm-modal-backdrop" onClick={busy ? undefined : onCancel}>
+    <div
+      className="confirm-modal-backdrop"
+      onClick={busy || !closeOnBackdropClick ? undefined : onCancel}
+    >
       <section
         className="confirm-modal"
         role="dialog"

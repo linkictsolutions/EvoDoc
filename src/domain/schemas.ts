@@ -451,3 +451,19 @@ export const decisionSchema = z.object({
   decision: z.enum(["approve", "reject"]),
   comment: z.string().min(1),
 });
+
+export const documentTemplateInputSchema = z.object({
+  orgId: z.string().min(1),
+  docType: z.enum([
+    "invoice",
+    "packing_list",
+    "shipping_instructions",
+    "quality_certificate",
+    "weight_certificate",
+    "way_bill",
+    "ico_certificate",
+    "bill_of_lading",
+  ]),
+  name: z.string().min(1),
+  layout: z.string().min(2),
+});

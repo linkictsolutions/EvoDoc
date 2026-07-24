@@ -10,6 +10,8 @@ type ModalPanelProps = {
   children: ReactNode;
   className?: string;
   wide?: boolean;
+  closeOnBackdropClick?: boolean;
+  closeOnEscape?: boolean;
 };
 
 export function ModalPanel({
@@ -20,6 +22,8 @@ export function ModalPanel({
   children,
   className,
   wide = false,
+  closeOnBackdropClick = true,
+  closeOnEscape = true,
 }: ModalPanelProps) {
   useEffect(() => {
     if (!open) {
@@ -27,7 +31,7 @@ export function ModalPanel({
     }
 
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
+      if (closeOnEscape && event.key === "Escape") {
         onClose();
       }
     }
@@ -40,7 +44,7 @@ export function ModalPanel({
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", onKeyDown);
     };
-  }, [open, onClose]);
+  }, [closeOnEscape, open, onClose]);
 
   if (!open) {
     return null;
@@ -53,7 +57,10 @@ export function ModalPanel({
   ].filter(Boolean).join(" ");
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <div
+      className="modal-backdrop"
+      onClick={closeOnBackdropClick ? onClose : undefined}
+    >
       <section
         className={panelClassName}
         role="dialog"

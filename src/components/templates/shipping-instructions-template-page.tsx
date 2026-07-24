@@ -103,6 +103,7 @@ export function ShippingInstructionsTemplatePage() {
   return (
     <TemplateEditorPage
       storageKey="evodoc.templates.shipping_instructions.v1"
+      docType="shipping_instructions"
       title="Shipping Instruction Template"
       subtitle="Template-driven layout for Shipping Instructions (A4 grid representation)."
       defaultSections12Col={DEFAULT_SECTIONS}

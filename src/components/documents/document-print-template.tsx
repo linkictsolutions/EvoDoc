@@ -65,6 +65,7 @@ type TemplateCell = {
   y: number;
   w: number;
   h: number;
+  showBorder?: boolean;
 };
 
 type TemplateSection = {
@@ -387,7 +388,15 @@ function isSpacerCell(cell: TemplateCell) {
 }
 
 function isBorderlessSpacerCell(cell: TemplateCell) {
+  if (cell.showBorder === false) {
+    return true;
+  }
+
   return cell.label === "(spacer no border)" || cell.id.includes("spacer_borderless");
+}
+
+function cellShowsBorder(cell: TemplateCell) {
+  return cell.showBorder !== false && !isBorderlessSpacerCell(cell);
 }
 
 function isSignatureBoxCell(cell: TemplateCell) {
@@ -515,10 +524,10 @@ function IccInvoiceTemplatePrintView({ output, documentId, isFinal, template }: 
 
                     const content: ReactNode = (() => {
                       if (cell.id === "inv_title") {
-                        return <strong>COMMERCIAL INVOICE</strong>;
+                        return <strong>{cell.label}</strong>;
                       }
                       if (cell.id === "inv_page") {
-                        return <strong>PAGE 1 OF 1 | {isFinal ? "FINAL" : "ORIGINAL"}</strong>;
+                        return <strong>{v || cell.label}</strong>;
                       }
                       if (cell.id === "gt_total_label") {
                         return <strong>TOTAL AMOUNT IN USD</strong>;
@@ -580,7 +589,7 @@ function IccInvoiceTemplatePrintView({ output, documentId, isFinal, template }: 
                           wordBreak: "break-word",
                           verticalAlign: "middle",
                           ...templateCellLayoutStyle(cell, spacerRowScale),
-                          border: isBorderlessSpacer ? "none" : undefined,
+                          border: cellShowsBorder(cell) ? undefined : "none",
                           textAlign: (
                             cell.id === "inv_page"
                             || cell.id === "gt_total_label"
@@ -747,7 +756,7 @@ function GenericTemplatePrintView({
                           wordBreak: "break-word",
                           verticalAlign: "middle",
                           ...templateCellLayoutStyle(cell, spacerRowScale),
-                          border: isBorderlessSpacer ? "none" : undefined,
+                          border: cellShowsBorder(cell) ? undefined : "none",
                         }}
                       >
                         {content}
@@ -1121,10 +1130,10 @@ function packingCellValue(rows: Row[], cell: TemplateCell): string {
 
 function shippingCellValue(rows: Row[], cell: TemplateCell): string {
   if (cell.id === "si_title") {
-    return "SHIPPING INSTRUCTION";
+    return cell.label;
   }
   if (cell.id === "si_page") {
-    return "PAGE 1 OF 1";
+    return cell.label;
   }
   if (cell.id === "si_container_rows") {
     const containers = indexedValues(rows, "Container No ");
@@ -1160,7 +1169,7 @@ function shippingCellValue(rows: Row[], cell: TemplateCell): string {
 
 function qualityCellValue(rows: Row[], cell: TemplateCell): string {
   if (cell.id === "qc_title") {
-    return "CERTIFICATE OF QUALITY";
+    return cell.label;
   }
   if (QC_CONTAINER_COLUMN_IDS.has(cell.id)) {
     const index = 1;
@@ -1174,7 +1183,7 @@ function qualityCellValue(rows: Row[], cell: TemplateCell): string {
 
 function weightCellValue(rows: Row[], cell: TemplateCell): string {
   if (cell.id === "wc_title") {
-    return "CERTIFICATE OF WEIGHT";
+    return cell.label;
   }
   if (WC_CONTAINER_COLUMN_IDS.has(cell.id)) {
     const index = 1;
@@ -1192,7 +1201,7 @@ function weightCellValue(rows: Row[], cell: TemplateCell): string {
 
 function wayBillCellValue(rows: Row[], cell: TemplateCell): string {
   if (cell.id === "wb_title") {
-    return "WAY BILL";
+    return cell.label;
   }
   const mapped = WAY_BILL_CELL_LABEL_MAP[cell.id] ?? cell.label;
   return value(rows, mapped);
@@ -1200,7 +1209,7 @@ function wayBillCellValue(rows: Row[], cell: TemplateCell): string {
 
 function icoCellValue(rows: Row[], cell: TemplateCell): string {
   if (cell.id === "ico_title") {
-    return "ICO CERTIFICATE OF ORIGIN";
+    return cell.label;
   }
   const mapped = ICO_CELL_LABEL_MAP[cell.id] ?? cell.label;
   return value(rows, mapped);
@@ -1334,10 +1343,10 @@ function PackingListIccTemplatePrintView({ output, documentId, isFinal, template
 
                     const content: ReactNode = (() => {
                       if (cell.id === "pl_title") {
-                        return <strong>PACKING LIST</strong>;
+                        return <strong>{cell.label}</strong>;
                       }
                       if (cell.id === "pl_page") {
-                        return <strong>PAGE 1 OF 1 | {isFinal ? "FINAL" : "ORIGINAL"}</strong>;
+                        return <strong>{v || cell.label}</strong>;
                       }
                       if (isSpacer || isSignatureBoxCell(cell)) {
                         return null;

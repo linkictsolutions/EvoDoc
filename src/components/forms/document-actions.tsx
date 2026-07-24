@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { readTemplateLayoutForDocType } from "@/lib/documents/template-storage-keys";
+import { useTemplatePicker } from "@/components/documents/use-template-picker";
 import type { DocumentFamily, DocumentType, DocumentVariant } from "@/types/models";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
@@ -27,34 +27,41 @@ export function GenerateDocumentButton({
 }) {
   const toast = useToast();
   const router = useRouter();
+  const { chooseTemplateLayout, pickerModal } = useTemplatePicker();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  async function generateWithLayout(templateLayout: string) {
+    const data = await apiClient<{ docId: string }>("/api/documents/generate", {
+      method: "POST",
+      body: JSON.stringify({
+        orgId: DEFAULT_ORG_ID,
+        contractId,
+        shipmentId,
+        docType,
+        docVariant,
+        templateVersion: "v1",
+        templateLayout,
+      }),
+    });
+
+    const familyQuery = family ? `?family=${encodeURIComponent(family)}` : "";
+    toast.success("Document generated.");
+    router.push(`/app/contracts/${encodeURIComponent(contractId)}/documents/generated/${data.docId}/review${familyQuery}`);
+  }
+
   async function generate() {
     setLoading(true);
-      setError(null);
+    setError(null);
     try {
-      const templateLayout = readTemplateLayoutForDocType(docType, docVariant);
-
-      const data = await apiClient<{ docId: string }>("/api/documents/generate", {
-        method: "POST",
-        body: JSON.stringify({
-          orgId: DEFAULT_ORG_ID,
-          contractId,
-          shipmentId,
-          docType,
-          docVariant,
-          templateVersion: "v1",
-          ...(templateLayout ? { templateLayout } : {}),
-        }),
-      });
-
-      const familyQuery = family ? `?family=${encodeURIComponent(family)}` : "";
-      toast.success("Document generated.");
-      router.push(`/app/contracts/${encodeURIComponent(contractId)}/documents/generated/${data.docId}/review${familyQuery}`);
+      const templateLayout = await chooseTemplateLayout(docType, docVariant);
+      await generateWithLayout(templateLayout);
     } catch (generateError) {
-      setError((generateError as Error).message);
-      toast.error("Unable to generate document.");
+      const message = (generateError as Error).message;
+      if (message !== "Template selection cancelled.") {
+        setError(message);
+        toast.error("Unable to generate document.");
+      }
     } finally {
       setLoading(false);
     }
@@ -62,7 +69,8 @@ export function GenerateDocumentButton({
 
   return (
     <div className="card">
-      <button type="button" onClick={generate} disabled={loading}>
+      {pickerModal}
+      <button type="button" onClick={() => void generate()} disabled={loading}>
         {loading ? "Generating..." : (buttonLabel ?? `Generate ${docType}`)}
       </button>
       {error ? <p className="error-text">{error}</p> : null}

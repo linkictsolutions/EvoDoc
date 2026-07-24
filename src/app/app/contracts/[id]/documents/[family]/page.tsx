@@ -6,9 +6,9 @@ import { useRouter } from "next/navigation";
 import { DocumentPreviewBlock } from "@/components/documents/document-kv-list";
 import { RevisionHistoryModal } from "@/components/documents/revision-history-modal";
 import { FormSection } from "@/components/ui/form-section";
+import { useTemplatePicker } from "@/components/documents/use-template-picker";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
-import { readTemplateLayoutForDocType } from "@/lib/documents/template-storage-keys";
 import type { DocumentFamily, DocumentOutputSnapshot, DocumentType } from "@/types/models";
 import { CenteredLoader } from "@/components/ui/centered-loader";
 
@@ -59,6 +59,7 @@ export default function ContractDocumentFamilyPage({
   params: Promise<{ id: string; family: DocumentFamily }>;
 }) {
   const router = useRouter();
+  const { chooseTemplateLayout, pickerModal } = useTemplatePicker();
   const [contractId, setContractId] = useState("");
   const [family, setFamily] = useState<DocumentFamily>("commercial_invoice");
   const [payload, setPayload] = useState<FamilyPayload | null>(null);
@@ -192,7 +193,7 @@ export default function ContractDocumentFamilyPage({
     setGenerateError(null);
 
     try {
-      const templateLayout = readTemplateLayoutForDocType(payload.docType);
+      const templateLayout = await chooseTemplateLayout(payload.docType);
 
       const data = await apiClient<{ docId: string }>("/api/documents/generate", {
         method: "POST",
@@ -202,13 +203,16 @@ export default function ContractDocumentFamilyPage({
           shipmentId: payload.latestShipmentId ?? undefined,
           docType: payload.docType,
           templateVersion: "v1",
-          ...(templateLayout ? { templateLayout } : {}),
+          templateLayout,
         }),
       });
 
       router.push(`/app/contracts/${encodeURIComponent(contractId)}/documents/generated/${data.docId}/review?family=${payload.family}`);
     } catch (generateRevisionError) {
-      setGenerateError((generateRevisionError as Error).message);
+      const message = (generateRevisionError as Error).message;
+      if (message !== "Template selection cancelled.") {
+        setGenerateError(message);
+      }
     } finally {
       setGenerating(false);
     }
@@ -268,6 +272,7 @@ export default function ContractDocumentFamilyPage({
 
   return (
     <section className="page-shell document-workspace">
+      {pickerModal}
       <header className="page-header">
         <h1>{payload.familyLabel}</h1>
         <p>Current preview is rebuilt from the latest resolved contract state. Each generation creates a new immutable revision.</p>

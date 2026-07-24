@@ -5,44 +5,31 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { apiClient } from "@/lib/api/client";
+import { DEFAULT_ORG_ID } from "@/lib/config";
+import {
+  normalizePersistedTemplateLayout,
+  normalizeTemplateCell,
+  serializeTemplateLayout,
+  type PersistedTemplateLayout,
+  type TemplateGridCell,
+  type TemplateSection,
+} from "@/domain/template-layout";
+import { TemplateCellEditModal } from "@/components/templates/template-cell-edit-modal";
+import { SaveNamedTemplateModal } from "@/components/templates/save-named-template-modal";
 import { useToast } from "@/components/ui/toast";
 import { useUnsavedChangesGuard } from "@/components/ui/use-unsaved-changes-guard";
+import type { DocumentType, SavedDocumentTemplate } from "@/types/models";
 
 export const TEMPLATE_GRID_COLS = 24;
 export const TEMPLATE_GRID_ROW_PX = 14;
+export type { TemplateGridCell, TemplateSection } from "@/domain/template-layout";
 
 const SECTION_HEADER_ROWS = 2;
 const SECTION_BOTTOM_PADDING_ROWS = 2;
 const SECTION_GAP_ROWS = 1;
 
-export type TemplateGridCell = {
-  id: string;
-  label: string;
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-};
-
-export type TemplateSection = {
-  id: string;
-  label: string;
-  description?: string;
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-  minH: number;
-  cells: TemplateGridCell[];
-};
-
-type PersistedTemplate = {
-  version: 1;
-  sections: TemplateSection[];
-  availableFields: Record<string, TemplateGridCell[]>;
-  spacerCounter: number;
-};
-
+type PersistedTemplate = PersistedTemplateLayout;
 type DropMode = "box" | "hline" | "vline";
 type DragKind = "move" | "add" | "add_spacer" | "add_spacer_borderless";
 
@@ -92,7 +79,7 @@ function normalizeAvailableFields(fields: Record<string, TemplateGridCell[]>) {
 }
 
 function serializeTemplate(state: PersistedTemplate) {
-  return JSON.stringify(state);
+  return serializeTemplateLayout(state);
 }
 
 function computeSectionDropIndex(container: HTMLElement, clientY: number, sectionCount: number) {
@@ -119,23 +106,26 @@ function readTemplate(storageKey: string): PersistedTemplate | null {
   }
 }
 
-function savedDesignStorageKey(storageKey: string) {
-  return `${storageKey}.__saved_design`;
-}
 
 function hydrateTemplatePayload(
   stored: PersistedTemplate,
 ): { sections: TemplateSection[]; availableFields: Record<string, TemplateGridCell[]>; snapshot: string; spacerCounter: number } {
-  const spacerCounter = stored.spacerCounter ?? 1;
-  const storedCols = maxTemplateCols(stored.sections);
+  const normalized = normalizePersistedTemplateLayout(stored);
+  const spacerCounter = normalized.spacerCounter ?? 1;
+  const storedCols = maxTemplateCols(normalized.sections);
   const needsScale = storedCols > 0 && storedCols <= 12;
-  const nextSections = needsScale ? scaleSections12To24(stored.sections) : stored.sections;
-  const nextAvailable = stored.availableFields ?? {};
+  const nextSections = needsScale ? scaleSections12To24(normalized.sections) : normalized.sections;
+  const nextAvailable = normalized.availableFields ?? {};
   const scaledAvailable = needsScale
     ? Object.fromEntries(Object.entries(nextAvailable).map(([key, list]) => [key, list.map((cell) => ({ ...cell, x: cell.x * 2, w: cell.w * 2 }))]))
     : nextAvailable;
-  const normalizedSections = relayoutSections(nextSections);
-  const normalizedAvailable = normalizeAvailableFields(scaledAvailable);
+  const normalizedSections = relayoutSections(nextSections.map((section) => ({
+    ...section,
+    cells: section.cells.map(normalizeTemplateCell),
+  })));
+  const normalizedAvailable = normalizeAvailableFields(
+    Object.fromEntries(Object.entries(scaledAvailable).map(([key, list]) => [key, list.map(normalizeTemplateCell)])),
+  );
 
   return {
     sections: normalizedSections,
@@ -240,6 +230,7 @@ function GridPreview({
   onDropCell,
   onTransformCell,
   onDeleteCell,
+  onEditCell,
 }: {
   cols: number;
   rowHeightPx: number;
@@ -252,6 +243,7 @@ function GridPreview({
   ) => void;
   onTransformCell: (cellId: string, next: { x: number; y: number; w: number; h: number }) => void;
   onDeleteCell: (cellId: string) => void;
+  onEditCell: (cell: TemplateGridCell) => void;
 }) {
   const [indicator, setIndicator] = useState<null | { mode: DropMode; x: number; y: number; w: number; h: number; dropX: number; dropY: number }>(null);
   const indicatorRef = useRef<typeof indicator>(null);
@@ -430,7 +422,7 @@ function GridPreview({
           style={{
             gridColumn: `${cell.x + 1} / span ${cell.w}`,
             gridRow: `${cell.y + 1} / span ${cell.h}`,
-            border: "1px solid rgba(148, 163, 184, 0.7)",
+            border: cell.showBorder === false ? "1px dashed rgba(148, 163, 184, 0.45)" : "1px solid rgba(148, 163, 184, 0.7)",
               background: "rgba(255,255,255,0.72)",
             padding: "6px 8px",
             fontSize: "0.74rem",
@@ -449,23 +441,17 @@ function GridPreview({
             <>
               <button
                 type="button"
+                onClick={() => onEditCell(cell)}
+                aria-label={`Edit ${cell.label}`}
+                className="template-cell-edit-button"
+              >
+                ✎
+              </button>
+              <button
+                type="button"
                 onClick={() => onDeleteCell(cell.id)}
                 aria-label={`Remove ${cell.label}`}
-                style={{
-                  position: "absolute",
-                  top: 4,
-                  right: 16,
-                  width: 18,
-                  height: 18,
-                  borderRadius: 999,
-                  border: "1px solid rgba(148,163,184,0.9)",
-                  background: "rgba(255,255,255,0.9)",
-                  color: "#0f172a",
-                  fontSize: 12,
-                  lineHeight: "16px",
-                  padding: 0,
-                  cursor: "pointer",
-                }}
+                className="template-cell-delete-button"
               >
                 ×
               </button>
@@ -571,11 +557,13 @@ function GridPreview({
 
 export function TemplateEditor({
   storageKey,
+  docType,
   title,
   subtitle,
   defaultSections12Col,
 }: {
   storageKey: string;
+  docType: DocumentType;
   title: string;
   subtitle: string;
   defaultSections12Col: TemplateSection[];
@@ -597,7 +585,11 @@ export function TemplateEditor({
   const [showGrid, setShowGrid] = useState(true);
   const spacerCounterRef = useRef(1);
   const [savedSnapshot, setSavedSnapshot] = useState("");
-  const [savedDesignSnapshot, setSavedDesignSnapshot] = useState("");
+  const [savedTemplates, setSavedTemplates] = useState<SavedDocumentTemplate[]>([]);
+  const [savedTemplatesLoading, setSavedTemplatesLoading] = useState(true);
+  const [saveTemplateOpen, setSaveTemplateOpen] = useState(false);
+  const [savingNamedTemplate, setSavingNamedTemplate] = useState(false);
+  const [editingCell, setEditingCell] = useState<{ sectionId: string; cell: TemplateGridCell } | null>(null);
   const [sectionDropIndex, setSectionDropIndex] = useState<number | null>(null);
   const sectionDragIdRef = useRef<string | null>(null);
   const sectionsContainerRef = useRef<HTMLDivElement | null>(null);
@@ -615,6 +607,24 @@ export function TemplateEditor({
     enabled: isDirty,
     message: "You have unsaved template changes. Save or discard them before leaving this page.",
   });
+
+  const loadSavedTemplates = useCallback(async () => {
+    setSavedTemplatesLoading(true);
+    try {
+      const templates = await apiClient<SavedDocumentTemplate[]>(
+        `/api/templates?orgId=${DEFAULT_ORG_ID}&docType=${encodeURIComponent(docType)}`,
+      );
+      setSavedTemplates(templates);
+    } catch {
+      setSavedTemplates([]);
+    } finally {
+      setSavedTemplatesLoading(false);
+    }
+  }, [docType]);
+
+  useEffect(() => {
+    void loadSavedTemplates();
+  }, [loadSavedTemplates]);
 
   useEffect(() => {
     const stored = readTemplate(storageKey);
@@ -634,10 +644,6 @@ export function TemplateEditor({
       setSavedSnapshot(baseline);
     }
 
-    const storedDesign = readTemplate(savedDesignStorageKey(storageKey));
-    if (storedDesign) {
-      setSavedDesignSnapshot(hydrateTemplatePayload(storedDesign).snapshot);
-    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -683,9 +689,9 @@ export function TemplateEditor({
           const list = availableFields[fromId ?? sectionId] ?? [];
           moving = list.find((c) => c.id === payload.cellId) ?? null;
         } else if (payload.kind === "add_spacer") {
-          moving = { id: `spacer_${spacerCounterRef.current++}`, label: "(spacer)", x: 0, y: 0, w: 6, h: 2 };
+          moving = { id: `spacer_${spacerCounterRef.current++}`, label: "(spacer)", x: 0, y: 0, w: 6, h: 2, showBorder: true };
         } else {
-          moving = { id: `spacer_borderless_${spacerCounterRef.current++}`, label: "(spacer no border)", x: 0, y: 0, w: 6, h: 2 };
+          moving = { id: `spacer_borderless_${spacerCounterRef.current++}`, label: "(spacer no border)", x: 0, y: 0, w: 6, h: 2, showBorder: false };
         }
 
         if (!moving) return section;
@@ -749,27 +755,67 @@ export function TemplateEditor({
     };
     window.localStorage.setItem(storageKey, serializeTemplate(payload));
     setSavedSnapshot(serializeTemplate(payload));
-    toast.success("Template saved.");
+    toast.success("Working draft saved.");
   }, [availableFields, sections, storageKey, toast]);
 
-  const saveTemplateDesign = useCallback(() => {
-    if (typeof window === "undefined") return;
+  const saveNamedTemplate = useCallback(async (name: string) => {
     const payload: PersistedTemplate = {
       version: 1,
       sections,
       availableFields: normalizeAvailableFields(availableFields),
       spacerCounter: spacerCounterRef.current,
     };
-    const snapshot = serializeTemplate(payload);
-    window.localStorage.setItem(savedDesignStorageKey(storageKey), snapshot);
-    setSavedDesignSnapshot(snapshot);
-    toast.success("Template design saved.");
-  }, [availableFields, sections, storageKey, toast]);
+
+    setSavingNamedTemplate(true);
+    try {
+      await apiClient("/api/templates", {
+        method: "POST",
+        body: JSON.stringify({
+          orgId: DEFAULT_ORG_ID,
+          docType,
+          name,
+          layout: serializeTemplate(payload),
+        }),
+      });
+      await loadSavedTemplates();
+      setSaveTemplateOpen(false);
+      toast.success(`Template "${name}" saved.`);
+    } catch (saveError) {
+      toast.error((saveError as Error).message || "Unable to save template.");
+    } finally {
+      setSavingNamedTemplate(false);
+    }
+  }, [availableFields, docType, loadSavedTemplates, sections, toast]);
+
+  const loadNamedTemplate = useCallback((template: SavedDocumentTemplate) => {
+    const parsed = hydrateTemplatePayload(JSON.parse(template.layout) as PersistedTemplate);
+    spacerCounterRef.current = parsed.spacerCounter;
+    setSections(parsed.sections);
+    setAvailableFields(parsed.availableFields);
+    toast.info(`Loaded template "${template.name}".`);
+  }, [toast]);
+
+  const deleteNamedTemplate = useCallback(async (templateId: string) => {
+    try {
+      await apiClient(`/api/templates/${templateId}?orgId=${DEFAULT_ORG_ID}`, { method: "DELETE" });
+      await loadSavedTemplates();
+      toast.success("Template deleted.");
+    } catch (deleteError) {
+      toast.error((deleteError as Error).message || "Unable to delete template.");
+    }
+  }, [loadSavedTemplates, toast]);
 
   const resetTemplate = useCallback(() => {
     spacerCounterRef.current = 1;
     setAvailableFields({});
-    setSections(relayoutSections(scaleSections12To24(defaultSections12Col)));
+    const defaults = scaleSections12To24(defaultSections12Col).map((section) => ({
+      ...section,
+      cells: section.cells.map((cell) => normalizeTemplateCell({
+        ...cell,
+        showBorder: cell.id.includes("spacer_borderless") ? false : true,
+      })),
+    }));
+    setSections(relayoutSections(defaults));
     toast.info("Template reset to default.");
   }, [defaultSections12Col, toast]);
 
@@ -788,19 +834,32 @@ export function TemplateEditor({
     toast.info("Discarded unsaved changes.");
   }, [resetTemplate, storageKey, toast]);
 
-  const loadSavedTemplateDesign = useCallback(() => {
-    const storedDesign = readTemplate(savedDesignStorageKey(storageKey));
-    if (!storedDesign) {
-      toast.error("No saved template design found.");
+  const handleSaveCellEdit = useCallback((nextCell: TemplateGridCell) => {
+    if (!editingCell) {
       return;
     }
-    const hydrated = hydrateTemplatePayload(storedDesign);
-    spacerCounterRef.current = hydrated.spacerCounter;
-    setSections(hydrated.sections);
-    setAvailableFields(hydrated.availableFields);
-    setSavedDesignSnapshot(hydrated.snapshot);
-    toast.info("Loaded saved template design.");
-  }, [storageKey, toast]);
+
+    updateSection(editingCell.sectionId, (section) => ({
+      ...section,
+      cells: section.cells.map((cell) => (cell.id === nextCell.id ? normalizeTemplateCell(nextCell) : cell)),
+    }));
+    setEditingCell(null);
+  }, [editingCell, updateSection]);
+
+  const formatSavedTemplateDate = useCallback((value: string) => {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return value;
+    }
+
+    return date.toLocaleString(undefined, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  }, []);
 
   return (
     <section className="page-shell">
@@ -817,21 +876,64 @@ export function TemplateEditor({
             <button type="button" onClick={() => setShowGrid((v) => !v)} className="secondary">
               {showGrid ? "Hide Grid" : "Show Grid"}
             </button>
-            <button type="button" onClick={loadSavedTemplateDesign} className="secondary" disabled={!savedDesignSnapshot}>
-              Load Saved Design
-            </button>
-            <button type="button" onClick={saveTemplateDesign} className="secondary">
-              Save Design
-            </button>
             <button type="button" onClick={resetTemplate} className="secondary">Reset Template</button>
             <button type="button" onClick={discardChanges} className="secondary" disabled={!isDirty}>Discard</button>
-            <button type="button" onClick={saveTemplate} disabled={!isDirty}>Save</button>
+            <button type="button" onClick={saveTemplate} disabled={!isDirty}>Save Draft</button>
+            <button type="button" onClick={() => setSaveTemplateOpen(true)}>Save Template</button>
           </div>
         </div>
       </header>
 
+      <TemplateCellEditModal
+        open={Boolean(editingCell)}
+        cell={editingCell?.cell ?? null}
+        onDiscard={() => setEditingCell(null)}
+        onSave={handleSaveCellEdit}
+      />
+      <SaveNamedTemplateModal
+        open={saveTemplateOpen}
+        busy={savingNamedTemplate}
+        onDiscard={() => {
+          if (!savingNamedTemplate) {
+            setSaveTemplateOpen(false);
+          }
+        }}
+        onSave={(name) => void saveNamedTemplate(name)}
+      />
+
       <div className="template-editor-layout">
         <aside className="template-editor-sidebar">
+          <section className="card">
+            <h2 style={{ marginBottom: 8 }}>Saved Templates</h2>
+            <p className="muted-text" style={{ marginTop: 0 }}>
+              Load a named template into the working grid, or delete templates you no longer need.
+            </p>
+            {savedTemplatesLoading ? (
+              <p className="muted-text">Loading saved templates...</p>
+            ) : savedTemplates.length === 0 ? (
+              <p className="muted-text">No saved templates yet.</p>
+            ) : (
+              <div className="template-saved-list">
+                {savedTemplates.map((template) => (
+                  <div key={template.id} className="template-saved-item">
+                    <div className="template-saved-item-copy">
+                      <strong>{template.name}</strong>
+                      <span className="muted-text">{formatSavedTemplateDate(template.createdAt)}</span>
+                    </div>
+                    <div className="row-actions">
+                      <button type="button" className="button-secondary" onClick={() => loadNamedTemplate(template)}>
+                        Load
+                      </button>
+                      <button type="button" className="button-secondary" onClick={() => void deleteNamedTemplate(template.id)}>
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
           <section className="card">
             <h2 style={{ marginBottom: 8 }}>Available Fields</h2>
             <p className="muted-text" style={{ marginTop: 0 }}>
@@ -1076,6 +1178,7 @@ export function TemplateEditor({
                   onDropCell={(payload, next) => handleDropIntoSection(section.id, payload, next)}
                   onTransformCell={(cellId, next) => handleTransformInSection(section.id, cellId, next)}
                   onDeleteCell={(cellId) => handleDeleteCell(section.id, cellId)}
+                  onEditCell={(cell) => setEditingCell({ sectionId: section.id, cell })}
                 />
               </section>
             ))}

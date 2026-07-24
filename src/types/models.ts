@@ -487,6 +487,15 @@ export interface ContractDocumentSummary {
   latestStatus: DocumentStatus | null;
 }
 
+export interface SavedDocumentTemplate extends Timestamped {
+  id: string;
+  orgId: string;
+  docType: DocumentType;
+  name: string;
+  layout: string;
+  createdBy: string;
+}
+
 export interface AuditLog {
   id: string;
   orgId: string;

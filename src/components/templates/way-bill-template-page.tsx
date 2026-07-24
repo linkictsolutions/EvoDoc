@@ -105,6 +105,7 @@ export function WayBillTemplatePage() {
   return (
     <TemplateEditorPage
       storageKey="evodoc.templates.way_bill.v1"
+      docType="way_bill"
       title="Way Bill Template"
       subtitle="Template-driven layout for Way Bills (per driver tab)."
       defaultSections12Col={DEFAULT_SECTIONS}

@@ -21,6 +21,7 @@ import type {
   SourceInputType,
   StaffingSheet,
   Shipment,
+  SavedDocumentTemplate,
 } from "@/types/models";
 
 function nowIso(): string {
@@ -786,4 +787,57 @@ export async function getContractSourceInput<TPayload>(
     id: snap.id,
     ...(snap.data() as Omit<ContractSourceInput<TPayload>, "id">),
   };
+}
+
+function documentTemplatesPath(orgId: string): string {
+  return `${orgPath(orgId)}/documentTemplates`;
+}
+
+export async function listDocumentTemplates(orgId: string, docType?: string) {
+  let query: FirebaseFirestore.Query = adminDb
+    .collection(documentTemplatesPath(orgId))
+    .orderBy("createdAt", "desc");
+
+  if (docType) {
+    query = query.where("docType", "==", docType);
+  }
+
+  const snapshot = await query.get();
+  return snapshot.docs.map((doc) => ({ id: doc.id, ...(doc.data() as Omit<SavedDocumentTemplate, "id">) }));
+}
+
+export async function createDocumentTemplate(
+  orgId: string,
+  payload: Omit<SavedDocumentTemplate, "id" | "createdAt" | "updatedAt">,
+) {
+  const ref = adminDb.collection(documentTemplatesPath(orgId)).doc();
+  const timestamp = nowIso();
+
+  await ref.set(withTimestamps({
+    ...payload,
+    orgId,
+  }, { createdAt: timestamp }));
+
+  return ref.id;
+}
+
+export async function deleteDocumentTemplate(orgId: string, templateId: string) {
+  const ref = adminDb.doc(`${documentTemplatesPath(orgId)}/${templateId}`);
+  const snap = await ref.get();
+  if (!snap.exists) {
+    throw new Error("Template not found");
+  }
+
+  await ref.delete();
+  return snap.data() as Omit<SavedDocumentTemplate, "id">;
+}
+
+export async function getDocumentTemplate(orgId: string, templateId: string) {
+  const ref = adminDb.doc(`${documentTemplatesPath(orgId)}/${templateId}`);
+  const snap = await ref.get();
+  if (!snap.exists) {
+    throw new Error("Template not found");
+  }
+
+  return { id: snap.id, ...(snap.data() as Omit<SavedDocumentTemplate, "id">) };
 }

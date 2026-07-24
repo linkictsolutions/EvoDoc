@@ -2699,6 +2699,89 @@ tbody tr:hover {
   padding-right: 0.15rem;
 }
 
+.template-cell-edit-button,
+.template-cell-delete-button {
+  position: absolute;
+  top: 4px;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.9);
+  background: rgba(255, 255, 255, 0.92);
+  color: #0f172a;
+  font-size: 11px;
+  line-height: 16px;
+  padding: 0;
+  cursor: pointer;
+}
+
+.template-cell-edit-button {
+  right: 34px;
+}
+
+.template-cell-delete-button {
+  right: 16px;
+}
+
+.template-cell-edit-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.template-cell-edit-actions {
+  justify-content: flex-end;
+}
+
+.template-checkbox-row,
+.config-toggle-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.template-saved-list {
+  display: grid;
+  gap: 0.65rem;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.template-saved-item {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.7rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.template-saved-item-copy {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.template-picker-list {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.template-picker-item {
+  display: grid;
+  gap: 0.2rem;
+  width: 100%;
+  text-align: left;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+}
+
+.template-picker-item:hover {
+  border-color: rgba(59, 130, 246, 0.55);
+  background: rgba(239, 246, 255, 0.9);
+}
+
 .attachments-field {
   display: grid;
   gap: 0.75rem;
