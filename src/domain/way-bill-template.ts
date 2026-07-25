@@ -2,11 +2,34 @@ import {
   isTemplateRichContentCell,
   resolveTemplateCellStaticHtml,
 } from "@/domain/template-static-content";
-import type { TemplateGridCell } from "@/domain/template-layout";
+import type { TemplateGridCell, TemplateSection } from "@/domain/template-layout";
 
 type WayBillRow = {
   label: string;
   value: string;
+};
+
+export const WAY_BILL_SECTION_ORDER = [
+  "header_meta",
+  "transport",
+  "declaration",
+  "conditions",
+  "goods",
+  "transport_charge",
+  "containers",
+  "amharic",
+  "footer",
+  "document_id",
+] as const;
+
+export const WAY_BILL_TRANSPORT_TH_LABELS: Record<string, string> = {
+  wb_to: "To:",
+  wb_truck: "Truck No:",
+  wb_trailer: "Trailer No:",
+  wb_driver: "Driver Name:",
+  wb_driver_phone: "Driver Phone No:",
+  wb_license: "License No:",
+  wb_destination: "Final Destination:",
 };
 
 export const WAY_BILL_CELL_LABEL_MAP: Record<string, string> = {
@@ -87,6 +110,33 @@ export function resolveWayBillCellValue(rows: WayBillRow[], cell: TemplateGridCe
 
   const mapped = WAY_BILL_CELL_LABEL_MAP[cell.id] ?? cell.label;
   return rowValue(rows, mapped);
+}
+
+export function sortWayBillSections(sections: TemplateSection[]): TemplateSection[] {
+  const orderIndex = new Map(WAY_BILL_SECTION_ORDER.map((id, index) => [id, index]));
+
+  return sections
+    .map((section, index) => ({ section, index }))
+    .sort((left, right) => {
+      if (left.section.y !== right.section.y) {
+        return left.section.y - right.section.y;
+      }
+
+      const leftOrder = orderIndex.get(left.section.id as typeof WAY_BILL_SECTION_ORDER[number]);
+      const rightOrder = orderIndex.get(right.section.id as typeof WAY_BILL_SECTION_ORDER[number]);
+      if (leftOrder !== undefined && rightOrder !== undefined && leftOrder !== rightOrder) {
+        return leftOrder - rightOrder;
+      }
+      if (leftOrder !== undefined && rightOrder === undefined) {
+        return -1;
+      }
+      if (leftOrder === undefined && rightOrder !== undefined) {
+        return 1;
+      }
+
+      return left.index - right.index;
+    })
+    .map(({ section }) => section);
 }
 
 export function resolveWayBillFooterRow(

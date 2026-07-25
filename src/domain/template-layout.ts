@@ -79,6 +79,30 @@ export function normalizeTemplateSections(sections: TemplateSection[]): Template
   }));
 }
 
+const SECTION_HEADER_ROWS = 2;
+const SECTION_BOTTOM_PADDING_ROWS = 2;
+const SECTION_GAP_ROWS = 1;
+
+function computeTemplateSectionHeight(section: TemplateSection): number {
+  const maxContentRow = (section.cells ?? []).reduce((acc, cell) => Math.max(acc, cell.y + cell.h), 0);
+  const computed = SECTION_HEADER_ROWS + maxContentRow + SECTION_BOTTOM_PADDING_ROWS;
+  const structuralMin = SECTION_HEADER_ROWS + SECTION_BOTTOM_PADDING_ROWS + 1;
+  return Math.max(structuralMin, computed, section.minH);
+}
+
+export function relayoutTemplateSections(nextSections: TemplateSection[]): TemplateSection[] {
+  let cursorY = 0;
+  const updated: TemplateSection[] = [];
+
+  for (const section of nextSections) {
+    const height = computeTemplateSectionHeight(section);
+    updated.push({ ...section, y: cursorY, h: height });
+    cursorY += height + SECTION_GAP_ROWS;
+  }
+
+  return updated;
+}
+
 export function normalizePersistedTemplateLayout(layout: PersistedTemplateLayout): PersistedTemplateLayout {
   const availableFields: Record<string, TemplateGridCell[]> = {};
   for (const [key, cells] of Object.entries(layout.availableFields ?? {})) {

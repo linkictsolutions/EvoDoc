@@ -10,6 +10,7 @@ import { DEFAULT_ORG_ID } from "@/lib/config";
 import {
   normalizePersistedTemplateLayout,
   normalizeTemplateCell,
+  relayoutTemplateSections,
   scaleSections12To24,
   serializeTemplateLayout,
   TEMPLATE_GRID_COLS,
@@ -36,30 +37,16 @@ type PersistedTemplate = PersistedTemplateLayout;
 type DropMode = "box" | "hline" | "vline";
 type DragKind = "move" | "add" | "add_spacer" | "add_spacer_borderless" | "add_note";
 
+function relayoutSections(nextSections: TemplateSection[]) {
+  return relayoutTemplateSections(nextSections);
+}
+
 function collides(a: Pick<TemplateGridCell, "x" | "y" | "w" | "h">, b: Pick<TemplateGridCell, "x" | "y" | "w" | "h">) {
   const ax2 = a.x + a.w;
   const ay2 = a.y + a.h;
   const bx2 = b.x + b.w;
   const by2 = b.y + b.h;
   return a.x < bx2 && ax2 > b.x && a.y < by2 && ay2 > b.y;
-}
-
-function computeSectionHeight(section: TemplateSection) {
-  const maxContentRow = section.cells.reduce((acc, cell) => Math.max(acc, cell.y + cell.h), 0);
-  const computed = SECTION_HEADER_ROWS + maxContentRow + SECTION_BOTTOM_PADDING_ROWS;
-  const structuralMin = SECTION_HEADER_ROWS + SECTION_BOTTOM_PADDING_ROWS + 1;
-  return Math.max(structuralMin, computed, section.minH);
-}
-
-function relayoutSections(nextSections: TemplateSection[]) {
-  let cursorY = 0;
-  const updated: TemplateSection[] = [];
-  for (const section of nextSections) {
-    const h = computeSectionHeight(section);
-    updated.push({ ...section, y: cursorY, h });
-    cursorY += h + SECTION_GAP_ROWS;
-  }
-  return updated;
 }
 
 function dedupeById(cells: TemplateGridCell[]) {

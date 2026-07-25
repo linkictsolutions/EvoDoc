@@ -7,7 +7,18 @@ export const ICO_CERTIFICATION_STATEMENT =
   "IT IS HEREBY CERTIFIED THAT THE COFFEE DESCRIBED ABOVE WAS GROWN IN THE COUNTRY NAMED IN BOX 5 AND HAS BEEN EXPORTED ON THE DATE SHOWN BELOW";
 
 export const WAY_BILL_DRIVER_DECLARATION_TEMPLATE =
-  "I {{DRIVER_NAME}} the undersigned_____________and that I have Received the Goods from {{SELLER_NAME}} and bind myself to covey them safe to Djibouti port.";
+  "I {{DRIVER_NAME}} the undersigned_____________and that I have Received the Goods from {{SELLER_NAME}} and bind myself to convey them safe to Djibouti port.";
+
+export const WAY_BILL_TERMS_INTRO = "According to the following terms and conditions.";
+
+export const WAY_BILL_CONDITION_1 =
+  "1. I undertake to make good any shortage in goods at the market price ruling.";
+
+export const WAY_BILL_CONDITION_2 =
+  "2. I agree that this consignment is now under my charge and entire responsibility.";
+
+export const WAY_BILL_CONDITION_3 =
+  "3. I declare that my lorry is equipped with tarpaulin and that I have received the described goods in good condition.";
 
 export const WAY_BILL_AMHARIC_DECLARATION =
   "ከላይ የተጠቀሱትን ህግና ደንቦች አንብቤና ተረድቼ ለማንኛውም ችግር ሀላፊነት ለመውሰድ በፊርማየ አረጋግጣለሁ፡ ፡";
@@ -27,6 +38,10 @@ const STATIC_TEXT_CELL_IDS = new Set([
   "wb_title",
   "wb_decl_title",
   "wb_goods_hdr",
+  "wb_terms_intro",
+  "wb_condition_1",
+  "wb_condition_2",
+  "wb_condition_3",
   "ico_title",
   "bl_title",
   "bl_page",
@@ -38,7 +53,6 @@ const STATIC_TEXT_CELL_IDS = new Set([
   "tt_declaration",
   "fm_signature",
   "ts_signature",
-  "wb_driver_decl",
   "wb_transport_label",
   "bd_beneficiary_hdr",
   "bd_corr_hdr",
@@ -57,6 +71,10 @@ const DEFAULT_STATIC_HTML: Record<string, string> = {
   wb_title: "<p style=\"text-align: center\"><strong>WAY BILL</strong></p>",
   wb_decl_title: "<p><strong>Driver's Declaration</strong></p>",
   wb_goods_hdr: "<p><strong>Detail of Goods</strong></p>",
+  wb_terms_intro: `<p><strong>${WAY_BILL_TERMS_INTRO}</strong></p>`,
+  wb_condition_1: `<p>${WAY_BILL_CONDITION_1}</p>`,
+  wb_condition_2: `<p>${WAY_BILL_CONDITION_2}</p>`,
+  wb_condition_3: `<p>${WAY_BILL_CONDITION_3}</p>`,
   ico_title: "<p style=\"text-align: center\"><strong>ICO CERTIFICATE OF ORIGIN</strong></p>",
   bl_title: "<p><strong>MEDITERRANEAN SHIPPING COMPANY S.A. / SCAC Code: MSCU</strong></p>",
   bl_page: "<p style=\"text-align: right\"><strong>PAGE 1 OF 1 | ORIGINAL</strong></p>",
@@ -70,7 +88,6 @@ const DEFAULT_STATIC_HTML: Record<string, string> = {
   tt_declaration: `<p>${ICC_DECLARATION_TEXT}</p>`,
   fm_signature: "<p><strong>Authorized Signature &amp; Company Seal/Stamp</strong></p>",
   ts_signature: "<p><strong>Authorized Signature &amp; Seal/Stamp</strong></p>",
-  wb_driver_decl: `<p>${WAY_BILL_DRIVER_DECLARATION_TEMPLATE}</p>`,
   wb_transport_label: "<p>The Truck carry the above mentioned Transport at ETH Birr</p>",
   bd_beneficiary_hdr: "<p><strong>Bank Details (Beneficiary)</strong></p>",
   bd_corr_hdr: "<p><strong>Correspondent Bank</strong></p>",

@@ -503,6 +503,7 @@ export function mapDocumentOutput(
               "Truck No": driverTab.truckNo,
               "Trailer No": driverTab.trailerNo,
               "Driver Name": driverTab.driverName,
+              "Seller Name": clean(companyConfiguration.sellerName),
               "Driver Phone No": driverTab.driverPhoneNo,
               "License No": driverTab.licenseNo,
               "Final Destination": driverTab.finalDestination,

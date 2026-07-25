@@ -223,7 +223,7 @@ function buildDriverDeclaration(driverName: string, sellerName: string): string 
     return "";
   }
 
-  return `I ${driverName} the undersigned_____________and that I have Received the Goods from ${sellerName} and bind myself to covey them safe to Djibouti port.`;
+  return `I ${driverName} the undersigned_____________and that I have Received the Goods from ${sellerName} and bind myself to convey them safe to Djibouti port.`;
 }
 
 const AMHARIC_DECLARATION =

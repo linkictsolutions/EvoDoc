@@ -10,8 +10,10 @@ import {
   isWayBillStaticCell,
   resolveWayBillCellValue,
   resolveWayBillFooterRow,
+  sortWayBillSections,
   WAY_BILL_GOODS_ROW_ORDER,
   WAY_BILL_TRANSPORT_ROW_ORDER,
+  WAY_BILL_TRANSPORT_TH_LABELS,
 } from "@/domain/way-bill-template";
 import type { TemplateGridCell, TemplateSection } from "@/domain/template-layout";
 import type { DocumentOutputSnapshot } from "@/types/models";
@@ -62,7 +64,7 @@ function sectionHasVisibleCells(section: TemplateSection): boolean {
 function buildStaticTokens(rows: Row[]): Record<string, string> {
   return {
     DRIVER_NAME: display(rows.find((row) => row.label === "Driver Name")?.value),
-    SELLER_NAME: display(rows.find((row) => row.label === "Shipper")?.value),
+    SELLER_NAME: display(rows.find((row) => row.label === "Seller Name")?.value),
   };
 }
 
@@ -113,6 +115,22 @@ function fieldValue(rows: Row[], cell: TemplateGridCell): string {
   return display(resolveWayBillCellValue(rows, cell));
 }
 
+function renderWayBillFieldParagraph(cell: TemplateGridCell, rows: Row[], strong = false) {
+  if (isWayBillStaticCell(cell)) {
+    const rendered = renderStaticCell(cell, rows);
+    if (rendered) {
+      return rendered;
+    }
+  }
+
+  const value = fieldValue(rows, cell);
+  if (strong) {
+    return <p><strong>{value}</strong></p>;
+  }
+
+  return <p>{value}</p>;
+}
+
 function renderHeaderSection(section: TemplateSection, rows: Row[]) {
   if (!sectionHasVisibleCells(section)) {
     return null;
@@ -157,7 +175,7 @@ function renderTransportSection(section: TemplateSection, rows: Row[]) {
             {cellId === "wb_to_contact" ? (
               <th></th>
             ) : (
-              <th>{cell.label}:</th>
+              <th>{WAY_BILL_TRANSPORT_TH_LABELS[cellId] ?? `${cell.label}:`}</th>
             )}
             <td>{fieldValue(rows, cell)}</td>
           </tr>
@@ -180,9 +198,7 @@ function renderDeclarationSection(section: TemplateSection, rows: Row[]) {
         <h3>Driver&apos;s Declaration</h3>
       )}
       {hasCell(section, "wb_driver_decl") ? (
-        isWayBillStaticCell(findCell(section, "wb_driver_decl")!)
-          ? renderStaticCell(findCell(section, "wb_driver_decl")!, rows)
-          : <p>{fieldValue(rows, findCell(section, "wb_driver_decl")!)}</p>
+        renderWayBillFieldParagraph(findCell(section, "wb_driver_decl")!, rows)
       ) : null}
     </section>
   );
@@ -200,9 +216,9 @@ function renderConditionsSection(section: TemplateSection, rows: Row[]) {
 
   return (
     <section key={section.id} className="way-bill-conditions">
-      {introCell ? <p><strong>{fieldValue(rows, introCell)}</strong></p> : null}
+      {introCell ? renderWayBillFieldParagraph(introCell, rows, true) : null}
       {conditionCells.map((cell) => (
-        <p key={cell.id}>{fieldValue(rows, cell)}</p>
+        <div key={cell.id}>{renderWayBillFieldParagraph(cell, rows)}</div>
       ))}
     </section>
   );
@@ -387,7 +403,7 @@ function WayBillDriverPage({
   documentId: string;
 }) {
   const sections = useMemo(
-    () => [...template.sections].sort((left, right) => (left.y - right.y) || left.id.localeCompare(right.id)),
+    () => sortWayBillSections(template.sections),
     [template.sections],
   );
 
