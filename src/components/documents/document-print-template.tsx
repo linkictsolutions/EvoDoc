@@ -3,6 +3,7 @@
 import { Children, useMemo, useState, type CSSProperties, type ReactNode } from "react";
 import { DocumentSinglePageFit } from "@/components/documents/document-single-page-fit";
 import { resolveCompanyConfiguration } from "@/domain/company-configuration";
+import { WayBillTemplatePrintView } from "@/components/documents/way-bill-template-print";
 import { getFactoryDefaultTemplateLayout } from "@/domain/template-factory-defaults";
 import { TEMPLATE_GRID_COLS } from "@/domain/template-layout";
 import {
@@ -17,7 +18,7 @@ const ICC_PACKING_TEMPLATE_STORAGE_KEY = "evodoc.templates.packing_list_icc.v1";
 const SHIPPING_INSTRUCTIONS_TEMPLATE_STORAGE_KEY = "evodoc.templates.shipping_instructions.v1";
 const QUALITY_CERT_TEMPLATE_STORAGE_KEY = "evodoc.templates.quality_certificate.v1";
 const WEIGHT_CERT_TEMPLATE_STORAGE_KEY = "evodoc.templates.weight_certificate.v1";
-const WAY_BILL_TEMPLATE_STORAGE_KEY = "evodoc.templates.way_bill.v1";
+const WAY_BILL_TEMPLATE_STORAGE_KEY = "evodoc.templates.way_bill.v2";
 const ICO_CERT_TEMPLATE_STORAGE_KEY = "evodoc.templates.ico_certificate.v1";
 const ICC_PRINT_GRID_ROW_MM = 4;
 const MIN_RENDERED_HEADER_HEIGHT_MM = 32;
@@ -1084,33 +1085,6 @@ const WEIGHT_CELL_LABEL_MAP: Record<string, string> = {
   wc_signatory: "Signatory Company",
 };
 
-const WAY_BILL_CELL_LABEL_MAP: Record<string, string> = {
-  wb_date: "Date",
-  wb_ref: "Ref No",
-  wb_to: "To",
-  wb_to_contact: "To Contact",
-  wb_truck: "Truck No",
-  wb_trailer: "Trailer No",
-  wb_driver: "Driver Name",
-  wb_driver_phone: "Driver Phone No",
-  wb_license: "License No",
-  wb_destination: "Final Destination",
-  wb_driver_decl: "Driver Declaration",
-  wb_goods_desc: "Detail of Goods",
-  wb_ico: "ICO No",
-  wb_cert: "Cert No",
-  wb_bags: "No of Bag",
-  wb_gross: "Gross Weight",
-  wb_net: "Net Weight",
-  wb_transport_label: "Transport Charge Label",
-  wb_transport_per_quantal: "Transport Charge Per Quantal",
-  wb_transport_total: "Transport Charge Total",
-  wb_container_1: "Container No 1",
-  wb_seal_1: "Seal No 1",
-  wb_container_2: "Container No 2",
-  wb_seal_2: "Seal No 2",
-};
-
 const ICO_CELL_LABEL_MAP: Record<string, string> = {
   ico_exporter: "1 Exporter/Consignor",
   ico_notify_address: "2 Notify Address",
@@ -1210,14 +1184,6 @@ function weightCellValue(rows: Row[], cell: TemplateCell): string {
     if (cell.id === "wc_ct_cont_gross") return indexedValues(rows, "Container Gross Weight ").get(index) ?? "-";
   }
   const mapped = WEIGHT_CELL_LABEL_MAP[cell.id] ?? cell.label;
-  return value(rows, mapped);
-}
-
-function wayBillCellValue(rows: Row[], cell: TemplateCell): string {
-  if (cell.id === "wb_title") {
-    return cell.label;
-  }
-  const mapped = WAY_BILL_CELL_LABEL_MAP[cell.id] ?? cell.label;
   return value(rows, mapped);
 }
 
@@ -1528,59 +1494,22 @@ function WayBillPrintViewWithTemplate({ output, documentId, isFinal, templateLay
     [templateLayout, output.docVariant],
   );
 
-  const driverTabs = useMemo(() => output.sections
-    .filter((section) => section.heading.startsWith("Driver "))
-    .map((section, index) => ({
-      key: `${section.heading}-${index + 1}`,
-      label: section.heading.replace(/^Driver\s+\d+\s+-\s+/, ""),
-      rows: section.rows,
-    })), [output.sections]);
-  const [activeTab, setActiveTab] = useState(0);
-
   if (!template) {
-    return <WayBillPrintView output={output} documentId={documentId} />;
+    return (
+      <article className="print-sheet way-bill-sheet">
+        <section className="way-bill-page">
+          <p>Way Bill template is not configured.</p>
+        </section>
+      </article>
+    );
   }
 
-  const activeRows = driverTabs[activeTab]?.rows ?? flattenRows(output);
-
   return (
-    <article className="print-sheet way-bill-sheet">
-      <div className="way-bill-tabs screen-only">
-        {driverTabs.length > 0 ? (
-          driverTabs.map((tab, index) => (
-            <button
-              key={tab.key}
-              type="button"
-              className={index === activeTab ? "" : "button-secondary"}
-              onClick={() => setActiveTab(index)}
-            >
-              {tab.label}
-            </button>
-          ))
-        ) : (
-          <p>No staffing drivers found yet.</p>
-        )}
-      </div>
-
-      {driverTabs.length === 0 ? (
-        <section className="way-bill-page">
-          <p>No Way Bill tabs to display yet. Add driver/truck data in Staffing and generate again.</p>
-        </section>
-      ) : (
-        <section className="way-bill-page">
-          <GenericTemplatePrintView
-            embedded
-            rows={activeRows}
-            documentId={documentId}
-            template={template}
-            isFinal={isFinal}
-            cellValueFor={wayBillCellValue}
-            sheetClassName="way-bill-sheet"
-            tableClassName="way-bill-table"
-          />
-        </section>
-      )}
-    </article>
+    <WayBillTemplatePrintView
+      output={output as DocumentOutputSnapshot<"way_bill">}
+      documentId={documentId}
+      template={template}
+    />
   );
 }
 
@@ -2568,186 +2497,6 @@ function CertificateOfWeightPrintView({ output, documentId }: Props) {
   );
 }
 
-function WayBillPrintView({ output, documentId }: Props) {
-  const driverTabs = useMemo(() => output.sections
-    .filter((section) => section.heading.startsWith("Driver "))
-    .map((section, index) => ({
-      key: `${section.heading}-${index + 1}`,
-      label: section.heading.replace(/^Driver\s+\d+\s+-\s+/, ""),
-      rows: section.rows,
-    })), [output.sections]);
-  const [activeTab, setActiveTab] = useState(0);
-  const activeRows = driverTabs[activeTab]?.rows ?? [];
-
-  return (
-    <article className="print-sheet way-bill-sheet">
-      <div className="way-bill-tabs screen-only">
-        {driverTabs.length > 0 ? (
-          driverTabs.map((tab, index) => (
-            <button
-              key={tab.key}
-              type="button"
-              className={index === activeTab ? "" : "button-secondary"}
-              onClick={() => setActiveTab(index)}
-            >
-              {tab.label}
-            </button>
-          ))
-        ) : (
-          <p>No staffing drivers found yet.</p>
-        )}
-      </div>
-
-      {driverTabs.length === 0 ? (
-        <section className="way-bill-page">
-          <p>No Way Bill tabs to display yet. Add driver/truck data in Staffing and generate again.</p>
-        </section>
-      ) : (
-        <section className="way-bill-page">
-          <header className="way-bill-header">
-            <h1>WAY BILL</h1>
-            <div className="way-bill-meta">
-              <p><strong>DATE:</strong> {display(value(activeRows, "Date"))}</p>
-              <p><strong>REF. No:</strong> {display(value(activeRows, "Ref No"))}</p>
-            </div>
-          </header>
-
-          <table className="print-table way-bill-table">
-            <tbody>
-              <tr>
-                <th>To:</th>
-                <td>{display(value(activeRows, "To"))}</td>
-              </tr>
-              <tr>
-                <th></th>
-                <td>{display(value(activeRows, "To Contact"))}</td>
-              </tr>
-              <tr>
-                <th>Truck No:</th>
-                <td>{display(value(activeRows, "Truck No"))}</td>
-              </tr>
-              <tr>
-                <th>Trailer No:</th>
-                <td>{display(value(activeRows, "Trailer No"))}</td>
-              </tr>
-              <tr>
-                <th>Driver Name:</th>
-                <td>{display(value(activeRows, "Driver Name"))}</td>
-              </tr>
-              <tr>
-                <th>Driver Phone No:</th>
-                <td>{display(value(activeRows, "Driver Phone No"))}</td>
-              </tr>
-              <tr>
-                <th>License No:</th>
-                <td>{display(value(activeRows, "License No"))}</td>
-              </tr>
-              <tr>
-                <th>Final Destination:</th>
-                <td>{display(value(activeRows, "Final Destination"))}</td>
-              </tr>
-            </tbody>
-          </table>
-
-          <section className="way-bill-declaration">
-            <h3>Driver&apos;s Declaration</h3>
-            <p>{display(value(activeRows, "Driver Declaration"))}</p>
-          </section>
-
-          <section className="way-bill-conditions">
-            <p><strong>{display(value(activeRows, "Terms Intro"))}</strong></p>
-            <p>{display(value(activeRows, "Condition 1"))}</p>
-            <p>{display(value(activeRows, "Condition 2"))}</p>
-            <p>{display(value(activeRows, "Condition 3"))}</p>
-          </section>
-
-          <table className="print-table way-bill-table mt-sm">
-            <tbody>
-              <tr>
-                <th colSpan={2}>Detail of Goods</th>
-              </tr>
-              <tr>
-                <th>Description</th>
-                <td>{display(value(activeRows, "Detail of Goods"))}</td>
-              </tr>
-              <tr>
-                <th>ICO No</th>
-                <td>{display(value(activeRows, "ICO No"))}</td>
-              </tr>
-              <tr>
-                <th>Cert No</th>
-                <td>{display(value(activeRows, "Cert No"))}</td>
-              </tr>
-              <tr>
-                <th>No of Bag</th>
-                <td>{display(value(activeRows, "No of Bag"))}</td>
-              </tr>
-              <tr>
-                <th>Gross Weight</th>
-                <td>{display(value(activeRows, "Gross Weight"))}</td>
-              </tr>
-              <tr>
-                <th>Net Weight</th>
-                <td>{display(value(activeRows, "Net Weight"))}</td>
-              </tr>
-            </tbody>
-          </table>
-
-          <table className="print-table way-bill-table mt-sm">
-            <tbody>
-              <tr>
-                <th>{display(value(activeRows, "Transport Charge Label"))}</th>
-                <td>{display(value(activeRows, "Transport Charge Per Quantal"))}</td>
-                <td>{display(value(activeRows, "Transport Charge Total"))}</td>
-              </tr>
-            </tbody>
-          </table>
-
-          <table className="print-table way-bill-table mt-sm">
-            <thead>
-              <tr>
-                <th>Container No</th>
-                <th>Seal No</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>{display(value(activeRows, "Container No 1"))}</td>
-                <td>{display(value(activeRows, "Seal No 1"))}</td>
-              </tr>
-              <tr>
-                <td>{display(value(activeRows, "Container No 2"))}</td>
-                <td>{display(value(activeRows, "Seal No 2"))}</td>
-              </tr>
-            </tbody>
-          </table>
-
-          <p className="way-bill-amharic">{display(value(activeRows, "Amharic Declaration"))}</p>
-
-          <table className="print-table way-bill-table mt-sm">
-            <tbody>
-              <tr>
-                <th>{display(value(activeRows, "Driver Name Label"))}</th>
-                <td>{display(value(activeRows, "Driver Name"))}</td>
-              </tr>
-              <tr>
-                <th>{display(value(activeRows, "Driver Signature Label"))}</th>
-                <td>{display(value(activeRows, "Dispatch Signature Label"))}</td>
-              </tr>
-              <tr>
-                <th>{display(value(activeRows, "Driver Date Label"))}</th>
-                <td>{display(value(activeRows, "Stamp Date Label"))}</td>
-              </tr>
-            </tbody>
-          </table>
-
-          <p className="permit-doc-id">Document ID: {documentId}</p>
-        </section>
-      )}
-    </article>
-  );
-}
-
 function IcoCertificatePrintView({ output, documentId }: Props) {
   const rows = flattenRows(output);
   const field = (label: string) => display(value(rows, label));
@@ -3033,7 +2782,7 @@ export function DocumentPrintTemplate({
   } else if (output.docType === "weight_certificate") {
     content = <CertificateOfWeightPrintViewWithTemplate output={output} documentId={documentId} input={input} isFinal={isFinal} templateLayout={templateLayout} />;
   } else if (output.docType === "way_bill") {
-    content = <WayBillPrintView output={output} documentId={documentId} />;
+    content = <WayBillPrintViewWithTemplate output={output} documentId={documentId} input={input} isFinal={isFinal} templateLayout={templateLayout} />;
   } else if (output.docType === "ico_certificate") {
     content = <IcoCertificatePrintView output={output} documentId={documentId} />;
   } else if (output.docType === "bill_of_lading") {

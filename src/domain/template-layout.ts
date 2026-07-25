@@ -121,6 +121,7 @@ export function docTypeForTemplateStorageKey(storageKey: string): DocumentType |
     "evodoc.templates.shipping_instructions.v1": "shipping_instructions",
     "evodoc.templates.quality_certificate.v1": "quality_certificate",
     "evodoc.templates.weight_certificate.v1": "weight_certificate",
+    "evodoc.templates.way_bill.v2": "way_bill",
     "evodoc.templates.way_bill.v1": "way_bill",
     "evodoc.templates.ico_certificate.v1": "ico_certificate",
     "evodoc.templates.bill_of_lading.v1": "bill_of_lading",

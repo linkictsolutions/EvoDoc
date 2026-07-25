@@ -6,7 +6,7 @@ import { WAY_BILL_DEFAULT_SECTIONS } from "@/domain/template-defaults/way_bill";
 export function WayBillTemplatePage() {
   return (
     <TemplateEditorPage
-      storageKey="evodoc.templates.way_bill.v1"
+      storageKey="evodoc.templates.way_bill.v2"
       docType="way_bill"
       title="Way Bill Template"
       subtitle="Template-driven layout for Way Bills (per driver tab)."
