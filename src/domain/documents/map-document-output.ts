@@ -1,3 +1,4 @@
+import { formatDateOfShipment } from "@/domain/date-format";
 import { buildCommercialInvoiceIccSample } from "@/domain/commercial-invoice-icc";
 import { buildBillOfLadingSample } from "@/domain/bill-of-lading";
 import { buildCertificateOfQualitySample } from "@/domain/certificate-quality";
@@ -121,6 +122,8 @@ export function mapDocumentOutput(
                 "ECCSA Certificate of Origin Number": sample.header.eccsaCertificateOfOriginNumber,
                 "Vessel & Voyage Number": sample.header.vesselAndVoyageNumber,
                 "Shipped on Board Date": sample.header.shippedOnBoardDate,
+                "Date of Shipment": sample.header.dateOfShipment,
+                "Cert Number(s)": sample.header.certNumbers,
               }),
             },
             {
@@ -325,7 +328,7 @@ export function mapDocumentOutput(
                 { label: "Port of Loading (E29)", value: clean(finalFields.portOfLoading) },
                 { label: "Place of Discharge (E30)", value: clean(finalFields.destination) },
                 { label: "Booking Number (E31)", value: clean(bookings?.bookingNumber ?? snapshot.contract.shipping.bookingNumber) },
-                { label: "Vessel Departure (ETD) / Date (E32)", value: clean(snapshot.contract.shipping.shipmentMonth ?? snapshot.contract.banking.latestShipmentDate) },
+                { label: "Date of Shipment", value: clean(formatDateOfShipment(snapshot.contract.shipping.shipmentMonth ?? snapshot.contract.terms.shipmentPeriod ?? snapshot.contract.banking.latestShipmentDate)) },
                 { label: "Additional Document / Remark (E33)", value: "14 DAYS FREE TIME AT PORT OF DISCHARGE" },
                 { label: "Cargo Moved By (E34)", value: "BY TRUCK" },
               ],

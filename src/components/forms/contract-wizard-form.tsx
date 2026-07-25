@@ -394,8 +394,8 @@ export function ContractWizardForm() {
             <small>{errors.deliveryTerm?.message}</small>
           </label>
           <label className="col-3">
-            Shipment Period
-            <input className={dirtyControlClass("shipmentPeriod")} type="month" {...register("shipmentPeriod")} />
+            Date of Shipment
+            <input className={dirtyControlClass("shipmentPeriod")} type="date" {...register("shipmentPeriod")} />
           </label>
           <label className="col-2">
             Crop Year

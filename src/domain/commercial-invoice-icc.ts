@@ -1,7 +1,8 @@
 import { amountToWords } from "@/domain/amount-words";
 import { resolveCompanyConfiguration } from "@/domain/company-configuration";
 import { buildContractSiLcReport } from "@/domain/contract-si-lc";
-import { computeContractExcelParity } from "@/domain/excel-parity";
+import { formatDateOfShipment } from "@/domain/date-format";
+import { computeContractExcelParity, generateCertificateRange } from "@/domain/excel-parity";
 import type { BookingsSheet, CompanyConfiguration, Contract, Customer, Shipment } from "@/types/models";
 
 interface InvoiceRow {
@@ -21,19 +22,6 @@ function clean(value: string | number | undefined | null): string {
   }
 
   return normalized;
-}
-
-function formatDate(value: string | undefined): string {
-  if (!value) {
-    return "";
-  }
-
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) {
-    return "";
-  }
-
-  return parsed.toLocaleDateString("en-GB");
 }
 
 function parseAmount(value: string): number | null {
@@ -105,6 +93,8 @@ export interface CommercialInvoiceIccSample {
     applicantNotify: string;
     consignee: string;
     eccsaCertificateOfOriginNumber: string;
+    dateOfShipment: string;
+    certNumbers: string;
   };
   goodsLine: {
     descriptionOfGoods: string;
@@ -172,8 +162,14 @@ export function buildCommercialInvoiceIccSample(
   const applicantNotify = resolveFromK(report.rows, 30);
   const packagingAndMarking = resolveFromF(report.rows, 35);
 
-  const contractDate = formatDate(contract.createdAt);
-  const today = formatDate(new Date().toISOString());
+  const contractDate = formatDateOfShipment(contract.createdAt);
+  const today = formatDateOfShipment(new Date().toISOString());
+  const dateOfShipment = formatDateOfShipment(
+    contract.terms.shipmentPeriod
+    || contract.shipping.shipmentMonth
+    || contract.banking.latestShipmentDate,
+  );
+  const certNumbers = generateCertificateRange(contract.terms.lastCertNo ?? 0, parity.containerCount);
   const containerCount = Number.isFinite(parity.containerCount) ? parity.containerCount : 0;
   const typeOfShipment = `${Math.max(0, containerCount)} X 20FT (FCL)`;
   const billOfLadingNumber = clean(bookings?.billOfLadingNumber) || clean(latestShipment?.bookingReference) || clean(contract.shipping.bookingNumber);
@@ -197,6 +193,8 @@ export function buildCommercialInvoiceIccSample(
       applicantNotify,
       consignee,
       eccsaCertificateOfOriginNumber: "N/A",
+      dateOfShipment,
+      certNumbers,
     },
     goodsLine: {
       descriptionOfGoods: description,

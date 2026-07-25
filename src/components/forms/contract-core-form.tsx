@@ -118,24 +118,7 @@ const initialBuyerModalForm: BuyerModalForm = {
   taxId: "",
 };
 
-function toMonthInputValue(value?: string): string {
-  const normalized = value?.trim();
-  if (!normalized) {
-    return "";
-  }
-
-  const isoMonthMatch = normalized.match(/^(\d{4}-\d{2})(?:-\d{2})?/);
-  if (isoMonthMatch) {
-    return isoMonthMatch[1];
-  }
-
-  const parsed = new Date(normalized);
-  if (Number.isNaN(parsed.getTime())) {
-    return "";
-  }
-
-  return parsed.toISOString().slice(0, 7);
-}
+import { toDateInputValue } from "@/domain/date-format";
 
 export function ContractCoreForm({
   initialContractId,
@@ -428,7 +411,7 @@ export function ContractCoreForm({
             priceUom: terms.priceUom ?? "Lbs",
             packagingUnit: terms.packagingUnit,
             currency: terms.currency,
-            shipmentPeriod: toMonthInputValue(terms.shipmentPeriod),
+            shipmentPeriod: toDateInputValue(terms.shipmentPeriod),
             paymentTerm: terms.paymentTerm ?? paymentTermOptions[0] ?? "CAD",
             deliveryTerm: terms.deliveryTerm ?? deliveryTermOptions[0] ?? fallbackDeliveryTerms[0],
             cropYear: terms.cropYear ?? "",
@@ -458,7 +441,7 @@ export function ContractCoreForm({
             priceUom: terms.priceUom ?? "Lbs",
             packagingUnit: terms.packagingUnit,
             currency: terms.currency,
-            shipmentPeriod: toMonthInputValue(terms.shipmentPeriod),
+            shipmentPeriod: toDateInputValue(terms.shipmentPeriod),
             paymentTerm: terms.paymentTerm ?? paymentTermOptions[0] ?? "CAD",
             deliveryTerm: terms.deliveryTerm ?? deliveryTermOptions[0] ?? fallbackDeliveryTerms[0],
             cropYear: terms.cropYear ?? "",
@@ -727,8 +710,8 @@ export function ContractCoreForm({
           </select>
         </label>
         <label className="col-4">
-          Shipment Period
-          <input className={dirtyControlClass("shipmentPeriod")} type="month" {...register("shipmentPeriod")} />
+          Date of Shipment
+          <input className={dirtyControlClass("shipmentPeriod")} type="date" {...register("shipmentPeriod")} />
         </label>
         </FormSection>
 

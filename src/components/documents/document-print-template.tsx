@@ -76,6 +76,7 @@ type TemplateCell = {
   showBorder?: boolean;
   contentKind?: "field" | "static" | "note";
   staticHtml?: string;
+  verticalAlign?: "top" | "middle" | "bottom";
 };
 
 type TemplateSection = {
@@ -87,6 +88,7 @@ type TemplateSection = {
   h: number;
   minH: number;
   cells: TemplateCell[];
+  showDocumentId?: boolean;
 };
 
 type PersistedIccTemplate = {
@@ -127,6 +129,8 @@ const ICC_CELL_LABEL_MAP: Record<string, string> = {
   inv_dispatch: "Method of Dispatch",
   inv_eccsa: "ECCSA Certificate of Origin Number",
   inv_vessel: "Vessel & Voyage Number",
+  inv_date_of_shipment: "Date of Shipment",
+  inv_cert_numbers: "Cert Number(s)",
   inv_ship_date: "Shipped on Board Date",
 
   gt_desc: "Description of Goods",
@@ -246,6 +250,16 @@ function buildStaticTokens(rows: Row[], cell: TemplateCell, isFinal?: boolean): 
   return tokens;
 }
 
+function resolveTemplateVerticalAlign(cell: TemplateCell): CSSProperties["verticalAlign"] {
+  if (cell.verticalAlign === "middle") {
+    return "middle";
+  }
+  if (cell.verticalAlign === "bottom") {
+    return "bottom";
+  }
+  return "top";
+}
+
 function renderStaticTemplateCell(cell: TemplateCell, rows: Row[], isFinal?: boolean) {
   if (!isTemplateRichContentCell(cell)) {
     return null;
@@ -260,6 +274,12 @@ function renderStaticTemplateCell(cell: TemplateCell, rows: Row[], isFinal?: boo
   return (
     <div
       className="template-static-html"
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: cell.verticalAlign === "middle" ? "center" : cell.verticalAlign === "bottom" ? "flex-end" : "flex-start",
+        height: "100%",
+      }}
       dangerouslySetInnerHTML={{ __html: resolved }}
     />
   );
@@ -410,6 +430,9 @@ function IccInvoiceTemplatePrintView({ output, documentId, isFinal, template }: 
     <article className="print-sheet icc-sheet">
 	      {sections.map((section) => {
         if (section.id === "document_id") {
+          if (section.showDocumentId !== true) {
+            return null;
+          }
           return (
             <p key={section.id} className="permit-doc-id">
               Document ID: {documentId}
@@ -563,7 +586,7 @@ function IccInvoiceTemplatePrintView({ output, documentId, isFinal, template }: 
                           fontWeight: 500,
                           whiteSpace: "pre-wrap",
                           wordBreak: "break-word",
-                          verticalAlign: "top",
+                          verticalAlign: resolveTemplateVerticalAlign(cell),
                           border: cellShowsBorder(cell) ? undefined : "none",
                           textAlign: (
                             cell.id === "inv_page"
@@ -592,6 +615,9 @@ function GenericTemplatePrintView({
   isFinal,
   cellValueFor,
   tableSectionConfig,
+  sheetClassName = "icc-sheet",
+  tableClassName = "icc-table",
+  embedded = false,
 }: {
   rows: Row[];
   documentId: string;
@@ -599,13 +625,19 @@ function GenericTemplatePrintView({
   isFinal?: boolean;
   cellValueFor: (rows: Row[], cell: TemplateCell) => string;
   tableSectionConfig?: Record<string, { columnIds: Set<string>; rowPlaceholderId: string }>;
+  sheetClassName?: string;
+  tableClassName?: string;
+  embedded?: boolean;
 }) {
   const sections = normalizeTemplateSections(template.sections);
 
-  return (
-    <article className="print-sheet icc-sheet">
+  const content = (
+    <>
       {sections.map((section) => {
         if (section.id === "document_id") {
+          if (section.showDocumentId !== true) {
+            return null;
+          }
           return (
             <p key={section.id} className="permit-doc-id">
               Document ID: {documentId}
@@ -646,7 +678,7 @@ function GenericTemplatePrintView({
         return (
           <table
             key={section.id}
-            className="print-table icc-table icc-template-grid-table mt-sm"
+            className={`print-table ${tableClassName} icc-template-grid-table mt-sm`}
             style={{ tableLayout: "fixed", borderCollapse: "collapse" }}
           >
             {renderTemplateColGroup(sectionCols)}
@@ -730,7 +762,7 @@ function GenericTemplatePrintView({
                           fontWeight: 500,
                           whiteSpace: "pre-wrap",
                           wordBreak: "break-word",
-                          verticalAlign: "top",
+                          verticalAlign: resolveTemplateVerticalAlign(cell),
                           border: cellShowsBorder(cell) ? undefined : "none",
                         }}
                       >
@@ -744,6 +776,16 @@ function GenericTemplatePrintView({
           </table>
         );
       })}
+    </>
+  );
+
+  if (embedded) {
+    return content;
+  }
+
+  return (
+    <article className={`print-sheet ${sheetClassName}`}>
+      {content}
     </article>
   );
 }
@@ -978,7 +1020,7 @@ const SHIPPING_CELL_LABEL_ALIASES: Record<string, string[]> = {
   si_port_loading: ["Port of Loading", "Port of Loading (E29)"],
   si_discharge: ["Place of Discharge", "Place of Discharge (E30)"],
   si_booking: ["Booking Number", "Booking Number (E31)"],
-  si_etd: ["Vessel Departure (ETD) / Date", "Vessel Departure (ETD) / Date (E32)"],
+  si_etd: ["Date of Shipment", "Vessel Departure (ETD) / Date", "Vessel Departure (ETD) / Date (E32)"],
   si_additional: ["Additional Document / Remark", "Additional Document / Remark (E33)"],
 };
 
@@ -1001,7 +1043,7 @@ const SHIPPING_CELL_LABEL_MAP: Record<string, string> = {
   si_port_loading: "Port of Loading",
   si_discharge: "Place of Discharge",
   si_booking: "Booking Number",
-  si_etd: "Vessel Departure (ETD) / Date",
+  si_etd: "Date of Shipment",
 };
 
 const QUALITY_CELL_LABEL_MAP: Record<string, string> = {
@@ -1208,6 +1250,9 @@ function PackingListIccTemplatePrintView({ output, documentId, isFinal, template
     <article className="print-sheet packing-icc-sheet">
       {sections.map((section) => {
         if (section.id === "document_id") {
+          if (section.showDocumentId !== true) {
+            return null;
+          }
           return (
             <p key={section.id} className="permit-doc-id">
               Document ID: {documentId}
@@ -1372,7 +1417,7 @@ function PackingListIccTemplatePrintView({ output, documentId, isFinal, template
                           fontWeight: 500,
                           whiteSpace: "pre-wrap",
                           wordBreak: "break-word",
-                          verticalAlign: "top",
+                          verticalAlign: resolveTemplateVerticalAlign(cell),
                           textAlign: cell.id === "pl_page" ? "right" : undefined,
                         }}
                       >
@@ -1442,6 +1487,8 @@ function CertificateOfQualityPrintViewWithTemplate({ output, documentId, isFinal
       template={template}
       isFinal={isFinal}
       cellValueFor={qualityCellValue}
+      sheetClassName="quality-certificate-sheet"
+      tableClassName="quality-certificate-table"
       tableSectionConfig={{
         container_table: { columnIds: QC_CONTAINER_COLUMN_IDS, rowPlaceholderId: "qc_ct_row" },
       }}
@@ -1466,6 +1513,8 @@ function CertificateOfWeightPrintViewWithTemplate({ output, documentId, isFinal,
       template={template}
       isFinal={isFinal}
       cellValueFor={weightCellValue}
+      sheetClassName="weight-certificate-sheet"
+      tableClassName="weight-certificate-table"
       tableSectionConfig={{
         container_table: { columnIds: WC_CONTAINER_COLUMN_IDS, rowPlaceholderId: "wc_ct_row" },
       }}
@@ -1479,26 +1528,59 @@ function WayBillPrintViewWithTemplate({ output, documentId, isFinal, templateLay
     [templateLayout, output.docVariant],
   );
 
+  const driverTabs = useMemo(() => output.sections
+    .filter((section) => section.heading.startsWith("Driver "))
+    .map((section, index) => ({
+      key: `${section.heading}-${index + 1}`,
+      label: section.heading.replace(/^Driver\s+\d+\s+-\s+/, ""),
+      rows: section.rows,
+    })), [output.sections]);
+  const [activeTab, setActiveTab] = useState(0);
+
   if (!template) {
     return <WayBillPrintView output={output} documentId={documentId} />;
   }
 
-  const driverTabs = output.sections
-    .filter((section) => section.heading.startsWith("Driver "))
-    .map((section, index) => ({
-      key: `${section.heading}-${index + 1}`,
-      rows: section.rows,
-    }));
-  const activeRows = driverTabs[0]?.rows ?? flattenRows(output);
+  const activeRows = driverTabs[activeTab]?.rows ?? flattenRows(output);
 
   return (
-    <GenericTemplatePrintView
-      rows={activeRows}
-      documentId={documentId}
-      template={template}
-      isFinal={isFinal}
-      cellValueFor={wayBillCellValue}
-    />
+    <article className="print-sheet way-bill-sheet">
+      <div className="way-bill-tabs screen-only">
+        {driverTabs.length > 0 ? (
+          driverTabs.map((tab, index) => (
+            <button
+              key={tab.key}
+              type="button"
+              className={index === activeTab ? "" : "button-secondary"}
+              onClick={() => setActiveTab(index)}
+            >
+              {tab.label}
+            </button>
+          ))
+        ) : (
+          <p>No staffing drivers found yet.</p>
+        )}
+      </div>
+
+      {driverTabs.length === 0 ? (
+        <section className="way-bill-page">
+          <p>No Way Bill tabs to display yet. Add driver/truck data in Staffing and generate again.</p>
+        </section>
+      ) : (
+        <section className="way-bill-page">
+          <GenericTemplatePrintView
+            embedded
+            rows={activeRows}
+            documentId={documentId}
+            template={template}
+            isFinal={isFinal}
+            cellValueFor={wayBillCellValue}
+            sheetClassName="way-bill-sheet"
+            tableClassName="way-bill-table"
+          />
+        </section>
+      )}
+    </article>
   );
 }
 
@@ -2170,8 +2252,8 @@ function SiPrintView({ output, documentId }: Props) {
             <td colSpan={8}>{display(pick("Booking Number", "Booking Number (E31)"))}</td>
           </tr>
           <tr>
-            <td colSpan={2}><strong>Vessel Departure (ETD) / Date</strong></td>
-            <td colSpan={8}>{display(pick("Vessel Departure (ETD) / Date", "Vessel Departure (ETD) / Date (E32)"))}</td>
+            <td colSpan={2}><strong>Date of Shipment</strong></td>
+            <td colSpan={8}>{display(pick("Date of Shipment", "Vessel Departure (ETD) / Date", "Vessel Departure (ETD) / Date (E32)"))}</td>
           </tr>
           <tr>
             <td colSpan={2}><strong>Additional Document / Remark</strong></td>
@@ -2947,11 +3029,11 @@ export function DocumentPrintTemplate({
   } else if (output.docType === "shipping_instructions") {
     content = <ShippingInstructionsPrintViewWithTemplate output={output} documentId={documentId} input={input} isFinal={isFinal} templateLayout={templateLayout} />;
   } else if (output.docType === "quality_certificate") {
-    content = <CertificateOfQualityPrintView output={output} documentId={documentId} />;
+    content = <CertificateOfQualityPrintViewWithTemplate output={output} documentId={documentId} input={input} isFinal={isFinal} templateLayout={templateLayout} />;
   } else if (output.docType === "weight_certificate") {
-    content = <CertificateOfWeightPrintView output={output} documentId={documentId} />;
+    content = <CertificateOfWeightPrintViewWithTemplate output={output} documentId={documentId} input={input} isFinal={isFinal} templateLayout={templateLayout} />;
   } else if (output.docType === "way_bill") {
-    content = <WayBillPrintView output={output} documentId={documentId} />;
+    content = <WayBillPrintViewWithTemplate output={output} documentId={documentId} input={input} isFinal={isFinal} templateLayout={templateLayout} />;
   } else if (output.docType === "ico_certificate") {
     content = <IcoCertificatePrintView output={output} documentId={documentId} />;
   } else if (output.docType === "bill_of_lading") {

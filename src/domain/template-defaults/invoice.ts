@@ -8,8 +8,8 @@ export const COMMERCIAL_INVOICE_ICC_DEFAULT_SECTIONS: TemplateSection[] = [
     x: 0,
     y: 0,
     w: 12,
-    h: 20,
-    minH: 20,
+    h: 22,
+    minH: 22,
     cells: [
       { id: "inv_title", label: "COMMERCIAL INVOICE", x: 0, y: 0, w: 6, h: 2 },
       { id: "inv_page", label: "PAGE 1 OF 1 | ORIGINAL/FINAL", x: 6, y: 0, w: 6, h: 2 },
@@ -26,8 +26,10 @@ export const COMMERCIAL_INVOICE_ICC_DEFAULT_SECTIONS: TemplateSection[] = [
       { id: "inv_dispatch", label: "Method of Dispatch", x: 6, y: 10, w: 6, h: 2 },
       { id: "inv_eccsa", label: "ECCSA - Certificate of Origin Number", x: 0, y: 12, w: 6, h: 2 },
       { id: "inv_vessel", label: "Vessel & Voyage Number", x: 6, y: 12, w: 6, h: 2 },
-      { id: "inv_spacer", label: "(spacer)", x: 0, y: 14, w: 6, h: 2 },
-      { id: "inv_ship_date", label: "Shipped on Board Date", x: 6, y: 14, w: 6, h: 2 },
+      { id: "inv_date_of_shipment", label: "Date of Shipment", x: 0, y: 14, w: 6, h: 2 },
+      { id: "inv_cert_numbers", label: "Cert Number(s)", x: 6, y: 14, w: 6, h: 2 },
+      { id: "inv_ship_date", label: "Shipped on Board Date", x: 0, y: 16, w: 6, h: 2 },
+      { id: "inv_spacer", label: "(spacer)", x: 6, y: 16, w: 6, h: 2 },
     ],
   },
   {
@@ -117,6 +119,7 @@ export const COMMERCIAL_INVOICE_ICC_DEFAULT_SECTIONS: TemplateSection[] = [
     w: 12,
     h: 4,
     minH: 4,
+    showDocumentId: false,
     cells: [],
   },
 ];

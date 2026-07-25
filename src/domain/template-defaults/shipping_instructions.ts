@@ -67,7 +67,7 @@ export const SHIPPING_INSTRUCTIONS_DEFAULT_SECTIONS: TemplateSection[] = [
       { id: "si_port_loading", label: "Port of Loading", x: 0, y: 0, w: 12, h: 2 },
       { id: "si_discharge", label: "Place of Discharge", x: 0, y: 2, w: 12, h: 2 },
       { id: "si_booking", label: "Booking Number", x: 0, y: 4, w: 12, h: 2 },
-      { id: "si_etd", label: "Vessel Departure (ETD) / Date", x: 0, y: 6, w: 12, h: 2 },
+      { id: "si_etd", label: "Date of Shipment", x: 0, y: 6, w: 12, h: 2 },
     ],
   },
   {

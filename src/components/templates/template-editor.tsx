@@ -1195,6 +1195,19 @@ export function TemplateEditor({
                           {section.description}
                         </div>
                       ) : null}
+                      {section.id === "document_id" ? (
+                        <label className="template-checkbox-row" style={{ marginTop: 8 }}>
+                          <input
+                            type="checkbox"
+                            checked={section.showDocumentId === true}
+                            onChange={(event) => updateSection(section.id, (current) => ({
+                              ...current,
+                              showDocumentId: event.target.checked,
+                            }))}
+                          />
+                          <span>Show document ID in generated PDF</span>
+                        </label>
+                      ) : null}
                     </div>
                   </div>
                   <div className="muted-text" style={{ fontWeight: 700, whiteSpace: "nowrap" }}>

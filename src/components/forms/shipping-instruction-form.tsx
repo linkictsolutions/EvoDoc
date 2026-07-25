@@ -51,24 +51,7 @@ interface ContractDetailResponse {
   sourceInputs?: Array<{ id: string; sourceType?: string; payload?: unknown }>;
 }
 
-function toMonthInputValue(value?: string): string {
-  const normalized = value?.trim();
-  if (!normalized) {
-    return "";
-  }
-
-  const isoMonthMatch = normalized.match(/^(\d{4}-\d{2})(?:-\d{2})?/);
-  if (isoMonthMatch) {
-    return isoMonthMatch[1];
-  }
-
-  const parsed = new Date(normalized);
-  if (Number.isNaN(parsed.getTime())) {
-    return "";
-  }
-
-  return parsed.toISOString().slice(0, 7);
-}
+import { toDateInputValue } from "@/domain/date-format";
 
 export function ShippingInstructionForm({
   initialContractId,
@@ -200,7 +183,7 @@ export function ShippingInstructionForm({
             packagingValue: shipping.packagingValue ?? "",
             noOfBagsValue: shipping.noOfBagsValue ?? "",
             containerCountValue: shipping.containerCountValue ?? "",
-            shipmentMonth: toMonthInputValue(shipping.shipmentMonth),
+            shipmentMonth: toDateInputValue(shipping.shipmentMonth),
             bagMarkings: shipping.bagMarkings ?? "",
             description: shipping.description ?? "",
             consignee: shipping.consignee ?? "",
@@ -424,8 +407,8 @@ export function ShippingInstructionForm({
               <small>{errors.containerCountValue?.message}</small>
             </label>
             <label>
-              Shipment Month
-              <input className={dirtyControlClass("shipmentMonth")} type="month" {...register("shipmentMonth")} />
+              Date of Shipment
+              <input className={dirtyControlClass("shipmentMonth")} type="date" {...register("shipmentMonth")} />
             </label>
           </div>
         </div>

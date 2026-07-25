@@ -11,7 +11,7 @@ describe("rounding", () => {
   });
 
   it("converts kg to pounds deterministically", () => {
-    expect(kgToLb(1)).toBe(2.205);
+    expect(kgToLb(1)).toBe(2.2046);
   });
 
   it("formats values", () => {

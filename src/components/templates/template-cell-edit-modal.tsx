@@ -28,6 +28,7 @@ export function TemplateCellEditModal({
   const [label, setLabel] = useState("");
   const [showBorder, setShowBorder] = useState(true);
   const [staticHtml, setStaticHtml] = useState("");
+  const [verticalAlign, setVerticalAlign] = useState<"top" | "middle" | "bottom">("top");
 
   const isRichContentCell = cell ? isTemplateRichContentCell(cell) : false;
   const isStaticCell = cell ? isTemplateStaticTextCell(cell.id) : false;
@@ -41,6 +42,7 @@ export function TemplateCellEditModal({
     setLabel(cell.label);
     setShowBorder(cell.showBorder !== false);
     setStaticHtml(resolveTemplateCellStaticHtml(cell));
+    setVerticalAlign(cell.verticalAlign ?? "top");
   }, [cell, open]);
 
   if (!cell) {
@@ -79,6 +81,17 @@ export function TemplateCellEditModal({
           </div>
         ) : null}
 
+        {isRichContentCell ? (
+          <label className="col-12">
+            <span className="label-text">Vertical alignment</span>
+            <select value={verticalAlign} onChange={(event) => setVerticalAlign(event.target.value as "top" | "middle" | "bottom")}>
+              <option value="top">Top</option>
+              <option value="middle">Middle</option>
+              <option value="bottom">Bottom</option>
+            </select>
+          </label>
+        ) : null}
+
         <label className="col-12 template-checkbox-row">
           <input
             type="checkbox"
@@ -101,6 +114,7 @@ export function TemplateCellEditModal({
                 ? {
                     contentKind: isNoteCell ? "note" as const : "static" as const,
                     staticHtml: staticHtml.trim() || (isStaticCell ? getDefaultStaticHtml(cell.id) : "<p></p>") || staticHtml,
+                    verticalAlign,
                   }
                 : {}),
             })}

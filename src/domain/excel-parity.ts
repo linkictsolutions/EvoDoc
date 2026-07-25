@@ -1,9 +1,8 @@
 import Decimal from "decimal.js";
+import { KG_TO_LB_FACTOR } from "@/domain/date-format";
 import { packagingDefinitionFor } from "@/domain/company-configuration";
 import { roundLbWeight, roundMoney, roundWeight } from "@/domain/rounding";
 import type { CompanyConfiguration, ContractTerms, DocumentInputSnapshot } from "@/types/models";
-
-const KG_TO_LB = 2.20462;
 
 function normalizeUnit(unit: string): string {
   return unit.trim().toLowerCase();
@@ -110,7 +109,7 @@ export function computeContractExcelParity(
   companyConfiguration?: CompanyConfiguration,
 ): ContractExcelParity {
   const quantityKg = resolveQuantityKg(terms, companyConfiguration);
-  const quantityLb = quantityKg.mul(KG_TO_LB);
+  const quantityLb = quantityKg.mul(KG_TO_LB_FACTOR);
   const bag60 = packagingDefinitionFor(companyConfiguration, "Bag of 60Kg");
   const bag50 = packagingDefinitionFor(companyConfiguration, "Bag of 50Kg");
   const bag30 = packagingDefinitionFor(companyConfiguration, "Bag of 30Kg");

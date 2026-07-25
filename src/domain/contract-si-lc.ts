@@ -157,7 +157,7 @@ export function buildContractSiLcReport(contract: Contract, customer: Customer):
     }),
     makeRow({
       rowNumber: 15,
-      label: "Shipment Period",
+      label: "Date of Shipment",
       contractValue: clean(contract.terms.shipmentPeriod),
       shippingValue: clean(contract.shipping.shipmentMonth),
       revisedShippingValue: "",

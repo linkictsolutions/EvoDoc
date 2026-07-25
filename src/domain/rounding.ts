@@ -1,4 +1,5 @@
 import Decimal from "decimal.js";
+import { KG_TO_LB_FACTOR } from "@/domain/date-format";
 
 export const WEIGHT_DP = 3;
 export const LB_WEIGHT_DP = 4;
@@ -17,7 +18,7 @@ export function roundLbWeight(value: Decimal.Value): number {
 }
 
 export function kgToLb(value: Decimal.Value): number {
-  return roundLbWeight(new Decimal(value).mul(2.2046226218));
+  return roundLbWeight(new Decimal(value).mul(KG_TO_LB_FACTOR));
 }
 
 export function sum(values: Decimal.Value[]): Decimal {

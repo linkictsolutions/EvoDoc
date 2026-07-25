@@ -2,6 +2,8 @@ import type { DocumentType } from "@/types/models";
 
 export const TEMPLATE_GRID_COLS = 24;
 
+export type TemplateVerticalAlign = "top" | "middle" | "bottom";
+
 export type TemplateGridCell = {
   id: string;
   label: string;
@@ -12,6 +14,7 @@ export type TemplateGridCell = {
   showBorder?: boolean;
   contentKind?: "field" | "static" | "note";
   staticHtml?: string;
+  verticalAlign?: TemplateVerticalAlign;
 };
 
 export type TemplateSection = {
@@ -24,6 +27,7 @@ export type TemplateSection = {
   h: number;
   minH: number;
   cells: TemplateGridCell[];
+  showDocumentId?: boolean;
 };
 
 export type PersistedTemplateLayout = {
