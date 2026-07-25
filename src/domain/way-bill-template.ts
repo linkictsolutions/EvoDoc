@@ -43,11 +43,6 @@ export const WAY_BILL_CELL_LABEL_MAP: Record<string, string> = {
   wb_driver_phone: "Driver Phone No",
   wb_license: "License No",
   wb_destination: "Final Destination",
-  wb_driver_decl: "Driver Declaration",
-  wb_terms_intro: "Terms Intro",
-  wb_condition_1: "Condition 1",
-  wb_condition_2: "Condition 2",
-  wb_condition_3: "Condition 3",
   wb_goods_desc: "Detail of Goods",
   wb_ico: "ICO No",
   wb_cert: "Cert No",
@@ -61,22 +56,24 @@ export const WAY_BILL_CELL_LABEL_MAP: Record<string, string> = {
   wb_seal_1: "Seal No 1",
   wb_container_2: "Container No 2",
   wb_seal_2: "Seal No 2",
-  wb_amharic: "Amharic Declaration",
+  wb_footer_driver: "Driver Name",
 };
 
-export const WAY_BILL_FOOTER_ROW_MAP: Record<string, { labelField: string; valueField: string }> = {
-  wb_footer_driver_name: {
-    labelField: "Driver Name Label",
-    valueField: "Driver Name",
-  },
-  wb_footer_signature: {
-    labelField: "Driver Signature Label",
-    valueField: "Dispatch Signature Label",
-  },
-  wb_footer_date: {
-    labelField: "Driver Date Label",
-    valueField: "Stamp Date Label",
-  },
+export const WAY_BILL_FOOTER_ROW_ORDER = [
+  { labelId: "wb_lbl_footer_driver", valueId: "wb_footer_driver" },
+  { labelId: "wb_lbl_footer_signature", valueId: "wb_footer_signature" },
+  { labelId: "wb_lbl_footer_date", valueId: "wb_footer_date" },
+] as const;
+
+export const WAY_BILL_TRANSPORT_LABEL_IDS: Record<string, string> = {
+  wb_to: "wb_lbl_to",
+  wb_to_contact: "wb_lbl_to_contact_spacer",
+  wb_truck: "wb_lbl_truck",
+  wb_trailer: "wb_lbl_trailer",
+  wb_driver: "wb_lbl_driver",
+  wb_driver_phone: "wb_lbl_driver_phone",
+  wb_license: "wb_lbl_license",
+  wb_destination: "wb_lbl_destination",
 };
 
 export const WAY_BILL_TRANSPORT_ROW_ORDER = [
@@ -139,19 +136,13 @@ export function sortWayBillSections(sections: TemplateSection[]): TemplateSectio
     .map(({ section }) => section);
 }
 
-export function resolveWayBillFooterRow(
-  rows: WayBillRow[],
-  cellId: string,
-): { label: string; value: string } | null {
-  const mapping = WAY_BILL_FOOTER_ROW_MAP[cellId];
-  if (!mapping) {
-    return null;
+export function resolveWayBillFooterValue(rows: WayBillRow[], cell: TemplateGridCell): string {
+  const mapped = WAY_BILL_CELL_LABEL_MAP[cell.id];
+  if (!mapped) {
+    return "";
   }
 
-  return {
-    label: rowValue(rows, mapping.labelField),
-    value: rowValue(rows, mapping.valueField),
-  };
+  return rowValue(rows, mapped);
 }
 
 export function isWayBillStaticCell(cell: TemplateGridCell): boolean {

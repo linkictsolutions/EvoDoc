@@ -1,6 +1,6 @@
 import type { TemplateSection } from "@/domain/template-layout";
 
-export const WAY_BILL_TEMPLATE_LAYOUT_VERSION = 3;
+export const WAY_BILL_TEMPLATE_LAYOUT_VERSION = 4;
 
 function labelCell(id: string, label: string, y: number) {
   return {
@@ -15,7 +15,7 @@ function labelCell(id: string, label: string, y: number) {
   };
 }
 
-function valueCell(id: string, label: string, y: number) {
+function valueCell(id: string, label: string, y: number, options?: { contentKind?: "static" }) {
   return {
     id,
     label,
@@ -23,6 +23,7 @@ function valueCell(id: string, label: string, y: number) {
     y,
     w: 8,
     h: 2,
+    ...(options?.contentKind ? { contentKind: options.contentKind } : {}),
   };
 }
 
@@ -80,8 +81,8 @@ export const WAY_BILL_DEFAULT_SECTIONS: TemplateSection[] = [
     h: 8,
     minH: 8,
     cells: [
-      { id: "wb_decl_title", label: "Driver's Declaration", x: 0, y: 0, w: 12, h: 2 },
-      { id: "wb_driver_decl", label: "Driver Declaration", x: 0, y: 2, w: 12, h: 6 },
+      { id: "wb_decl_title", label: "Driver's Declaration", x: 0, y: 0, w: 12, h: 2, contentKind: "static" as const },
+      { id: "wb_driver_decl", label: "Driver Declaration", x: 0, y: 2, w: 12, h: 6, contentKind: "static" as const },
     ],
   },
   {
@@ -162,7 +163,7 @@ export const WAY_BILL_DEFAULT_SECTIONS: TemplateSection[] = [
     h: 4,
     minH: 4,
     cells: [
-      { id: "wb_amharic", label: "Amharic Declaration", x: 0, y: 0, w: 12, h: 4 },
+      { id: "wb_amharic", label: "Amharic Declaration", x: 0, y: 0, w: 12, h: 4, contentKind: "static" as const },
     ],
   },
   {
@@ -175,9 +176,9 @@ export const WAY_BILL_DEFAULT_SECTIONS: TemplateSection[] = [
     h: 6,
     minH: 6,
     cells: [
-      { id: "wb_footer_driver_name", label: "Driver Name Row", x: 0, y: 0, w: 12, h: 2 },
-      { id: "wb_footer_signature", label: "Signature Row", x: 0, y: 2, w: 12, h: 2 },
-      { id: "wb_footer_date", label: "Date Row", x: 0, y: 4, w: 12, h: 2 },
+      ...labelValueRow("wb_lbl_footer_driver", "Driver name:", "wb_footer_driver", "Driver Name", 0),
+      ...labelValueRow("wb_lbl_footer_signature", "Signature:", "wb_footer_signature", "Signature", 2),
+      ...labelValueRow("wb_lbl_footer_date", "Date:", "wb_footer_date", "Stamp & Date", 4),
     ],
   },
   {

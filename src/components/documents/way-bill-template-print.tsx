@@ -6,12 +6,15 @@ import {
   isTemplateRichContentCell,
   resolveTemplateCellStaticHtml,
 } from "@/domain/template-static-content";
+import { maxTemplateCellHeightStyle, templateCellBlockHeightStyle, templateCellHeightStyle, templateTableRowStyle } from "@/domain/template-print-metrics";
 import {
   isWayBillStaticCell,
   resolveWayBillCellValue,
-  resolveWayBillFooterRow,
+  resolveWayBillFooterValue,
   sortWayBillSections,
+  WAY_BILL_FOOTER_ROW_ORDER,
   WAY_BILL_GOODS_ROW_ORDER,
+  WAY_BILL_TRANSPORT_LABEL_IDS,
   WAY_BILL_TRANSPORT_ROW_ORDER,
   WAY_BILL_TRANSPORT_TH_LABELS,
 } from "@/domain/way-bill-template";
@@ -119,16 +122,63 @@ function renderWayBillFieldParagraph(cell: TemplateGridCell, rows: Row[], strong
   if (isWayBillStaticCell(cell)) {
     const rendered = renderStaticCell(cell, rows);
     if (rendered) {
-      return rendered;
+      return (
+        <div style={templateCellBlockHeightStyle(cell)}>
+          {rendered}
+        </div>
+      );
     }
   }
 
   const value = fieldValue(rows, cell);
   if (strong) {
-    return <p><strong>{value}</strong></p>;
+    return <p style={templateCellHeightStyle(cell)}><strong>{value}</strong></p>;
   }
 
-  return <p>{value}</p>;
+  return <p style={templateCellHeightStyle(cell)}>{value}</p>;
+}
+
+function renderFooterLabel(cell: TemplateGridCell): string {
+  const label = cell.label.trim();
+  if (label) {
+    return label.endsWith(":") ? label : `${label}:`;
+  }
+
+  if (isWayBillStaticCell(cell)) {
+    const html = resolveTemplateCellStaticHtml(cell);
+    const stripped = html.replace(/<[^>]+>/g, "").replace(/&nbsp;/g, " ").trim();
+    if (stripped) {
+      return stripped;
+    }
+  }
+
+  return "-";
+}
+
+function renderFooterValueCell(cell: TemplateGridCell, rows: Row[]) {
+  if (cell.id === "wb_footer_driver") {
+    const value = display(resolveWayBillFooterValue(rows, cell));
+    return value === "-" ? <span>&nbsp;</span> : value;
+  }
+
+  if (isWayBillStaticCell(cell)) {
+    const rendered = renderStaticCell(cell, rows);
+    return rendered ?? <span>&nbsp;</span>;
+  }
+
+  return <span>&nbsp;</span>;
+}
+
+function renderLabelCellText(cell: TemplateGridCell): string {
+  if (isWayBillStaticCell(cell)) {
+    const html = resolveTemplateCellStaticHtml(cell);
+    const stripped = html.replace(/<[^>]+>/g, "").replace(/&nbsp;/g, " ").trim();
+    if (stripped) {
+      return stripped;
+    }
+  }
+
+  return cell.label.trim();
 }
 
 function renderHeaderSection(section: TemplateSection, rows: Row[]) {
@@ -161,6 +211,7 @@ function renderTransportSection(section: TemplateSection, rows: Row[]) {
     .map((cellId) => ({
       cellId,
       cell: findCell(section, cellId)!,
+      labelCell: findCell(section, WAY_BILL_TRANSPORT_LABEL_IDS[cellId]),
     }));
 
   if (visibleRows.length === 0) {
@@ -170,14 +221,16 @@ function renderTransportSection(section: TemplateSection, rows: Row[]) {
   return (
     <table key={section.id} className="print-table way-bill-table">
       <tbody>
-        {visibleRows.map(({ cellId, cell }) => (
-          <tr key={cellId}>
+        {visibleRows.map(({ cellId, cell, labelCell }) => (
+          <tr key={cellId} style={maxTemplateCellHeightStyle(cell, labelCell ?? cell)}>
             {cellId === "wb_to_contact" ? (
-              <th></th>
+              <th style={templateCellHeightStyle(labelCell ?? cell)}></th>
             ) : (
-              <th>{WAY_BILL_TRANSPORT_TH_LABELS[cellId] ?? `${cell.label}:`}</th>
+              <th style={templateCellHeightStyle(labelCell ?? cell)}>
+                {labelCell ? renderLabelCellText(labelCell) : `${WAY_BILL_TRANSPORT_TH_LABELS[cellId] ?? `${cell.label}:`}`}
+              </th>
             )}
-            <td>{fieldValue(rows, cell)}</td>
+            <td style={templateCellHeightStyle(cell)}>{fieldValue(rows, cell)}</td>
           </tr>
         ))}
       </tbody>
@@ -218,7 +271,7 @@ function renderConditionsSection(section: TemplateSection, rows: Row[]) {
     <section key={section.id} className="way-bill-conditions">
       {introCell ? renderWayBillFieldParagraph(introCell, rows, true) : null}
       {conditionCells.map((cell) => (
-        <div key={cell.id}>{renderWayBillFieldParagraph(cell, rows)}</div>
+        <div key={cell.id} style={templateCellBlockHeightStyle(cell)}>{renderWayBillFieldParagraph(cell, rows)}</div>
       ))}
     </section>
   );
@@ -238,12 +291,16 @@ function renderGoodsSection(section: TemplateSection, rows: Row[]) {
             <th colSpan={2}>Detail of Goods</th>
           </tr>
         ) : null}
-        {visibleRows.map(({ cellId, rowLabel }) => (
-          <tr key={cellId}>
-            <th>{rowLabel}</th>
-            <td>{fieldValue(rows, findCell(section, cellId)!)}</td>
-          </tr>
-        ))}
+        {visibleRows.map(({ cellId, rowLabel }) => {
+          const valueCell = findCell(section, cellId)!;
+          const labelCell = findCell(section, `wb_lbl_${cellId.replace(/^wb_/, "")}`);
+          return (
+            <tr key={cellId} style={maxTemplateCellHeightStyle(valueCell, labelCell ?? valueCell)}>
+              <th style={templateCellHeightStyle(labelCell ?? valueCell)}>{rowLabel}</th>
+              <td style={templateCellHeightStyle(valueCell)}>{fieldValue(rows, valueCell)}</td>
+            </tr>
+          );
+        })}
       </tbody>
     </table>
   );
@@ -263,16 +320,16 @@ function renderTransportChargeSection(section: TemplateSection, rows: Row[]) {
   return (
     <table key={section.id} className="print-table way-bill-table mt-sm">
       <tbody>
-        <tr>
-          <th>
+        <tr style={maxTemplateCellHeightStyle(labelCell ?? { h: 1 }, perQuantalCell ?? { h: 1 }, totalCell ?? { h: 1 })}>
+          <th style={templateCellHeightStyle(labelCell ?? { h: 1 })}>
             {labelCell
               ? (isWayBillStaticCell(labelCell)
                 ? renderStaticCell(labelCell, rows)
                 : fieldValue(rows, labelCell))
               : "-"}
           </th>
-          <td>{perQuantalCell ? fieldValue(rows, perQuantalCell) : "-"}</td>
-          <td>{totalCell ? fieldValue(rows, totalCell) : "-"}</td>
+          <td style={templateCellHeightStyle(perQuantalCell ?? { h: 1 })}>{perQuantalCell ? fieldValue(rows, perQuantalCell) : "-"}</td>
+          <td style={templateCellHeightStyle(totalCell ?? { h: 1 })}>{totalCell ? fieldValue(rows, totalCell) : "-"}</td>
         </tr>
       </tbody>
     </table>
@@ -301,20 +358,24 @@ function renderContainersSection(section: TemplateSection, rows: Row[]) {
         </thead>
       ) : null}
       <tbody>
-        {rowPairs.map((pair) => (
-          <tr key={pair.containerId}>
-            <td>
-              {hasCell(section, pair.containerId)
-                ? fieldValue(rows, findCell(section, pair.containerId)!)
+        {rowPairs.map((pair) => {
+          const containerCell = hasCell(section, pair.containerId) ? findCell(section, pair.containerId)! : undefined;
+          const sealCell = hasCell(section, pair.sealId) ? findCell(section, pair.sealId)! : undefined;
+          return (
+          <tr key={pair.containerId} style={maxTemplateCellHeightStyle(containerCell ?? { h: 1 }, sealCell ?? { h: 1 })}>
+            <td style={templateCellHeightStyle(containerCell ?? { h: 1 })}>
+              {containerCell
+                ? fieldValue(rows, containerCell)
                 : "-"}
             </td>
-            <td>
-              {hasCell(section, pair.sealId)
-                ? fieldValue(rows, findCell(section, pair.sealId)!)
+            <td style={templateCellHeightStyle(sealCell ?? { h: 1 })}>
+              {sealCell
+                ? fieldValue(rows, sealCell)
                 : "-"}
             </td>
           </tr>
-        ))}
+          );
+        })}
       </tbody>
     </table>
   );
@@ -325,30 +386,44 @@ function renderAmharicSection(section: TemplateSection, rows: Row[]) {
     return null;
   }
 
+  const cell = findCell(section, "wb_amharic")!;
+
   return (
-    <p key={section.id} className="way-bill-amharic">
-      {fieldValue(rows, findCell(section, "wb_amharic")!)}
-    </p>
+    <div key={section.id} className="way-bill-amharic" style={templateCellBlockHeightStyle(cell)}>
+      {renderWayBillFieldParagraph(cell, rows)}
+    </div>
   );
 }
 
 function renderFooterSection(section: TemplateSection, rows: Row[]) {
-  const footerRows = ["wb_footer_driver_name", "wb_footer_signature", "wb_footer_date"]
-    .filter((cellId) => hasCell(section, cellId))
-    .map((cellId) => resolveWayBillFooterRow(rows, cellId))
-    .filter((entry): entry is { label: string; value: string } => Boolean(entry));
+  const visibleRows = WAY_BILL_FOOTER_ROW_ORDER
+    .filter(({ labelId, valueId }) => hasCell(section, labelId) || hasCell(section, valueId))
+    .map(({ labelId, valueId }) => ({
+      labelId,
+      valueId,
+      labelCell: findCell(section, labelId),
+      valueCell: findCell(section, valueId),
+    }))
+    .filter((row) => row.labelCell || row.valueCell);
 
-  if (footerRows.length === 0) {
+  if (visibleRows.length === 0) {
     return null;
   }
 
   return (
     <table key={section.id} className="print-table way-bill-table mt-sm">
       <tbody>
-        {footerRows.map((row, index) => (
-          <tr key={`${section.id}-footer-${index + 1}`}>
-            <th>{display(row.label)}</th>
-            <td>{display(row.value)}</td>
+        {visibleRows.map(({ labelId, valueId, labelCell, valueCell }) => (
+          <tr
+            key={`${labelId}-${valueId}`}
+            style={maxTemplateCellHeightStyle(labelCell ?? { h: 1 }, valueCell ?? { h: 1 })}
+          >
+            <th style={templateCellHeightStyle(labelCell ?? { h: 1 })}>
+              {labelCell ? renderFooterLabel(labelCell) : "-"}
+            </th>
+            <td style={templateCellHeightStyle(valueCell ?? { h: 1 })}>
+              {valueCell ? renderFooterValueCell(valueCell, rows) : <span>&nbsp;</span>}
+            </td>
           </tr>
         ))}
       </tbody>

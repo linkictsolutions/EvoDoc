@@ -14,19 +14,19 @@ import {
   scaleSections12To24,
   serializeTemplateLayout,
   TEMPLATE_GRID_COLS,
+  TEMPLATE_GRID_ROW_PX,
   type PersistedTemplateLayout,
   type TemplateGridCell,
   type TemplateSection,
 } from "@/domain/template-layout";
-import { applyStaticDefaultsToCell, isTemplateNoteCell } from "@/domain/template-static-content";
+import { applyStaticDefaultsToCell, isTemplateNoteCell, isTemplateRichContentCell, resolveTemplateCellStaticHtml } from "@/domain/template-static-content";
 import { TemplateCellEditModal } from "@/components/templates/template-cell-edit-modal";
 import { SaveNamedTemplateModal } from "@/components/templates/save-named-template-modal";
 import { useToast } from "@/components/ui/toast";
 import { useUnsavedChangesGuard } from "@/components/ui/use-unsaved-changes-guard";
 import type { DocumentType, SavedDocumentTemplate } from "@/types/models";
 
-export { TEMPLATE_GRID_COLS };
-export const TEMPLATE_GRID_ROW_PX = 14;
+export { TEMPLATE_GRID_COLS, TEMPLATE_GRID_ROW_PX };
 export type { TemplateGridCell, TemplateSection } from "@/domain/template-layout";
 
 const SECTION_HEADER_ROWS = 2;
@@ -109,10 +109,10 @@ function hydrateTemplatePayload(
   const scaledAvailable = needsScale
     ? Object.fromEntries(Object.entries(nextAvailable).map(([key, list]) => [key, list.map((cell) => ({ ...cell, x: cell.x * 2, w: cell.w * 2 }))]))
     : nextAvailable;
-  const normalizedSections = relayoutSections(nextSections.map((section) => ({
+  const normalizedSections = relayoutSections(withStaticDefaults(nextSections.map((section) => ({
     ...section,
     cells: section.cells.map(normalizeTemplateCell),
-  })));
+  }))));
   const normalizedAvailable = normalizeAvailableFields(
     Object.fromEntries(Object.entries(scaledAvailable).map(([key, list]) => [key, list.map(normalizeTemplateCell)])),
   );
@@ -463,6 +463,23 @@ function GridPreview({
           }}
         >
           <strong style={{ fontWeight: 700, whiteSpace: "normal", wordBreak: "break-word" }}>{cell.label}</strong>
+          {isTemplateRichContentCell(cell) ? (
+            <span
+              style={{
+                fontWeight: 400,
+                fontSize: "0.68rem",
+                display: "block",
+                marginTop: 4,
+                color: "#334155",
+                whiteSpace: "normal",
+                wordBreak: "break-word",
+                maxHeight: "100%",
+                overflow: "hidden",
+              }}
+            >
+              {resolveTemplateCellStaticHtml(cell).replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/\s+/g, " ").trim() || "(editable static text)"}
+            </span>
+          ) : null}
 
           {allowEdit ? (
             <>

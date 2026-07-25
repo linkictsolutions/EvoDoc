@@ -1,6 +1,7 @@
 import type { DocumentType } from "@/types/models";
 
 export const TEMPLATE_GRID_COLS = 24;
+export const TEMPLATE_GRID_ROW_PX = 14;
 
 export type TemplateVerticalAlign = "top" | "middle" | "bottom";
 
@@ -145,6 +146,7 @@ export function docTypeForTemplateStorageKey(storageKey: string): DocumentType |
     "evodoc.templates.shipping_instructions.v1": "shipping_instructions",
     "evodoc.templates.quality_certificate.v1": "quality_certificate",
     "evodoc.templates.weight_certificate.v1": "weight_certificate",
+    "evodoc.templates.way_bill.v4": "way_bill",
     "evodoc.templates.way_bill.v3": "way_bill",
     "evodoc.templates.way_bill.v2": "way_bill",
     "evodoc.templates.way_bill.v1": "way_bill",

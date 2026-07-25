@@ -5,6 +5,7 @@ import { DocumentSinglePageFit } from "@/components/documents/document-single-pa
 import { resolveCompanyConfiguration } from "@/domain/company-configuration";
 import { WayBillTemplatePrintView } from "@/components/documents/way-bill-template-print";
 import { getFactoryDefaultTemplateLayout } from "@/domain/template-factory-defaults";
+import { templateCellHeightStyle, templateTableRowStyle } from "@/domain/template-print-metrics";
 import { TEMPLATE_GRID_COLS } from "@/domain/template-layout";
 import {
   applyStaticTokens,
@@ -18,7 +19,7 @@ const ICC_PACKING_TEMPLATE_STORAGE_KEY = "evodoc.templates.packing_list_icc.v1";
 const SHIPPING_INSTRUCTIONS_TEMPLATE_STORAGE_KEY = "evodoc.templates.shipping_instructions.v1";
 const QUALITY_CERT_TEMPLATE_STORAGE_KEY = "evodoc.templates.quality_certificate.v1";
 const WEIGHT_CERT_TEMPLATE_STORAGE_KEY = "evodoc.templates.weight_certificate.v1";
-const WAY_BILL_TEMPLATE_STORAGE_KEY = "evodoc.templates.way_bill.v3";
+const WAY_BILL_TEMPLATE_STORAGE_KEY = "evodoc.templates.way_bill.v4";
 const ICO_CERT_TEMPLATE_STORAGE_KEY = "evodoc.templates.ico_certificate.v1";
 const ICC_PRINT_GRID_ROW_MM = 4;
 const MIN_RENDERED_HEADER_HEIGHT_MM = 32;
@@ -352,6 +353,13 @@ function renderTemplateColGroup(cols: number) {
   );
 }
 
+function withTemplateCellHeight(cell: TemplateCell, style: CSSProperties): CSSProperties {
+  return {
+    ...style,
+    ...templateCellHeightStyle(cell),
+  };
+}
+
 function buildTemplateTableRows(section: TemplateSection, cols: number) {
   const cells = [...(section.cells ?? [])].filter(Boolean);
   const maxRow = cells.reduce((acc, cell) => Math.max(acc, cell.y + cell.h), 0);
@@ -481,7 +489,7 @@ function IccInvoiceTemplatePrintView({ output, documentId, isFinal, template }: 
             {renderTemplateColGroup(sectionCols)}
             <tbody>
               {tableRows.map((rowCells, rowIndex) => (
-                <tr key={rowIndex}>
+                <tr key={rowIndex} style={templateTableRowStyle()}>
                   {rowCells.map(({ key, cell, isEmpty }) => {
                     if (isEmpty) {
                       return (
@@ -582,7 +590,7 @@ function IccInvoiceTemplatePrintView({ output, documentId, isFinal, template }: 
                         key={key}
                         colSpan={Math.max(1, cell.w)}
                         rowSpan={Math.max(1, cell.h)}
-                        style={{
+                        style={withTemplateCellHeight(cell, {
                           background: isBorderlessSpacer ? "transparent" : (isHeaderLike || isGoodsHeader ? "#f6f6f6" : "white"),
                           fontWeight: 500,
                           whiteSpace: "pre-wrap",
@@ -593,7 +601,7 @@ function IccInvoiceTemplatePrintView({ output, documentId, isFinal, template }: 
                             cell.id === "inv_page"
                             || cell.id === "gt_total_label"
                           ) ? "right" : undefined,
-                        }}
+                        })}
                       >
                         {content}
                       </td>
@@ -685,7 +693,7 @@ function GenericTemplatePrintView({
             {renderTemplateColGroup(sectionCols)}
             <tbody>
               {tableRows.map((rowCells, rowIndex) => (
-                <tr key={rowIndex}>
+                <tr key={rowIndex} style={templateTableRowStyle()}>
                   {rowCells.map(({ key, cell, isEmpty }) => {
                     if (isEmpty) {
                       return (
@@ -758,14 +766,14 @@ function GenericTemplatePrintView({
                         key={key}
                         colSpan={Math.max(1, cell.w)}
                         rowSpan={Math.max(1, cell.h)}
-                        style={{
+                        style={withTemplateCellHeight(cell, {
                           background: isBorderlessSpacer ? "transparent" : (isHeaderLike || isTableHeader ? "#f6f6f6" : "white"),
                           fontWeight: 500,
                           whiteSpace: "pre-wrap",
                           wordBreak: "break-word",
                           verticalAlign: resolveTemplateVerticalAlign(cell),
                           border: cellShowsBorder(cell) ? undefined : "none",
-                        }}
+                        })}
                       >
                         {content}
                       </td>
@@ -1292,7 +1300,7 @@ function PackingListIccTemplatePrintView({ output, documentId, isFinal, template
             {renderTemplateColGroup(sectionCols)}
             <tbody>
               {tableRows.map((rowCells, rowIndex) => (
-                <tr key={rowIndex}>
+                <tr key={rowIndex} style={templateTableRowStyle()}>
                   {rowCells.map(({ key, cell, isEmpty }) => {
                     if (isEmpty) {
                       return (
@@ -1378,14 +1386,14 @@ function PackingListIccTemplatePrintView({ output, documentId, isFinal, template
                         key={key}
                         colSpan={Math.max(1, cell.w)}
                         rowSpan={Math.max(1, cell.h)}
-                        style={{
+                        style={withTemplateCellHeight(cell, {
                           background: isHeaderLike ? "#f6f6f6" : "white",
                           fontWeight: 500,
                           whiteSpace: "pre-wrap",
                           wordBreak: "break-word",
                           verticalAlign: resolveTemplateVerticalAlign(cell),
                           textAlign: cell.id === "pl_page" ? "right" : undefined,
-                        }}
+                        })}
                       >
                         {content}
                       </td>
