@@ -4,6 +4,7 @@ import { computeContractExcelParity, type ResolvedFinalFields } from "@/domain/e
 import { buildTypeOfShipmentSummary } from "@/domain/type-of-shipment";
 import { combineVehicleField, vehicleGroupsWithContainers } from "@/domain/vehicle-container-groups";
 import { formatGroupedNumber } from "@/domain/rounding";
+import { formatPartyWithAddress } from "@/domain/party-and-packaging-text";
 import type {
   BookingsSheet,
   CompanyConfiguration,
@@ -191,7 +192,10 @@ export function buildPackingListIccSample(args: {
       salesContractRef: clean(args.contract.contractNumber),
       refNo: documentRefNo,
       salesContractDate: formatDate(args.contract.createdAt),
-      exporterBeneficiarySeller: `${companyConfiguration.sellerName}, ${companyConfiguration.sellerAddress}`,
+      exporterBeneficiarySeller: formatPartyWithAddress(
+        companyConfiguration.sellerName,
+        companyConfiguration.sellerAddress,
+      ),
       bankPermitNumber: clean(args.contract.banking.permitNumber),
       applicantNotify: clean(args.finalFields.notify),
       billOfLadingNumber: clean(args.bookings?.billOfLadingNumber),

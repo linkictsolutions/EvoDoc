@@ -6,10 +6,11 @@ import { buildCertificateOfWeightSample } from "@/domain/certificate-weight";
 import { resolveCompanyConfiguration } from "@/domain/company-configuration";
 import { computeContractExcelParity, resolveContractSiLcFinalFields } from "@/domain/excel-parity";
 import { buildPackingListIccSample } from "@/domain/packing-list-icc";
-import { formatMoney, formatWeight } from "@/domain/rounding";
+import { formatGroupedFixed, formatGroupedNumber, formatMoney, formatWeight, WEIGHT_DP } from "@/domain/rounding";
 import { buildWayBillSample } from "@/domain/way-bill";
 import { ICC_DECLARATION_TEXT } from "@/domain/template-static-content";
 import { combineVehicleField, vehicleGroupsWithContainers } from "@/domain/vehicle-container-groups";
+import { formatPartyWithAddress } from "@/domain/party-and-packaging-text";
 import type {
   DocumentInputSnapshot,
   DocumentOutputSnapshot,
@@ -22,7 +23,7 @@ function sellerIdentity(snapshot: DocumentInputSnapshot) {
     snapshot.companyConfiguration,
   );
 
-  return `${companyConfiguration.sellerName}, ${companyConfiguration.sellerAddress}`;
+  return formatPartyWithAddress(companyConfiguration.sellerName, companyConfiguration.sellerAddress);
 }
 
 function sectionRowsFromRecord(values: Record<string, string>) {
@@ -87,7 +88,7 @@ export function mapDocumentOutput(
     totalBags: finalFields.noOfBags,
     totalNetWeight: formatWeight(parity.quantityKg),
     totalGrossWeight: formatWeight(parity.grossWeightKg),
-    totalNetWeightMt: `${parity.quantityMt.toFixed(3)} MT`,
+    totalNetWeightMt: `${formatGroupedFixed(parity.quantityMt, WEIGHT_DP)} MT`,
     totalAmount: formatMoney(parity.totalPrice, snapshot.contract.terms.currency),
   };
 
@@ -321,8 +322,8 @@ export function mapDocumentOutput(
                 { label: "Cargo Description (E18)", value: siCargoDescription },
                 { label: "HS Code (E19)", value: clean(companyConfiguration.defaultHsCode) },
                 { label: "Quantity (E20)", value: `${snapshot.contract.terms.quantityBags} BAGS (${parity.containerCount}*20)` },
-                { label: "Gross Weight (H21)", value: `${parity.grossWeightKg.toLocaleString("en-US", { maximumFractionDigits: 3 })} KGS` },
-                { label: "Net Weight (O21)", value: `${parity.quantityKg.toLocaleString("en-US", { maximumFractionDigits: 3 })} KGS` },
+                { label: "Gross Weight (H21)", value: `${formatGroupedNumber(parity.grossWeightKg)} KGS` },
+                { label: "Net Weight (O21)", value: `${formatGroupedNumber(parity.quantityKg)} KGS` },
                 { label: "Cert Number (E23)", value: clean(finalFields.certNo) },
                 { label: "Number Type and Size of Containers (E27)", value: `${Math.max(0, parity.containerCount)} FCL` },
                 { label: "Port of Loading (E29)", value: clean(finalFields.portOfLoading) },
@@ -485,6 +486,7 @@ export function mapDocumentOutput(
         const sample = buildWayBillSample({
           contract: snapshot.contract,
           companyConfigurationInput: companyConfiguration,
+          bookings,
           finalFields,
           staffingRows,
         });
@@ -498,6 +500,7 @@ export function mapDocumentOutput(
             rows: sectionRowsFromRecord({
               Date: driverTab.date,
               "Ref No": driverTab.refNo,
+              Exporter: driverTab.exporter,
               To: driverTab.to,
               "To Contact": driverTab.toContact,
               "Truck No": driverTab.truckNo,
@@ -521,6 +524,7 @@ export function mapDocumentOutput(
               "Transport Charge Label": driverTab.transportChargeLabel,
               "Transport Charge Per Quantal": driverTab.transportChargePerQuantal,
               "Transport Charge Total": driverTab.transportChargeTotal,
+              "Demurrage Price": driverTab.demurragePrice,
               "Container No 1": driverTab.containerNo1,
               "Seal No 1": driverTab.sealNo1,
               "Container No 2": driverTab.containerNo2,

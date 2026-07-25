@@ -23,6 +23,7 @@ export const WAY_BILL_SECTION_ORDER = [
 ] as const;
 
 export const WAY_BILL_TRANSPORT_TH_LABELS: Record<string, string> = {
+  wb_exporter: "Exporter:",
   wb_to: "To:",
   wb_truck: "Truck No:",
   wb_trailer: "Trailer No:",
@@ -35,6 +36,7 @@ export const WAY_BILL_TRANSPORT_TH_LABELS: Record<string, string> = {
 export const WAY_BILL_CELL_LABEL_MAP: Record<string, string> = {
   wb_date: "Date",
   wb_ref: "Ref No",
+  wb_exporter: "Exporter",
   wb_to: "To",
   wb_to_contact: "To Contact",
   wb_truck: "Truck No",
@@ -52,6 +54,7 @@ export const WAY_BILL_CELL_LABEL_MAP: Record<string, string> = {
   wb_transport_label: "Transport Charge Label",
   wb_transport_per_quantal: "Transport Charge Per Quantal",
   wb_transport_total: "Transport Charge Total",
+  wb_demurrage: "Demurrage Price",
   wb_container_1: "Container No 1",
   wb_seal_1: "Seal No 1",
   wb_container_2: "Container No 2",
@@ -66,6 +69,7 @@ export const WAY_BILL_FOOTER_ROW_ORDER = [
 ] as const;
 
 export const WAY_BILL_TRANSPORT_LABEL_IDS: Record<string, string> = {
+  wb_exporter: "wb_lbl_exporter",
   wb_to: "wb_lbl_to",
   wb_to_contact: "wb_lbl_to_contact_spacer",
   wb_truck: "wb_lbl_truck",
@@ -77,6 +81,7 @@ export const WAY_BILL_TRANSPORT_LABEL_IDS: Record<string, string> = {
 };
 
 export const WAY_BILL_TRANSPORT_ROW_ORDER = [
+  "wb_exporter",
   "wb_to",
   "wb_to_contact",
   "wb_truck",

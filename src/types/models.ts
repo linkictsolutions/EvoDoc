@@ -305,6 +305,7 @@ export interface BookingsSheet extends Timestamped {
   voyageNo?: string;
   freeDays?: string;
   billOfLadingNumber?: string;
+  demurragePrice?: string;
   hasSecondSeal?: boolean;
   entries: BookingEntry[];
 }

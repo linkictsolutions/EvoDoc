@@ -4,6 +4,8 @@ import { buildContractSiLcReport } from "@/domain/contract-si-lc";
 import { formatDateOfShipment } from "@/domain/date-format";
 import { computeContractExcelParity, generateCertificateRange } from "@/domain/excel-parity";
 import { buildTypeOfShipmentSummary } from "@/domain/type-of-shipment";
+import { formatGroupedFixed, MONEY_DP } from "@/domain/rounding";
+import { formatPartyWithAddress } from "@/domain/party-and-packaging-text";
 import type { BookingsSheet, CompanyConfiguration, Contract, Customer, Shipment } from "@/types/models";
 
 interface InvoiceRow {
@@ -153,7 +155,10 @@ export function buildCommercialInvoiceIccSample(
   const rowAmount = resolveFromK(report.rows, 12);
   const parsedRowAmount = parseAmount(rowAmount);
   const totalAmount = parsedRowAmount ?? parity.totalPrice;
-  const sellerLine = `${companyConfiguration.sellerName}, ${companyConfiguration.sellerAddress}`;
+  const sellerLine = formatPartyWithAddress(
+    companyConfiguration.sellerName,
+    companyConfiguration.sellerAddress,
+  );
 
   const paymentTerm = resolveFromK(report.rows, 16) || clean(contract.terms.paymentTerm);
   const deliveryTerm = resolveFromK(report.rows, 17) || clean(contract.terms.deliveryTerm);
@@ -211,9 +216,9 @@ export function buildCommercialInvoiceIccSample(
       quantityKgNet: formatNumber(parity.quantityKg),
       quantityKgGross: formatNumber(parity.grossWeightKg),
       packagesInBags: noOfBags,
-      unitPriceUscPerLb: Number(contract.terms.unitPrice).toFixed(2),
-      totalPriceUsd: totalAmount.toFixed(2),
-      totalAmountUsd: totalAmount.toFixed(2),
+      unitPriceUscPerLb: formatGroupedFixed(Number(contract.terms.unitPrice), MONEY_DP),
+      totalPriceUsd: formatGroupedFixed(totalAmount, MONEY_DP),
+      totalAmountUsd: formatGroupedFixed(totalAmount, MONEY_DP),
       amountInWords: amountToWords(totalAmount, "USD"),
     },
     bank: {

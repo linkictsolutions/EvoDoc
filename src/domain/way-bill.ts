@@ -1,6 +1,9 @@
 import { resolveCompanyConfiguration } from "@/domain/company-configuration";
 import { computeContractExcelParity, type ResolvedFinalFields } from "@/domain/excel-parity";
+import { formatPartyWithAddress } from "@/domain/party-and-packaging-text";
+import { formatGroupedFixed, formatGroupedNumber } from "@/domain/rounding";
 import type {
+  BookingsSheet,
   CompanyConfiguration,
   Contract,
   StaffingFinalRow,
@@ -16,6 +19,7 @@ export interface WayBillDriverTab {
   tabLabel: string;
   date: string;
   refNo: string;
+  exporter: string;
   to: string;
   toContact: string;
   truckNo: string;
@@ -38,6 +42,7 @@ export interface WayBillDriverTab {
   transportChargeLabel: string;
   transportChargePerQuantal: string;
   transportChargeTotal: string;
+  demurragePrice: string;
   containerNo1: string;
   sealNo1: string;
   containerNo2: string;
@@ -79,7 +84,7 @@ function formatNumber(value: number, digits = 3): string {
     return "";
   }
 
-  return value.toFixed(digits).replace(/\.?0+$/, "");
+  return formatGroupedNumber(value, digits);
 }
 
 function formatWeight(value: number): string {
@@ -88,8 +93,11 @@ function formatWeight(value: number): string {
 }
 
 function formatAmount(value: number): string {
-  const normalized = formatNumber(value, 2);
-  return normalized || "";
+  if (!Number.isFinite(value) || value <= 0) {
+    return "";
+  }
+
+  return formatGroupedFixed(value, 2);
 }
 
 function hasAssignedVehicle(row?: StaffingFinalRow): boolean {
@@ -232,6 +240,7 @@ const AMHARIC_DECLARATION =
 export function buildWayBillSample(args: {
   contract: Contract;
   companyConfigurationInput?: Partial<CompanyConfiguration> | null;
+  bookings?: BookingsSheet | null;
   finalFields: ResolvedFinalFields;
   staffingRows: StaffingFinalRow[];
 }): WayBillSample {
@@ -250,6 +259,11 @@ export function buildWayBillSample(args: {
     ? `${transitorLocation}(${transitorPhone})`
     : (transitorLocation || transitorPhone);
   const sellerName = clean(companyConfiguration.sellerName);
+  const exporter = formatPartyWithAddress(
+    companyConfiguration.sellerName,
+    companyConfiguration.sellerAddress,
+  );
+  const demurragePrice = clean(args.bookings?.demurragePrice);
   const goodsDescription = buildDetailOfGoods(sellerName, args.finalFields);
   const documentRefNo = clean(args.contract.documentRefs?.way_bill);
 
@@ -288,6 +302,7 @@ export function buildWayBillSample(args: {
         tabLabel: truckNo ? `${driverName} (${truckNo})` : driverName,
         date: formatDate(new Date().toISOString()),
         refNo: documentRefNo,
+        exporter,
         to,
         toContact: toContact ? `${toContact}` : "",
         truckNo,
@@ -311,6 +326,7 @@ export function buildWayBillSample(args: {
         transportChargeLabel: "The Truck carry the above mentioned Transport at ETH Birr",
         transportChargePerQuantal: `${formatAmount(transportChargePerQuantalValue)} per quantal`.trim(),
         transportChargeTotal: `total Birr ${formatAmount(transportChargeTotalValue)}`.trim(),
+        demurragePrice,
         containerNo1: clean(pair.truck?.containerNumber),
         sealNo1: clean(pair.truck?.sealNumber),
         containerNo2: clean(pair.trailer?.containerNumber),

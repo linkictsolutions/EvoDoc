@@ -376,6 +376,7 @@ export const bookingsSheetInputSchema = z.object({
     voyageNo: z.string().optional(),
     freeDays: z.string().optional(),
     billOfLadingNumber: z.string().optional(),
+    demurragePrice: z.string().optional(),
     hasSecondSeal: z.boolean().optional(),
     entries: z.array(bookingEntrySchema).min(1),
   }),

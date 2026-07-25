@@ -45,3 +45,11 @@ export function formatGroupedNumber(value: Decimal.Value, digits = WEIGHT_DP): s
     maximumFractionDigits: digits,
   }).format(rounded);
 }
+
+export function formatGroupedFixed(value: Decimal.Value, digits: number): string {
+  const rounded = new Decimal(value).toDecimalPlaces(digits, Decimal.ROUND_HALF_UP).toNumber();
+  return new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  }).format(rounded);
+}

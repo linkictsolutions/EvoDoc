@@ -1,6 +1,7 @@
 import { computeContractExcelParity, type ResolvedFinalFields } from "@/domain/excel-parity";
 import { resolveCompanyConfiguration } from "@/domain/company-configuration";
 import { formatGroupedNumber } from "@/domain/rounding";
+import { formatPartyWithAddress } from "@/domain/party-and-packaging-text";
 import { combineVehicleField, vehicleGroupsWithContainers } from "@/domain/vehicle-container-groups";
 import type {
   BookingsSheet,
@@ -157,7 +158,10 @@ export function buildCertificateOfQualitySample(args: {
     details: {
       modeOfTransportation: buildModeOfTransportation(args.bookings),
       moistureContent: moistureValue,
-      shipper: `${companyConfiguration.sellerName}, ${companyConfiguration.sellerAddress}`,
+      shipper: formatPartyWithAddress(
+        companyConfiguration.sellerName,
+        companyConfiguration.sellerAddress,
+      ),
       notify: clean(args.finalFields.notify),
       secondNotify: clean(args.finalFields.secondNotify),
       descriptionOfGoods: clean(args.finalFields.description),

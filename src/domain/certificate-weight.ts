@@ -1,6 +1,7 @@
 import { packagingOptionFor, resolveCompanyConfiguration } from "@/domain/company-configuration";
 import { computeContractExcelParity, type ResolvedFinalFields } from "@/domain/excel-parity";
 import { formatGroupedNumber } from "@/domain/rounding";
+import { formatPartyWithAddress } from "@/domain/party-and-packaging-text";
 import { combineVehicleField, vehicleGroupsWithContainers } from "@/domain/vehicle-container-groups";
 import type {
   CompanyConfiguration,
@@ -200,7 +201,10 @@ export function buildCertificateOfWeightSample(args: {
       refNo: documentRefNo,
     },
     details: {
-      shipper: `${companyConfiguration.sellerName} ${companyConfiguration.sellerAddress}`,
+      shipper: formatPartyWithAddress(
+        companyConfiguration.sellerName,
+        companyConfiguration.sellerAddress,
+      ),
       notify: clean(args.finalFields.notify),
       secondNotify: clean(args.finalFields.secondNotify),
       descriptionOfGoods: clean(args.finalFields.description),

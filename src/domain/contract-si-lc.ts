@@ -1,4 +1,7 @@
 import { computeContractExcelParity, generateCertificateRange } from "@/domain/excel-parity";
+import { resolveCompanyConfiguration } from "@/domain/company-configuration";
+import { buildPackagingAndMarkingLabel, resolvePackagingNetWeightKg } from "@/domain/party-and-packaging-text";
+import { formatGroupedFixed, MONEY_DP } from "@/domain/rounding";
 import type { Contract, Customer } from "@/types/models";
 
 export type ContractSiLcSource =
@@ -71,16 +74,14 @@ function makeRow(input: Omit<ContractSiLcRow, "finalValue" | "finalSource">): Co
 }
 
 export function buildContractSiLcReport(contract: Contract, customer: Customer): ContractSiLcReport {
-  const parity = computeContractExcelParity(contract.terms);
+  const companyConfiguration = resolveCompanyConfiguration(contract.orgId);
+  const parity = computeContractExcelParity(contract.terms, companyConfiguration);
   const certNo = generateCertificateRange(contract.terms.lastCertNo ?? 0, parity.containerCount);
   const cropYear = clean(contract.terms.cropYear) || String(new Date().getUTCFullYear());
-  const packagingAndMarking = [
-    clean(contract.terms.quantityBags),
-    "BAGS",
-    clean(contract.terms.packagingUnit),
-  ]
-    .filter(Boolean)
-    .join(" ");
+  const packagingAndMarking = buildPackagingAndMarkingLabel({
+    bagCount: parity.noOfBags || contract.terms.quantityBags,
+    netWeightKgPerBag: resolvePackagingNetWeightKg(contract.terms, companyConfiguration),
+  });
 
   const rows: ContractSiLcRow[] = [
     makeRow({
@@ -131,7 +132,7 @@ export function buildContractSiLcReport(contract: Contract, customer: Customer):
     makeRow({
       rowNumber: 12,
       label: "Total Price",
-      contractValue: parity.totalPrice.toFixed(2),
+      contractValue: formatGroupedFixed(parity.totalPrice, MONEY_DP),
       shippingValue: "",
       revisedShippingValue: "",
       lcValue: clean(contract.banking.currencyAmount),

@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { computeContractExcelParity } from "@/domain/excel-parity";
+import { formatGroupedFixed, formatGroupedNumber, LB_WEIGHT_DP, MONEY_DP, WEIGHT_DP } from "@/domain/rounding";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
 import type { AttachmentRef, CompanyConfiguration, Customer } from "@/types/models";
@@ -759,19 +760,19 @@ export function ContractCoreForm({
           <div className="table-wrap">
             <table>
               <tbody>
-                <tr><th>Total Price</th><td>{computed.totalPrice.toFixed(2)}</td></tr>
-                <tr><th>Quantity Kg</th><td>{computed.quantityKg.toFixed(3)}</td></tr>
-              <tr><th>Quantity Lb</th><td>{computed.quantityLb.toFixed(4)}</td></tr>
-                <tr><th>Quantity MT</th><td>{computed.quantityMt.toFixed(3)}</td></tr>
-                <tr><th>Gross Weight Kg</th><td>{computed.grossWeightKg.toLocaleString("en-US", { maximumFractionDigits: 3 })}</td></tr>
-                <tr><th>Gross Weight MT</th><td>{computed.grossWeightMt.toLocaleString("en-US", { maximumFractionDigits: 3 })}</td></tr>
-                <tr><th>Qty Bag 60</th><td>{computed.quantityBag60.toFixed(3)}</td></tr>
-                <tr><th>Qty Bag 50</th><td>{computed.quantityBag50.toFixed(3)}</td></tr>
-                <tr><th>Qty Bag 30</th><td>{computed.quantityBag30.toFixed(3)}</td></tr>
-                <tr><th>Unit Price Bag 60</th><td>{computed.unitPriceBag60.toFixed(2)}</td></tr>
-                <tr><th>Unit Price Bag 50</th><td>{computed.unitPriceBag50.toFixed(2)}</td></tr>
-                <tr><th>Unit Price Bag 30</th><td>{computed.unitPriceBag30.toFixed(2)}</td></tr>
-                <tr><th>No. of Bags</th><td>{computed.noOfBags.toFixed(3)}</td></tr>
+                <tr><th>Total Price</th><td>{formatGroupedFixed(computed.totalPrice, MONEY_DP)}</td></tr>
+                <tr><th>Quantity Kg</th><td>{formatGroupedFixed(computed.quantityKg, WEIGHT_DP)}</td></tr>
+                <tr><th>Quantity Lb</th><td>{formatGroupedFixed(computed.quantityLb, LB_WEIGHT_DP)}</td></tr>
+                <tr><th>Quantity MT</th><td>{formatGroupedFixed(computed.quantityMt, WEIGHT_DP)}</td></tr>
+                <tr><th>Gross Weight Kg</th><td>{formatGroupedNumber(computed.grossWeightKg, WEIGHT_DP)}</td></tr>
+                <tr><th>Gross Weight MT</th><td>{formatGroupedNumber(computed.grossWeightMt, WEIGHT_DP)}</td></tr>
+                <tr><th>Qty Bag 60</th><td>{formatGroupedFixed(computed.quantityBag60, WEIGHT_DP)}</td></tr>
+                <tr><th>Qty Bag 50</th><td>{formatGroupedFixed(computed.quantityBag50, WEIGHT_DP)}</td></tr>
+                <tr><th>Qty Bag 30</th><td>{formatGroupedFixed(computed.quantityBag30, WEIGHT_DP)}</td></tr>
+                <tr><th>Unit Price Bag 60</th><td>{formatGroupedFixed(computed.unitPriceBag60, MONEY_DP)}</td></tr>
+                <tr><th>Unit Price Bag 50</th><td>{formatGroupedFixed(computed.unitPriceBag50, MONEY_DP)}</td></tr>
+                <tr><th>Unit Price Bag 30</th><td>{formatGroupedFixed(computed.unitPriceBag30, MONEY_DP)}</td></tr>
+                <tr><th>No. of Bags</th><td>{formatGroupedFixed(computed.noOfBags, WEIGHT_DP)}</td></tr>
                 <tr><th>Container Count</th><td>{computed.containerCount}</td></tr>
               </tbody>
             </table>

@@ -157,6 +157,7 @@ export function BookingsPage({ contractId }: { contractId: string }) {
             voyageNo: form.voyageNo,
             freeDays: form.freeDays,
             billOfLadingNumber: form.billOfLadingNumber,
+            demurragePrice: form.demurragePrice,
             hasSecondSeal: form.hasSecondSeal ?? false,
             entries: form.entries,
           },
@@ -195,6 +196,7 @@ export function BookingsPage({ contractId }: { contractId: string }) {
     || form.voyageNo !== lastSavedRef.current.voyageNo
     || form.freeDays !== lastSavedRef.current.freeDays
     || form.billOfLadingNumber !== lastSavedRef.current.billOfLadingNumber
+    || form.demurragePrice !== lastSavedRef.current.demurragePrice
     || Boolean(form.hasSecondSeal) !== Boolean(lastSavedRef.current.hasSecondSeal)
   ));
   const entriesDirty = Boolean(form && lastSavedRef.current && JSON.stringify(form.entries) !== JSON.stringify(lastSavedRef.current.entries));
@@ -239,9 +241,13 @@ export function BookingsPage({ contractId }: { contractId: string }) {
           Free Days
           <input className={headerControlClass} value={form.freeDays ?? ""} onChange={(event) => updateHeader("freeDays", event.target.value)} />
         </label>
-        <label className="col-8">
+        <label className="col-4">
           Bill of Lading Number
           <input className={headerControlClass} value={form.billOfLadingNumber ?? ""} onChange={(event) => updateHeader("billOfLadingNumber", event.target.value)} />
+        </label>
+        <label className="col-4">
+          Demurrage Price
+          <input className={headerControlClass} value={form.demurragePrice ?? ""} onChange={(event) => updateHeader("demurragePrice", event.target.value)} />
         </label>
       </FormSection>
 

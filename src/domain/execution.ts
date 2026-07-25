@@ -149,6 +149,7 @@ export function normalizeBookingsPayload(input: unknown) {
       voyageNo: cleanOptional(parsed.bookings.voyageNo),
       freeDays: cleanOptional(parsed.bookings.freeDays),
       billOfLadingNumber: cleanOptional(parsed.bookings.billOfLadingNumber),
+      demurragePrice: cleanOptional(parsed.bookings.demurragePrice),
       hasSecondSeal: parsed.bookings.hasSecondSeal ?? false,
       entries: syncedEntries.map((entry) => ({
         rowNo: entry.rowNo,

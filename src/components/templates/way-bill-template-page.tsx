@@ -4,7 +4,7 @@ import { TemplateEditorPage } from "@/components/templates/template-editor-page"
 import { WAY_BILL_DEFAULT_SECTIONS } from "@/domain/template-defaults/way_bill";
 import { isCurrentWayBillTemplate } from "@/domain/way-bill-template-validation";
 
-export const WAY_BILL_TEMPLATE_STORAGE_KEY = "evodoc.templates.way_bill.v4";
+export const WAY_BILL_TEMPLATE_STORAGE_KEY = "evodoc.templates.way_bill.v5";
 
 export function WayBillTemplatePage() {
   return (

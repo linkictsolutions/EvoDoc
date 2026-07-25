@@ -312,25 +312,45 @@ function renderTransportChargeSection(section: TemplateSection, rows: Row[]) {
     ? findCell(section, "wb_transport_per_quantal")
     : undefined;
   const totalCell = hasCell(section, "wb_transport_total") ? findCell(section, "wb_transport_total") : undefined;
+  const demurrageLabelCell = hasCell(section, "wb_lbl_demurrage")
+    ? findCell(section, "wb_lbl_demurrage")
+    : undefined;
+  const demurrageValueCell = hasCell(section, "wb_demurrage") ? findCell(section, "wb_demurrage") : undefined;
 
-  if (!labelCell && !perQuantalCell && !totalCell) {
+  if (!labelCell && !perQuantalCell && !totalCell && !demurrageValueCell) {
     return null;
   }
 
   return (
     <table key={section.id} className="print-table way-bill-table mt-sm">
       <tbody>
-        <tr style={maxTemplateCellHeightStyle(labelCell ?? { h: 1 }, perQuantalCell ?? { h: 1 }, totalCell ?? { h: 1 })}>
-          <th style={templateCellHeightStyle(labelCell ?? { h: 1 })}>
-            {labelCell
-              ? (isWayBillStaticCell(labelCell)
-                ? renderStaticCell(labelCell, rows)
-                : fieldValue(rows, labelCell))
-              : "-"}
-          </th>
-          <td style={templateCellHeightStyle(perQuantalCell ?? { h: 1 })}>{perQuantalCell ? fieldValue(rows, perQuantalCell) : "-"}</td>
-          <td style={templateCellHeightStyle(totalCell ?? { h: 1 })}>{totalCell ? fieldValue(rows, totalCell) : "-"}</td>
-        </tr>
+        {labelCell || perQuantalCell || totalCell ? (
+          <tr style={maxTemplateCellHeightStyle(labelCell ?? { h: 1 }, perQuantalCell ?? { h: 1 }, totalCell ?? { h: 1 })}>
+            <th style={templateCellHeightStyle(labelCell ?? { h: 1 })}>
+              {labelCell
+                ? (isWayBillStaticCell(labelCell)
+                  ? renderStaticCell(labelCell, rows)
+                  : fieldValue(rows, labelCell))
+                : "-"}
+            </th>
+            <td style={templateCellHeightStyle(perQuantalCell ?? { h: 1 })}>{perQuantalCell ? fieldValue(rows, perQuantalCell) : "-"}</td>
+            <td style={templateCellHeightStyle(totalCell ?? { h: 1 })}>{totalCell ? fieldValue(rows, totalCell) : "-"}</td>
+          </tr>
+        ) : null}
+        {demurrageValueCell ? (
+          <tr style={maxTemplateCellHeightStyle(demurrageLabelCell ?? { h: 1 }, demurrageValueCell)}>
+            <th colSpan={1} style={templateCellHeightStyle(demurrageLabelCell ?? { h: 1 })}>
+              {demurrageLabelCell
+                ? (isWayBillStaticCell(demurrageLabelCell)
+                  ? renderStaticCell(demurrageLabelCell, rows)
+                  : (demurrageLabelCell.label || "Demurrage Price:"))
+                : "Demurrage Price:"}
+            </th>
+            <td colSpan={2} style={templateCellHeightStyle(demurrageValueCell)}>
+              {fieldValue(rows, demurrageValueCell)}
+            </td>
+          </tr>
+        ) : null}
       </tbody>
     </table>
   );

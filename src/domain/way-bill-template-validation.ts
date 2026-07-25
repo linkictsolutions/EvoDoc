@@ -7,9 +7,12 @@ export function isCurrentWayBillTemplate(stored: PersistedTemplateLayout): boole
   }
 
   const transport = stored.sections.find((section) => section.id === "transport");
+  const transportCharge = stored.sections.find((section) => section.id === "transport_charge");
   const footer = stored.sections.find((section) => section.id === "footer");
   return Boolean(
-    transport?.cells.some((cell) => cell.id === "wb_lbl_to")
+    transport?.cells.some((cell) => cell.id === "wb_lbl_exporter")
+    && transport?.cells.some((cell) => cell.id === "wb_lbl_to")
+    && transportCharge?.cells.some((cell) => cell.id === "wb_demurrage")
     && footer?.cells.some((cell) => cell.id === "wb_lbl_footer_driver"),
   );
 }

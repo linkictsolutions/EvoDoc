@@ -1,6 +1,6 @@
 import type { TemplateSection } from "@/domain/template-layout";
 
-export const WAY_BILL_TEMPLATE_LAYOUT_VERSION = 4;
+export const WAY_BILL_TEMPLATE_LAYOUT_VERSION = 5;
 
 function labelCell(id: string, label: string, y: number) {
   return {
@@ -57,18 +57,19 @@ export const WAY_BILL_DEFAULT_SECTIONS: TemplateSection[] = [
     x: 0,
     y: 0,
     w: 12,
-    h: 16,
-    minH: 16,
+    h: 18,
+    minH: 18,
     cells: [
-      ...labelValueRow("wb_lbl_to", "To:", "wb_to", "To", 0),
-      { id: "wb_lbl_to_contact_spacer", label: "(spacer no border)", x: 0, y: 2, w: 4, h: 2, showBorder: false },
-      valueCell("wb_to_contact", "To Contact", 2),
-      ...labelValueRow("wb_lbl_truck", "Truck No:", "wb_truck", "Truck No", 4),
-      ...labelValueRow("wb_lbl_trailer", "Trailer No:", "wb_trailer", "Trailer No", 6),
-      ...labelValueRow("wb_lbl_driver", "Driver Name:", "wb_driver", "Driver Name", 8),
-      ...labelValueRow("wb_lbl_driver_phone", "Driver Phone No:", "wb_driver_phone", "Driver Phone No", 10),
-      ...labelValueRow("wb_lbl_license", "License No:", "wb_license", "License No", 12),
-      ...labelValueRow("wb_lbl_destination", "Final Destination:", "wb_destination", "Final Destination", 14),
+      ...labelValueRow("wb_lbl_exporter", "Exporter:", "wb_exporter", "Exporter", 0),
+      ...labelValueRow("wb_lbl_to", "To:", "wb_to", "To", 2),
+      { id: "wb_lbl_to_contact_spacer", label: "(spacer no border)", x: 0, y: 4, w: 4, h: 2, showBorder: false },
+      valueCell("wb_to_contact", "To Contact", 4),
+      ...labelValueRow("wb_lbl_truck", "Truck No:", "wb_truck", "Truck No", 6),
+      ...labelValueRow("wb_lbl_trailer", "Trailer No:", "wb_trailer", "Trailer No", 8),
+      ...labelValueRow("wb_lbl_driver", "Driver Name:", "wb_driver", "Driver Name", 10),
+      ...labelValueRow("wb_lbl_driver_phone", "Driver Phone No:", "wb_driver_phone", "Driver Phone No", 12),
+      ...labelValueRow("wb_lbl_license", "License No:", "wb_license", "License No", 14),
+      ...labelValueRow("wb_lbl_destination", "Final Destination:", "wb_destination", "Final Destination", 16),
     ],
   },
   {
@@ -127,12 +128,13 @@ export const WAY_BILL_DEFAULT_SECTIONS: TemplateSection[] = [
     x: 0,
     y: 0,
     w: 12,
-    h: 4,
-    minH: 4,
+    h: 6,
+    minH: 6,
     cells: [
       { id: "wb_transport_label", label: "Transport Charge Label", x: 0, y: 0, w: 6, h: 2 },
       { id: "wb_transport_per_quantal", label: "Transport Charge Per Quantal", x: 6, y: 0, w: 3, h: 2 },
       { id: "wb_transport_total", label: "Transport Charge Total", x: 9, y: 0, w: 3, h: 2 },
+      ...labelValueRow("wb_lbl_demurrage", "Demurrage Price:", "wb_demurrage", "Demurrage Price", 2),
     ],
   },
   {

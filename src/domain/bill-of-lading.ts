@@ -1,5 +1,7 @@
 import { resolveCompanyConfiguration } from "@/domain/company-configuration";
 import { computeContractExcelParity, resolveContractSiLcFinalFields } from "@/domain/excel-parity";
+import { formatPartyWithAddress } from "@/domain/party-and-packaging-text";
+import { formatGroupedFixed, formatGroupedNumber } from "@/domain/rounding";
 import { buildTypeOfShipmentSummary } from "@/domain/type-of-shipment";
 import type {
   BillOfLadingInfo,
@@ -29,10 +31,10 @@ function buildDefaultGoodsDescription(args: {
   return joinParts([
     `${args.contract.terms.quantityBags} BAGS OF ${args.contract.terms.bagWeightKg} KGS NET`,
     clean(args.finalDescription),
-    `TOTAL QUANTITY: ${args.parity.quantityMt.toFixed(0)}MT`,
+    `TOTAL QUANTITY: ${formatGroupedFixed(args.parity.quantityMt, 0)}MT`,
     args.containerSummary,
-    `NET WEIGHT: ${args.parity.quantityKg.toLocaleString()} KGS`,
-    `GROSS WEIGHT: ${args.parity.grossWeightKg.toLocaleString()} KGS`,
+    `NET WEIGHT: ${formatGroupedNumber(args.parity.quantityKg)} KGS`,
+    `GROSS WEIGHT: ${formatGroupedNumber(args.parity.grossWeightKg)} KGS`,
     `CONTRACT NO:${clean(args.contract.contractNumber)}`,
     clean(args.contract.banking.lcNumber) ? `DOCUMENTARY CREDIT NUMBER:${clean(args.contract.banking.lcNumber)}` : "",
   ], " ");
@@ -337,7 +339,7 @@ export function buildBillOfLadingSample(args: {
         : clean(bill.shipperReferenceValue) || clean(args.bookings?.bookingNumber),
     },
     parties: {
-      shipper: joinParts([clean(companyConfiguration.sellerName), clean(companyConfiguration.sellerAddress)], "\n"),
+      shipper: formatPartyWithAddress(companyConfiguration.sellerName, companyConfiguration.sellerAddress),
       consignee: clean(finalFields.consignee),
       notifyParty: clean(finalFields.notify),
       carrierAgentsEndorsements: "",

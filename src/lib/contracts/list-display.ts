@@ -1,4 +1,5 @@
 import type { Contract, ContractDocumentSummary, Customer, DocumentStatus } from "@/types/models";
+import { formatGroupedFixed, WEIGHT_DP } from "@/domain/rounding";
 
 export function formatListTimestamp(value: string) {
   const date = new Date(value);
@@ -36,7 +37,7 @@ export function formatContractQuantity(contract: Contract) {
   }
 
   if (mt) {
-    parts.push(`${mt.toFixed(3)} MT`);
+    parts.push(`${formatGroupedFixed(mt, WEIGHT_DP)} MT`);
   }
 
   return parts.length > 0 ? parts.join(" · ") : "—";
