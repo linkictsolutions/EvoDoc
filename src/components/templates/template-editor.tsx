@@ -560,12 +560,16 @@ export function TemplateEditor({
   title,
   subtitle,
   defaultSections12Col,
+  acceptStoredTemplate,
+  resetStoredTemplateMessage,
 }: {
   storageKey: string;
   docType: DocumentType;
   title: string;
   subtitle: string;
   defaultSections12Col: TemplateSection[];
+  acceptStoredTemplate?: (stored: PersistedTemplate) => boolean;
+  resetStoredTemplateMessage?: string;
 }) {
   const toast = useToast();
   const defaultBucketByCellId = useMemo(() => {
@@ -627,13 +631,16 @@ export function TemplateEditor({
 
   useEffect(() => {
     const stored = readTemplate(storageKey);
-    if (stored) {
+    if (stored && (!acceptStoredTemplate || acceptStoredTemplate(stored))) {
       const hydrated = hydrateTemplatePayload(stored);
       spacerCounterRef.current = hydrated.spacerCounter;
       setSections(hydrated.sections);
       setAvailableFields(hydrated.availableFields);
       setSavedSnapshot(hydrated.snapshot);
     } else {
+      if (stored && acceptStoredTemplate) {
+        toast.info(resetStoredTemplateMessage ?? "Loaded the latest template layout.");
+      }
       const baseline = serializeTemplate({
         version: 1,
         sections: relayoutSections(withStaticDefaults(scaleSections12To24(defaultSections12Col))),

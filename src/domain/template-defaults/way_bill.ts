@@ -1,39 +1,73 @@
 import type { TemplateSection } from "@/domain/template-layout";
 
+export const WAY_BILL_TEMPLATE_LAYOUT_VERSION = 3;
+
+function labelCell(id: string, label: string, y: number) {
+  return {
+    id,
+    label,
+    x: 0,
+    y,
+    w: 4,
+    h: 2,
+    contentKind: "static" as const,
+    staticHtml: `<p><strong>${label}</strong></p>`,
+  };
+}
+
+function valueCell(id: string, label: string, y: number) {
+  return {
+    id,
+    label,
+    x: 4,
+    y,
+    w: 8,
+    h: 2,
+  };
+}
+
+function labelValueRow(labelId: string, label: string, valueId: string, valueLabel: string, y: number) {
+  return [
+    labelCell(labelId, label, y),
+    valueCell(valueId, valueLabel, y),
+  ];
+}
+
 export const WAY_BILL_DEFAULT_SECTIONS: TemplateSection[] = [
   {
     id: "header_meta",
     label: "Header + Meta",
-    description: "Way bill title, date, and reference number.",
+    description: "Way bill title with date and reference on the right.",
     x: 0,
     y: 0,
     w: 12,
     h: 6,
     minH: 6,
     cells: [
-      { id: "wb_title", label: "WAY BILL", x: 0, y: 0, w: 12, h: 2 },
-      { id: "wb_date", label: "Date", x: 0, y: 2, w: 6, h: 2 },
-      { id: "wb_ref", label: "Ref No", x: 6, y: 2, w: 6, h: 2 },
+      { id: "wb_title", label: "WAY BILL", x: 0, y: 0, w: 6, h: 2 },
+      { id: "wb_date", label: "Date", x: 6, y: 0, w: 6, h: 1 },
+      { id: "wb_ref", label: "Ref No", x: 6, y: 1, w: 6, h: 1 },
     ],
   },
   {
     id: "transport",
     label: "Transport Details",
-    description: "Transitor, truck/trailer, driver, and destination.",
+    description: "Two-column table: label on the left, value on the right.",
     x: 0,
     y: 0,
     w: 12,
     h: 16,
     minH: 16,
     cells: [
-      { id: "wb_to", label: "To", x: 0, y: 0, w: 12, h: 2 },
-      { id: "wb_to_contact", label: "To Contact", x: 0, y: 2, w: 12, h: 2 },
-      { id: "wb_truck", label: "Truck No", x: 0, y: 4, w: 12, h: 2 },
-      { id: "wb_trailer", label: "Trailer No", x: 0, y: 6, w: 12, h: 2 },
-      { id: "wb_driver", label: "Driver Name", x: 0, y: 8, w: 12, h: 2 },
-      { id: "wb_driver_phone", label: "Driver Phone No", x: 0, y: 10, w: 12, h: 2 },
-      { id: "wb_license", label: "License No", x: 0, y: 12, w: 12, h: 2 },
-      { id: "wb_destination", label: "Final Destination", x: 0, y: 14, w: 12, h: 2 },
+      ...labelValueRow("wb_lbl_to", "To:", "wb_to", "To", 0),
+      { id: "wb_lbl_to_contact_spacer", label: "(spacer no border)", x: 0, y: 2, w: 4, h: 2, showBorder: false },
+      valueCell("wb_to_contact", "To Contact", 2),
+      ...labelValueRow("wb_lbl_truck", "Truck No:", "wb_truck", "Truck No", 4),
+      ...labelValueRow("wb_lbl_trailer", "Trailer No:", "wb_trailer", "Trailer No", 6),
+      ...labelValueRow("wb_lbl_driver", "Driver Name:", "wb_driver", "Driver Name", 8),
+      ...labelValueRow("wb_lbl_driver_phone", "Driver Phone No:", "wb_driver_phone", "Driver Phone No", 10),
+      ...labelValueRow("wb_lbl_license", "License No:", "wb_license", "License No", 12),
+      ...labelValueRow("wb_lbl_destination", "Final Destination:", "wb_destination", "Final Destination", 14),
     ],
   },
   {
@@ -69,26 +103,26 @@ export const WAY_BILL_DEFAULT_SECTIONS: TemplateSection[] = [
   {
     id: "goods",
     label: "Goods",
-    description: "Detail of goods and weights.",
+    description: "Detail of goods table with label/value rows.",
     x: 0,
     y: 0,
     w: 12,
-    h: 14,
-    minH: 14,
+    h: 16,
+    minH: 16,
     cells: [
       { id: "wb_goods_hdr", label: "Detail of Goods", x: 0, y: 0, w: 12, h: 2 },
-      { id: "wb_goods_desc", label: "Detail of Goods", x: 0, y: 2, w: 12, h: 2 },
-      { id: "wb_ico", label: "ICO No", x: 0, y: 4, w: 12, h: 2 },
-      { id: "wb_cert", label: "Cert No", x: 0, y: 6, w: 12, h: 2 },
-      { id: "wb_bags", label: "No of Bag", x: 0, y: 8, w: 12, h: 2 },
-      { id: "wb_gross", label: "Gross Weight", x: 0, y: 10, w: 12, h: 2 },
-      { id: "wb_net", label: "Net Weight", x: 0, y: 12, w: 12, h: 2 },
+      ...labelValueRow("wb_lbl_goods_desc", "Description", "wb_goods_desc", "Detail of Goods", 2),
+      ...labelValueRow("wb_lbl_ico", "ICO No", "wb_ico", "ICO No", 4),
+      ...labelValueRow("wb_lbl_cert", "Cert No", "wb_cert", "Cert No", 6),
+      ...labelValueRow("wb_lbl_bags", "No of Bag", "wb_bags", "No of Bag", 8),
+      ...labelValueRow("wb_lbl_gross", "Gross Weight", "wb_gross", "Gross Weight", 10),
+      ...labelValueRow("wb_lbl_net", "Net Weight", "wb_net", "Net Weight", 12),
     ],
   },
   {
     id: "transport_charge",
     label: "Transport Charge",
-    description: "Way bill transport charge line.",
+    description: "Three-column transport charge row.",
     x: 0,
     y: 0,
     w: 12,
@@ -103,7 +137,7 @@ export const WAY_BILL_DEFAULT_SECTIONS: TemplateSection[] = [
   {
     id: "containers",
     label: "Containers",
-    description: "Container and seal numbers.",
+    description: "Container and seal numbers in two columns.",
     x: 0,
     y: 0,
     w: 12,
