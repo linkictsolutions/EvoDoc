@@ -1,5 +1,6 @@
 import { packagingDefinitionFor, resolveCompanyConfiguration } from "@/domain/company-configuration";
 import { computeContractExcelParity, type ResolvedFinalFields } from "@/domain/excel-parity";
+import { combineVehicleField, vehicleGroupsWithContainers } from "@/domain/vehicle-container-groups";
 import type {
   CompanyConfiguration,
   Contract,
@@ -112,13 +113,13 @@ function buildContainerLines(args: {
   bagWeightNet: string;
   bagWeightGross: string;
 }): ContainerLine[] {
-  const preparedContainers = args.staffingRows.filter((row) => clean(row.containerNumber).length > 0);
-  if (preparedContainers.length === 0) {
+  const groups = vehicleGroupsWithContainers(args.staffingRows);
+  if (groups.length === 0) {
     return [];
   }
 
   const parsedBags = parseNumeric(args.noOfBagsValue) ?? (args.fallbackNoOfBags > 0 ? args.fallbackNoOfBags : null);
-  const containerCount = preparedContainers.length;
+  const containerCount = groups.length;
   const bagsPerContainer = parsedBags
     ? formatNumber(parsedBags / containerCount)
     : "";
@@ -129,9 +130,9 @@ function buildContainerLines(args: {
     ? formatNumber(args.totalGrossWeightKg / containerCount)
     : "";
 
-  return preparedContainers.map((row) => ({
-    containerNo: clean(row.containerNumber),
-    sealNo: clean(row.sealNumber),
+  return groups.map((group) => ({
+    containerNo: combineVehicleField(group.truck?.containerNumber, group.trailer?.containerNumber),
+    sealNo: combineVehicleField(group.truck?.sealNumber, group.trailer?.sealNumber),
     bagsPerContainer,
     bagWeightNet: args.bagWeightNet,
     bagWeightGross: args.bagWeightGross,

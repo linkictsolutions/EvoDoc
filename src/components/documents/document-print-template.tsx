@@ -633,7 +633,12 @@ function GenericTemplatePrintView({
   template: PersistedIccTemplate;
   isFinal?: boolean;
   cellValueFor: (rows: Row[], cell: TemplateCell) => string;
-  tableSectionConfig?: Record<string, { columnIds: Set<string>; rowPlaceholderId: string }>;
+  tableSectionConfig?: Record<string, {
+    columnIds: Set<string>;
+    rowPlaceholderId: string;
+    lineIndexes?: number[];
+    cellValueAt?: (cell: TemplateCell, lineIndex: number) => string;
+  }>;
   sheetClassName?: string;
   tableClassName?: string;
   embedded?: boolean;
@@ -663,6 +668,59 @@ function GenericTemplatePrintView({
         let tableValueY: number | null = null;
 
         const tableConfig = tableSectionConfig?.[section.id];
+        if (tableConfig?.lineIndexes && tableConfig.cellValueAt) {
+          const cells = [...(section.cells ?? [])];
+          const headers = cells
+            .filter((cell) => tableConfig.columnIds.has(cell.id))
+            .sort((a, b) => (a.y - b.y) || (a.x - b.x) || a.id.localeCompare(b.id));
+          const headerY = headers.reduce((acc, cell) => Math.min(acc, cell.y), Number.POSITIVE_INFINITY);
+          const active = headers.filter((cell) => cell.y === (Number.isFinite(headerY) ? headerY : 0));
+          const sectionCols = ensureTemplateColumnGrid(section).w;
+          const lineIndexes = tableConfig.lineIndexes;
+
+          return (
+            <table
+              key={section.id}
+              className={`print-table ${tableClassName} icc-template-grid-table mt-sm`}
+              style={{ tableLayout: "fixed", borderCollapse: "collapse", width: "100%" }}
+            >
+              {renderTemplateColGroup(sectionCols)}
+              <thead>
+                <tr>
+                  {active.map((cell) => (
+                    <th key={cell.id} colSpan={Math.max(1, cell.w)} style={templateCellHeightStyle(cell)}>
+                      {cell.label}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {lineIndexes.length > 0 ? (
+                  lineIndexes.map((lineIndex) => (
+                    <tr key={`${section.id}-line-${lineIndex}`}>
+                      {active.map((cell) => (
+                        <td
+                          key={`${cell.id}-${lineIndex}`}
+                          colSpan={Math.max(1, cell.w)}
+                          style={templateCellHeightStyle(cell)}
+                        >
+                          {display(tableConfig.cellValueAt?.(cell, lineIndex))}
+                        </td>
+                      ))}
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={active.reduce((acc, cell) => acc + Math.max(1, cell.w), 0) || sectionCols}>
+                      No prepared containers in staffing yet.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          );
+        }
+
         if (tableConfig) {
           const cells = [...(section.cells ?? [])];
           const headerCells = cells.filter((cell) => tableConfig.columnIds.has(cell.id));
@@ -1253,12 +1311,16 @@ function PackingListIccTemplatePrintView({ output, documentId, isFinal, template
             .sort((a, b) => (a.x - b.x) || a.id.localeCompare(b.id));
 
           return (
-            <table key={section.id} className="print-table packing-icc-table icc-template-grid-table mt-sm">
+            <table key={section.id} className="print-table packing-icc-table icc-template-grid-table mt-sm" style={{ tableLayout: "fixed", borderCollapse: "collapse", width: "100%" }}>
               {renderTemplateColGroup(sectionCols)}
               <thead>
                 <tr>
                   {active.map((cell) => (
-                    <th key={cell.id} colSpan={Math.max(1, cell.w)}>
+                    <th
+                      key={cell.id}
+                      colSpan={Math.max(1, cell.w)}
+                      style={templateCellHeightStyle(cell)}
+                    >
                       {cell.label}
                     </th>
                   ))}
@@ -1277,7 +1339,15 @@ function PackingListIccTemplatePrintView({ output, documentId, isFinal, template
                           if (cell.id === "ct_gross_kgs") return display(grossWeights.get(index));
                           return "";
                         })();
-                        return <td key={`${cell.id}-${index}`}>{v}</td>;
+                        return (
+                          <td
+                            key={`${cell.id}-${index}`}
+                            colSpan={Math.max(1, cell.w)}
+                            style={templateCellHeightStyle(cell)}
+                          >
+                            {v}
+                          </td>
+                        );
                       })}
                     </tr>
                   ))
@@ -1454,9 +1524,19 @@ function CertificateOfQualityPrintViewWithTemplate({ output, documentId, isFinal
     return <CertificateOfQualityPrintView output={output} documentId={documentId} />;
   }
 
+  const flatRows = flattenRows(output);
+  const containers = indexedValues(flatRows, "Container No ");
+  const seals = indexedValues(flatRows, "Seal No ");
+  const bags = indexedValues(flatRows, "Bags per Container ");
+  const lineIndexes = Array.from(new Set([
+    ...containers.keys(),
+    ...seals.keys(),
+    ...bags.keys(),
+  ])).sort((a, b) => a - b);
+
   return (
     <GenericTemplatePrintView
-      rows={flattenRows(output)}
+      rows={flatRows}
       documentId={documentId}
       template={template}
       isFinal={isFinal}
@@ -1464,7 +1544,17 @@ function CertificateOfQualityPrintViewWithTemplate({ output, documentId, isFinal
       sheetClassName="quality-certificate-sheet"
       tableClassName="quality-certificate-table"
       tableSectionConfig={{
-        container_table: { columnIds: QC_CONTAINER_COLUMN_IDS, rowPlaceholderId: "qc_ct_row" },
+        container_table: {
+          columnIds: QC_CONTAINER_COLUMN_IDS,
+          rowPlaceholderId: "qc_ct_row",
+          lineIndexes,
+          cellValueAt: (cell, index) => {
+            if (cell.id === "qc_ct_container") return containers.get(index) ?? "-";
+            if (cell.id === "qc_ct_seal") return seals.get(index) ?? "-";
+            if (cell.id === "qc_ct_bags") return bags.get(index) ?? "-";
+            return "-";
+          },
+        },
       }}
     />
   );
@@ -1480,9 +1570,27 @@ function CertificateOfWeightPrintViewWithTemplate({ output, documentId, isFinal,
     return <CertificateOfWeightPrintView output={output} documentId={documentId} />;
   }
 
+  const flatRows = flattenRows(output);
+  const containers = indexedValues(flatRows, "Container No ");
+  const seals = indexedValues(flatRows, "Seal No ");
+  const bags = indexedValues(flatRows, "Bags per Container ");
+  const bagWeightNet = indexedValues(flatRows, "Bag Weight Net ");
+  const bagWeightGross = indexedValues(flatRows, "Bag Weight Gross ");
+  const containerNetWeight = indexedValues(flatRows, "Container Net Weight ");
+  const containerGrossWeight = indexedValues(flatRows, "Container Gross Weight ");
+  const lineIndexes = Array.from(new Set([
+    ...containers.keys(),
+    ...seals.keys(),
+    ...bags.keys(),
+    ...bagWeightNet.keys(),
+    ...bagWeightGross.keys(),
+    ...containerNetWeight.keys(),
+    ...containerGrossWeight.keys(),
+  ])).sort((a, b) => a - b);
+
   return (
     <GenericTemplatePrintView
-      rows={flattenRows(output)}
+      rows={flatRows}
       documentId={documentId}
       template={template}
       isFinal={isFinal}
@@ -1490,7 +1598,21 @@ function CertificateOfWeightPrintViewWithTemplate({ output, documentId, isFinal,
       sheetClassName="weight-certificate-sheet"
       tableClassName="weight-certificate-table"
       tableSectionConfig={{
-        container_table: { columnIds: WC_CONTAINER_COLUMN_IDS, rowPlaceholderId: "wc_ct_row" },
+        container_table: {
+          columnIds: WC_CONTAINER_COLUMN_IDS,
+          rowPlaceholderId: "wc_ct_row",
+          lineIndexes,
+          cellValueAt: (cell, index) => {
+            if (cell.id === "wc_ct_container") return containers.get(index) ?? "-";
+            if (cell.id === "wc_ct_seal") return seals.get(index) ?? "-";
+            if (cell.id === "wc_ct_bags") return bags.get(index) ?? "-";
+            if (cell.id === "wc_ct_bag_net") return bagWeightNet.get(index) ?? "-";
+            if (cell.id === "wc_ct_bag_gross") return bagWeightGross.get(index) ?? "-";
+            if (cell.id === "wc_ct_cont_net") return containerNetWeight.get(index) ?? "-";
+            if (cell.id === "wc_ct_cont_gross") return containerGrossWeight.get(index) ?? "-";
+            return "-";
+          },
+        },
       }}
     />
   );

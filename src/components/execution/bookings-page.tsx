@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { appendVehiclePair, removeLastVehiclePair, syncBookingEntryPairs } from "@/domain/execution";
+import { appendVehiclePair, removeLastVehiclePair, removeVehiclePairAt, syncBookingEntryPairs } from "@/domain/execution";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
 import type { BookingsSheet, CompanyConfiguration } from "@/types/models";
@@ -125,6 +125,10 @@ export function BookingsPage({ contractId }: { contractId: string }) {
     setForm((current) => current ? { ...current, entries: removeLastVehiclePair(current.entries) } : current);
   }
 
+  function removeVehicleAt(truckIndex: number) {
+    setForm((current) => current ? { ...current, entries: removeVehiclePairAt(current.entries, truckIndex) } : current);
+  }
+
   function discardChanges() {
     if (!lastSavedRef.current) {
       return;
@@ -245,7 +249,7 @@ export function BookingsPage({ contractId }: { contractId: string }) {
         <div className="section-heading">
           <div>
             <h3>Vehicle Rows</h3>
-            <p className="sidebar-subtitle">Each added vehicle creates a truck row and its paired trailer row. The truck and trailer share driver, phone, and license details entered once on the truck row.</p>
+            <p className="sidebar-subtitle">Each added vehicle creates a truck row and its paired trailer row. Driver, phone, and license are shared from the truck row. Container type is set separately for truck and trailer.</p>
           </div>
           <div className="row-actions">
             <button type="button" onClick={addVehiclePair} disabled={saving}>Add Vehicle</button>
@@ -283,6 +287,7 @@ export function BookingsPage({ contractId }: { contractId: string }) {
                 <th>Seal</th>
                 {form.hasSecondSeal ? <th>Second Seal</th> : null}
                 <th>Tare Kg</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -333,7 +338,6 @@ export function BookingsPage({ contractId }: { contractId: string }) {
                       className={entriesControlClass}
                       value={entry.containerType ?? ""}
                       onChange={(event) => updateEntry(index, "containerType", event.target.value)}
-                      disabled={entry.vehicleType === "TRAILER"}
                     >
                       <option value="">Select type</option>
                       {containerTypeOptions.map((option) => (
@@ -349,6 +353,21 @@ export function BookingsPage({ contractId }: { contractId: string }) {
                     <td><input className={`bookings-seal-input ${entriesControlClass ?? ""}`.trim()} value={entry.secondSealNumber ?? ""} onChange={(event) => updateEntry(index, "secondSealNumber", event.target.value)} /></td>
                   ) : null}
                   <td><input className={`bookings-tare-input ${entriesControlClass ?? ""}`.trim()} type="number" step="0.001" value={entry.tareWeightKg ?? ""} onChange={(event) => updateEntry(index, "tareWeightKg", event.target.value)} /></td>
+                  <td>
+                    {entry.vehicleType === "TRUCK" ? (
+                      <button
+                        type="button"
+                        className="button-secondary"
+                        onClick={() => removeVehicleAt(index)}
+                        disabled={saving || form.entries.length <= 2}
+                        aria-label={`Remove vehicle ${entry.vehicleNo ?? ""}`}
+                      >
+                        Delete
+                      </button>
+                    ) : (
+                      <span className="muted-text">—</span>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>

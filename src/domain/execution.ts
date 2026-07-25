@@ -58,7 +58,6 @@ function copySharedDriverFields(source: BookingEntry, target: BookingEntry): Boo
     driverPhoneNo: source.driverPhoneNo,
     djiboutiPhoneNo: source.djiboutiPhoneNo,
     licenseNo: source.licenseNo,
-    containerType: source.containerType,
   };
 }
 
@@ -94,6 +93,31 @@ export function removeLastVehiclePair(entries: BookingEntry[]): BookingEntry[] {
   }
 
   return entries.slice(0, Math.max(0, entries.length - 2));
+}
+
+export function removeVehiclePairAt(entries: BookingEntry[], truckIndex: number): BookingEntry[] {
+  if (entries.length <= 2) {
+    return entries;
+  }
+
+  const truck = entries[truckIndex];
+  if (!truck || truck.vehicleType !== "TRUCK") {
+    return entries;
+  }
+
+  const trailerIndex = truckIndex + 1;
+  const hasTrailer = entries[trailerIndex]?.vehicleType === "TRAILER";
+  const removeCount = hasTrailer ? 2 : 1;
+  const next = [
+    ...entries.slice(0, truckIndex),
+    ...entries.slice(truckIndex + removeCount),
+  ];
+
+  if (next.length === 0) {
+    return defaultBookingEntries();
+  }
+
+  return next;
 }
 
 export function defaultBookingEntries(): BookingEntry[] {

@@ -2,6 +2,7 @@ import { resolveCompanyConfiguration } from "@/domain/company-configuration";
 import { buildContractSiLcReport } from "@/domain/contract-si-lc";
 import { computeContractExcelParity, type ResolvedFinalFields } from "@/domain/excel-parity";
 import { buildTypeOfShipmentSummary } from "@/domain/type-of-shipment";
+import { combineVehicleField, vehicleGroupsWithContainers } from "@/domain/vehicle-container-groups";
 import type {
   BookingsSheet,
   CompanyConfiguration,
@@ -134,20 +135,20 @@ function buildContainerLines(args: {
   totalGrossWeightKg: number;
   containerCount: number;
 }): PackingListIccContainerLine[] {
-  const rows = args.staffingRows.filter((row) => clean(row.containerNumber).length > 0);
-  if (rows.length === 0) {
+  const groups = vehicleGroupsWithContainers(args.staffingRows);
+  if (groups.length === 0) {
     return [];
   }
 
   const parsedNoOfBags = parseNumeric(args.noOfBags);
-  const divisor = args.containerCount > 0 ? args.containerCount : rows.length;
+  const divisor = args.containerCount > 0 ? args.containerCount : groups.length;
   const packages = parsedNoOfBags ? formatNumber(parsedNoOfBags / divisor) : "";
   const netWeightKgs = divisor > 0 ? formatNumber(args.totalNetWeightKg / divisor) : "";
   const grossWeightKgs = divisor > 0 ? formatNumber(args.totalGrossWeightKg / divisor) : "";
 
-  return rows.map((row) => ({
-    containerNumber: clean(row.containerNumber),
-    sealNumber: clean(row.sealNumber),
+  return groups.map((group) => ({
+    containerNumber: combineVehicleField(group.truck?.containerNumber, group.trailer?.containerNumber),
+    sealNumber: combineVehicleField(group.truck?.sealNumber, group.trailer?.sealNumber),
     packages,
     netWeightKgs,
     grossWeightKgs,

@@ -7,6 +7,7 @@ import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
 import type { Customer } from "@/types/models";
 import { CenteredLoader } from "@/components/ui/centered-loader";
+import { CountrySelect } from "@/components/ui/country-select";
 import { FormActionBar } from "@/components/ui/form-action-bar";
 import { FormSection } from "@/components/ui/form-section";
 import { useToast } from "@/components/ui/toast";
@@ -200,10 +201,10 @@ export function BuyerFormPage({ buyerId }: { buyerId?: string }) {
         <FormSection title="Location & Tax" description="Country and optional tax identification.">
           <label className={`col-6 ${requiredLabelClass(attemptedSubmit && form.country.trim().length === 0)}`}>
             <span className="label-text">Country</span>
-            <input
+            <CountrySelect
               className={dirtyControlClass("country")}
               value={form.country}
-              onChange={(event) => updateField("country", event.target.value)}
+              onChange={(next) => updateField("country", next)}
               required
             />
           </label>

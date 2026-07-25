@@ -10,6 +10,7 @@ import { DEFAULT_ORG_ID } from "@/lib/config";
 import type { AttachmentRef, CompanyConfiguration, Customer } from "@/types/models";
 import { CenteredLoader } from "@/components/ui/centered-loader";
 import { AttachmentsField } from "@/components/ui/attachments";
+import { CountrySelect } from "@/components/ui/country-select";
 import { FormActionBar } from "@/components/ui/form-action-bar";
 import { FormSection } from "@/components/ui/form-section";
 import { useToast } from "@/components/ui/toast";
@@ -802,10 +803,11 @@ export function ContractCoreForm({
               </label>
               <label className={`col-4 ${buyerModalAttemptedSubmit && buyerModalForm.country.trim().length === 0 ? "is-required field-error" : "is-required"}`}>
                 <span className="label-text">Country</span>
-                <input
+                <CountrySelect
                   className={buyerModalAttemptedSubmit && buyerModalForm.country.trim().length === 0 ? "field-error-control" : undefined}
                   value={buyerModalForm.country}
-                  onChange={(event) => updateBuyerModalField("country", event.target.value)}
+                  onChange={(next) => updateBuyerModalField("country", next)}
+                  required
                 />
               </label>
               <label className="col-4">

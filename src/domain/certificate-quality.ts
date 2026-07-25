@@ -1,5 +1,6 @@
 import { computeContractExcelParity, type ResolvedFinalFields } from "@/domain/excel-parity";
 import { resolveCompanyConfiguration } from "@/domain/company-configuration";
+import { combineVehicleField, vehicleGroupsWithContainers } from "@/domain/vehicle-container-groups";
 import type {
   BookingsSheet,
   CompanyConfiguration,
@@ -84,19 +85,19 @@ function buildContainerLines(
   staffingRows: StaffingFinalRow[],
   noOfBagsValue: string,
 ): ContainerLine[] {
-  const preparedContainers = staffingRows.filter((row) => clean(row.containerNumber).length > 0);
-  if (preparedContainers.length === 0) {
+  const groups = vehicleGroupsWithContainers(staffingRows);
+  if (groups.length === 0) {
     return [];
   }
 
   const parsedBags = parseNumeric(noOfBagsValue);
-  const bagsPerContainer = parsedBags && preparedContainers.length > 0
-    ? (parsedBags / preparedContainers.length).toFixed(3).replace(/\.?0+$/, "")
+  const bagsPerContainer = parsedBags && groups.length > 0
+    ? (parsedBags / groups.length).toFixed(3).replace(/\.?0+$/, "")
     : "";
 
-  return preparedContainers.map((row) => ({
-    containerNo: clean(row.containerNumber),
-    sealNo: clean(row.sealNumber),
+  return groups.map((group) => ({
+    containerNo: combineVehicleField(group.truck?.containerNumber, group.trailer?.containerNumber),
+    sealNo: combineVehicleField(group.truck?.sealNumber, group.trailer?.sealNumber),
     bagsPerContainer,
   }));
 }

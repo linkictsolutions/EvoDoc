@@ -9,6 +9,7 @@ import { buildPackingListIccSample } from "@/domain/packing-list-icc";
 import { formatMoney, formatWeight } from "@/domain/rounding";
 import { buildWayBillSample } from "@/domain/way-bill";
 import { ICC_DECLARATION_TEXT } from "@/domain/template-static-content";
+import { combineVehicleField, vehicleGroupsWithContainers } from "@/domain/vehicle-container-groups";
 import type {
   DocumentInputSnapshot,
   DocumentOutputSnapshot,
@@ -294,12 +295,11 @@ export function mapDocumentOutput(
           `AS PER CONTRACT REF.${clean(snapshot.contract.contractNumber)}`,
         ].join(" ");
 
-        const containerRows = staffingRows
-          .filter((row) => [row.containerNumber, row.sealNumber].some((entry) => Boolean(entry?.trim())))
-          .map((row, index) => ([
-            { label: `Container No ${index + 1}`, value: clean(row.containerNumber) },
-            { label: `Seal No ${index + 1}`, value: clean(row.sealNumber) },
-            { label: `Cert No ${index + 1}`, value: clean(row.certNumber) },
+        const containerRows = vehicleGroupsWithContainers(staffingRows)
+          .map((group, index) => ([
+            { label: `Container No ${index + 1}`, value: clean(combineVehicleField(group.truck?.containerNumber, group.trailer?.containerNumber)) },
+            { label: `Seal No ${index + 1}`, value: clean(combineVehicleField(group.truck?.sealNumber, group.trailer?.sealNumber)) },
+            { label: `Cert No ${index + 1}`, value: clean(combineVehicleField(group.truck?.certNumber, group.trailer?.certNumber)) },
           ]))
           .flat();
 
