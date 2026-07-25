@@ -1,5 +1,6 @@
 import { resolveCompanyConfiguration } from "@/domain/company-configuration";
 import { computeContractExcelParity, resolveContractSiLcFinalFields } from "@/domain/excel-parity";
+import { buildTypeOfShipmentSummary } from "@/domain/type-of-shipment";
 import type {
   BillOfLadingInfo,
   BookingsSheet,
@@ -172,7 +173,11 @@ function buildCargoDescription(args: {
   const finalFields = resolveContractSiLcFinalFields(snapshot, parity);
   const certRange = finalFields.certNo;
   const icoPrefix = clean(args.companyConfiguration.icoReferencePrefix);
-  const containerSummary = `${Math.max(1, parity.containerCount)} X 20 FT FCL/FCL`;
+  const containerSummary = buildTypeOfShipmentSummary({
+    bookings: args.bookings,
+    fallbackContainerCount: Math.max(1, parity.containerCount),
+    containerTypes: args.companyConfiguration.containerTypes,
+  });
   const grossWeight = `${parity.grossWeightKg.toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 })}KG`;
   const fullMarking = clean(finalFields.bagMarking) || joinParts([
     clean(args.companyConfiguration.sellerName),

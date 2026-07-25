@@ -3,6 +3,7 @@ import { resolveCompanyConfiguration } from "@/domain/company-configuration";
 import { buildContractSiLcReport } from "@/domain/contract-si-lc";
 import { formatDateOfShipment } from "@/domain/date-format";
 import { computeContractExcelParity, generateCertificateRange } from "@/domain/excel-parity";
+import { buildTypeOfShipmentSummary } from "@/domain/type-of-shipment";
 import type { BookingsSheet, CompanyConfiguration, Contract, Customer, Shipment } from "@/types/models";
 
 interface InvoiceRow {
@@ -171,7 +172,11 @@ export function buildCommercialInvoiceIccSample(
   );
   const certNumbers = generateCertificateRange(contract.terms.lastCertNo ?? 0, parity.containerCount);
   const containerCount = Number.isFinite(parity.containerCount) ? parity.containerCount : 0;
-  const typeOfShipment = `${Math.max(0, containerCount)} X 20FT (FCL)`;
+  const typeOfShipment = buildTypeOfShipmentSummary({
+    bookings,
+    fallbackContainerCount: containerCount,
+    containerTypes: companyConfiguration.containerTypes,
+  });
   const billOfLadingNumber = clean(bookings?.billOfLadingNumber) || clean(latestShipment?.bookingReference) || clean(contract.shipping.bookingNumber);
   const vesselAndVoyageNumber = [clean(bookings?.vesselName), clean(bookings?.voyageNo)].filter(Boolean).join(" , ") || vesselVoyage(latestShipment);
   const documentRefNo = clean(contract.documentRefs?.commercial_invoice);

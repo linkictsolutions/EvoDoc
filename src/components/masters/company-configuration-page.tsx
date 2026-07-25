@@ -35,6 +35,7 @@ type CompanyConfigurationFormState = {
   priceUoms: string[];
   packagingUnits: string[];
   movementTypes: string[];
+  containerTypes: string[];
   shippingLines: string[];
   processingEnabled: boolean;
   staffingShowDoNumber: boolean;
@@ -58,6 +59,7 @@ const documentTypeLabels: Record<DocumentType, string> = {
 function toFormState(configuration: CompanyConfiguration): CompanyConfigurationFormState {
   const currencies = (configuration.currencies ?? []).filter((entry) => entry.trim().length > 0);
   const packagingUnits = (configuration.packagingUnits ?? []).filter((entry) => entry.trim().length > 0);
+  const containerTypes = (configuration.containerTypes ?? []).filter((entry) => entry.trim().length > 0);
 
   return {
     sellerName: configuration.sellerName,
@@ -78,6 +80,7 @@ function toFormState(configuration: CompanyConfiguration): CompanyConfigurationF
     priceUoms: configuration.priceUoms,
     packagingUnits: packagingUnits.length > 0 ? packagingUnits : ["Bag of 60Kg"],
     movementTypes: configuration.movementTypes,
+    containerTypes: containerTypes.length > 0 ? containerTypes : ["20FT (FCL)", "40FT (FCL)"],
     shippingLines: (configuration.shippingLines ?? []).filter((entry) => entry.trim().length > 0),
     processingEnabled: configuration.processingEnabled ?? true,
     staffingShowDoNumber: configuration.staffingShowDoNumber ?? false,
@@ -664,6 +667,49 @@ export function CompanyConfigurationPage() {
     });
   }
 
+  function updateContainerType(index: number, value: string) {
+    setForm((current) => {
+      if (!current) {
+        return current;
+      }
+
+      const nextTypes = current.containerTypes.map((type, typeIndex) => (
+        typeIndex === index ? value : type
+      ));
+
+      return {
+        ...current,
+        containerTypes: nextTypes,
+      };
+    });
+  }
+
+  function addContainerType() {
+    setForm((current) => {
+      if (!current) {
+        return current;
+      }
+
+      return {
+        ...current,
+        containerTypes: [...current.containerTypes, ""],
+      };
+    });
+  }
+
+  function removeContainerType(index: number) {
+    setForm((current) => {
+      if (!current || current.containerTypes.length <= 1) {
+        return current;
+      }
+
+      return {
+        ...current,
+        containerTypes: current.containerTypes.filter((_, typeIndex) => typeIndex !== index),
+      };
+    });
+  }
+
   function updateShippingLine(index: number, value: string) {
     setForm((current) => {
       if (!current) {
@@ -782,6 +828,7 @@ export function CompanyConfigurationPage() {
       || !Number.isFinite(bulkReferenceKg)
       || bulkReferenceKg <= 0
       || form.movementTypes.some((type) => type.trim().length === 0)
+      || form.containerTypes.some((type) => type.trim().length === 0)
       || form.packagingDefinitions.some((definition) => (
         definition.label.trim().length === 0
         || definition.uom.trim().length === 0
@@ -1017,6 +1064,49 @@ export function CompanyConfigurationPage() {
               <div className="row-actions mt-sm">
                 <button type="button" className="button-secondary" onClick={addMovementType}>
                   Add Movement Type
+                </button>
+              </div>
+            </div>
+
+            <div className="table-wrap config-option-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th style={{ width: "72px" }}>#</th>
+                    <th>Container Type</th>
+                    <th style={{ width: "130px" }}>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {form.containerTypes.map((type, index) => (
+                    <tr key={`container-type-${index + 1}`}>
+                      <td>{index + 1}</td>
+                      <td>
+                        <input
+                          className={attemptedSubmit && type.trim().length === 0 ? "field-error-control" : dirtyControlClass("containerTypes")}
+                          value={type}
+                          onChange={(event) => updateContainerType(index, event.target.value)}
+                          placeholder="20FT (FCL)"
+                          required
+                        />
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          className="button-secondary"
+                          onClick={() => removeContainerType(index)}
+                          disabled={form.containerTypes.length <= 1}
+                        >
+                          Remove
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="row-actions mt-sm">
+                <button type="button" className="button-secondary" onClick={addContainerType}>
+                  Add Container Type
                 </button>
               </div>
             </div>

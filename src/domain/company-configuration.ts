@@ -42,6 +42,7 @@ const DEFAULT_PRICE_UOMS = ["Lbs", "Bag of 60Kg", "Bag of 50Kg", "Bag of 30Kg", 
 const DEFAULT_CURRENCIES = ["USD"];
 const DEFAULT_PACKAGING_UNITS = ["Bag of 60Kg", "Bag of 50Kg", "Bag of 30Kg", "Kg", "Lbs", "Metric Ton", "Bulk"];
 const DEFAULT_MOVEMENT_TYPES = ["FCL/FCL", "CY/CY", "Port to Port", "Door to Port", "Port to Door"];
+const DEFAULT_CONTAINER_TYPES = ["20FT (FCL)", "40FT (FCL)"];
 const DEFAULT_SHIPPING_LINES: string[] = [];
 const MAX_BRANDING_IMAGE_DATA_URL_LENGTH = 950_000;
 const MAX_BENEFICIARY_BANKS = 50;
@@ -190,6 +191,15 @@ function resolveMovementTypes(configuration?: Partial<CompanyConfiguration> | nu
   }
 
   return DEFAULT_MOVEMENT_TYPES;
+}
+
+function resolveContainerTypes(configuration?: Partial<CompanyConfiguration> | null): string[] {
+  const fromList = normalizePaymentTerms(configuration?.containerTypes);
+  if (fromList.length > 0) {
+    return fromList;
+  }
+
+  return DEFAULT_CONTAINER_TYPES;
 }
 
 function normalizeBeneficiaryBanks(value?: BeneficiaryBankProfile[] | null): BeneficiaryBankProfile[] {
@@ -368,6 +378,7 @@ export function defaultCompanyConfiguration(orgId: string): CompanyConfiguration
     priceUoms: DEFAULT_PRICE_UOMS,
     packagingUnits: DEFAULT_PACKAGING_UNITS,
     movementTypes: DEFAULT_MOVEMENT_TYPES,
+    containerTypes: DEFAULT_CONTAINER_TYPES,
     shippingLines: DEFAULT_SHIPPING_LINES,
     processingEnabled: true,
     staffingShowDoNumber: false,
@@ -410,6 +421,7 @@ export function resolveCompanyConfiguration(
     priceUoms: resolvePriceUoms(configuration),
     packagingUnits: resolvePackagingUnits(configuration),
     movementTypes: resolveMovementTypes(configuration),
+    containerTypes: resolveContainerTypes(configuration),
     shippingLines: resolveShippingLines(configuration),
     processingEnabled: resolveProcessingEnabled(configuration),
     staffingShowDoNumber: resolveStaffingShowDoNumber(configuration),
@@ -455,6 +467,7 @@ export function validateAndNormalizeCompanyConfigurationPayload(
       priceUoms: normalizePaymentTerms(normalized.priceUoms),
       packagingUnits: normalizePaymentTerms(normalized.packagingUnits),
       movementTypes: normalizePaymentTerms(normalized.movementTypes),
+      containerTypes: normalizePaymentTerms(normalized.containerTypes),
       shippingLines: normalizePaymentTerms(normalized.shippingLines),
       processingEnabled: normalized.processingEnabled,
       staffingShowDoNumber: normalized.staffingShowDoNumber,

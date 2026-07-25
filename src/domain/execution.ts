@@ -58,6 +58,7 @@ function copySharedDriverFields(source: BookingEntry, target: BookingEntry): Boo
     driverPhoneNo: source.driverPhoneNo,
     djiboutiPhoneNo: source.djiboutiPhoneNo,
     licenseNo: source.licenseNo,
+    containerType: source.containerType,
   };
 }
 
@@ -135,6 +136,7 @@ export function normalizeBookingsPayload(input: unknown) {
         djiboutiPhoneNo: cleanOptional(entry.djiboutiPhoneNo),
         licenseNo: cleanOptional(entry.licenseNo),
         containerNumber: cleanOptional(entry.containerNumber),
+        containerType: cleanOptional(entry.containerType),
         sealNumber: cleanOptional(entry.sealNumber),
         secondSealNumber: cleanOptional(entry.secondSealNumber),
         tareWeightKg: normalizeNumber(entry.tareWeightKg),

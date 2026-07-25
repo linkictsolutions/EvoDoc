@@ -1,6 +1,7 @@
 import { resolveCompanyConfiguration } from "@/domain/company-configuration";
 import { buildContractSiLcReport } from "@/domain/contract-si-lc";
 import { computeContractExcelParity, type ResolvedFinalFields } from "@/domain/excel-parity";
+import { buildTypeOfShipmentSummary } from "@/domain/type-of-shipment";
 import type {
   BookingsSheet,
   CompanyConfiguration,
@@ -218,7 +219,11 @@ export function buildPackingListIccSample(args: {
       finalDestination: clean(args.finalFields.destination),
       dateOfIssue: today,
       deliveryTradeTerm: clean(args.finalFields.deliveryTerm),
-      typeOfShipment: `${Math.max(0, parity.containerCount)} X 20FT (FCL)`,
+      typeOfShipment: buildTypeOfShipmentSummary({
+        bookings: args.bookings,
+        fallbackContainerCount: parity.containerCount,
+        containerTypes: companyConfiguration.containerTypes,
+      }),
       incoterm: "INCOTERMS 2020",
       termMethodOfPayment: clean(args.finalFields.paymentTerm),
       packagingMarkingLabel,

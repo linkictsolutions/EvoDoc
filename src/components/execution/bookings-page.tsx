@@ -42,6 +42,7 @@ export function BookingsPage({ contractId }: { contractId: string }) {
   const toast = useToast();
   const [form, setForm] = useState<BookingsSheet | null>(null);
   const [shippingLineOptions, setShippingLineOptions] = useState<string[]>([]);
+  const [containerTypeOptions, setContainerTypeOptions] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -70,6 +71,11 @@ export function BookingsPage({ contractId }: { contractId: string }) {
       lastSavedRef.current = bookingsData;
       setHighlightDirty(false);
       setShippingLineOptions(buildShippingLineOptions(companyConfiguration, contractData, bookingsData.shippingLine));
+      setContainerTypeOptions(
+        (companyConfiguration?.containerTypes ?? [])
+          .map((value) => value.trim())
+          .filter(Boolean),
+      );
     } catch (loadError) {
       setError((loadError as Error).message);
     } finally {
@@ -273,6 +279,7 @@ export function BookingsPage({ contractId }: { contractId: string }) {
                 <th>Djibouti Phone</th>
                 <th>License</th>
                 <th>Container</th>
+                <th>Container Type</th>
                 <th>Seal</th>
                 {form.hasSecondSeal ? <th>Second Seal</th> : null}
                 <th>Tare Kg</th>
@@ -321,6 +328,22 @@ export function BookingsPage({ contractId }: { contractId: string }) {
                     />
                   </td>
                   <td><input className={entriesControlClass} value={entry.containerNumber ?? ""} onChange={(event) => updateEntry(index, "containerNumber", event.target.value)} /></td>
+                  <td>
+                    <select
+                      className={entriesControlClass}
+                      value={entry.containerType ?? ""}
+                      onChange={(event) => updateEntry(index, "containerType", event.target.value)}
+                      disabled={entry.vehicleType === "TRAILER"}
+                    >
+                      <option value="">Select type</option>
+                      {containerTypeOptions.map((option) => (
+                        <option key={option} value={option}>{option}</option>
+                      ))}
+                      {entry.containerType && !containerTypeOptions.includes(entry.containerType) ? (
+                        <option value={entry.containerType}>{entry.containerType}</option>
+                      ) : null}
+                    </select>
+                  </td>
                   <td><input className={`bookings-seal-input ${entriesControlClass ?? ""}`.trim()} value={entry.sealNumber ?? ""} onChange={(event) => updateEntry(index, "sealNumber", event.target.value)} /></td>
                   {form.hasSecondSeal ? (
                     <td><input className={`bookings-seal-input ${entriesControlClass ?? ""}`.trim()} value={entry.secondSealNumber ?? ""} onChange={(event) => updateEntry(index, "secondSealNumber", event.target.value)} /></td>

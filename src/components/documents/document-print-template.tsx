@@ -3033,7 +3033,7 @@ export function DocumentPrintTemplate({
   } else if (output.docType === "weight_certificate") {
     content = <CertificateOfWeightPrintViewWithTemplate output={output} documentId={documentId} input={input} isFinal={isFinal} templateLayout={templateLayout} />;
   } else if (output.docType === "way_bill") {
-    content = <WayBillPrintViewWithTemplate output={output} documentId={documentId} input={input} isFinal={isFinal} templateLayout={templateLayout} />;
+    content = <WayBillPrintView output={output} documentId={documentId} />;
   } else if (output.docType === "ico_certificate") {
     content = <IcoCertificatePrintView output={output} documentId={documentId} />;
   } else if (output.docType === "bill_of_lading") {

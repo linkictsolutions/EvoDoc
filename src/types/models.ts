@@ -143,6 +143,7 @@ export interface CompanyConfiguration extends Timestamped {
   priceUoms: string[];
   packagingUnits: string[];
   movementTypes: string[];
+  containerTypes: string[];
   shippingLines: string[];
   processingEnabled: boolean;
   staffingShowDoNumber: boolean;
@@ -290,6 +291,7 @@ export interface BookingEntry {
   djiboutiPhoneNo?: string;
   licenseNo?: string;
   containerNumber?: string;
+  containerType?: string;
   sealNumber?: string;
   secondSealNumber?: string;
   tareWeightKg?: number;
