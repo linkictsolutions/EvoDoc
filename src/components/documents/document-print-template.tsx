@@ -381,38 +381,6 @@ function buildTemplateTableRows(section: TemplateSection, cols: number) {
   return { rows, maxRow };
 }
 
-function scaleSectionRowsForPrint(section: TemplateSection): { section: TemplateSection; rowScale: number } {
-  const cells = [...(section.cells ?? [])].filter(Boolean);
-  if (cells.length === 0) {
-    return { section, rowScale: 1 };
-  }
-
-  const valuesToCheck = [
-    section.h,
-    section.minH,
-    ...cells.flatMap((cell) => [cell.y, cell.h]),
-  ];
-
-  const canHalve = valuesToCheck.every((value) => Number.isFinite(value) && value >= 0 && value % 2 === 0);
-  if (!canHalve) {
-    return { section, rowScale: 1 };
-  }
-
-  return {
-    rowScale: 2,
-    section: {
-      ...section,
-      h: section.h / 2,
-      minH: section.minH / 2,
-      cells: cells.map((cell) => ({
-        ...cell,
-        y: cell.y / 2,
-        h: Math.max(1, cell.h / 2),
-      })),
-    },
-  };
-}
-
 function isSpacerCell(cell: TemplateCell) {
   return cell.label === "(spacer)" || cell.label === "(spacer no border)" || cell.id.includes("spacer");
 }
@@ -432,17 +400,6 @@ function cellShowsBorder(cell: TemplateCell) {
 function isSignatureBoxCell(cell: TemplateCell) {
   const label = cell.label.toLowerCase();
   return label.includes("signature box") || cell.id.toLowerCase().includes("sign_box");
-}
-
-function templateRowHeightMm(cell: TemplateCell, rowScale: number) {
-  return `${Math.max(1, cell.h) * ICC_PRINT_GRID_ROW_MM * rowScale}mm`;
-}
-
-function templateCellLayoutStyle(cell: TemplateCell, rowScale: number): CSSProperties {
-  if (isSpacerCell(cell) || isSignatureBoxCell(cell)) {
-    return { height: templateRowHeightMm(cell, rowScale) };
-  }
-  return {};
 }
 
 function IccInvoiceTemplatePrintView({ output, documentId, isFinal, template }: Props & { template: PersistedIccTemplate }) {
@@ -465,7 +422,6 @@ function IccInvoiceTemplatePrintView({ output, documentId, isFinal, template }: 
         }
 
         let normalizedSection: TemplateSection = section;
-        let spacerRowScale = 1;
         let goodsHeaderY: number | null = null;
         let goodsRowY: number | null = null;
 
@@ -487,12 +443,6 @@ function IccInvoiceTemplatePrintView({ output, documentId, isFinal, template }: 
           };
         }
 
-        if (section.id !== "goods_table") {
-          const scaled = scaleSectionRowsForPrint(normalizedSection);
-          normalizedSection = scaled.section;
-          spacerRowScale = scaled.rowScale;
-        }
-
         normalizedSection = ensureTemplateColumnGrid(normalizedSection);
         const sectionCols = normalizedSection.w;
 
@@ -501,7 +451,7 @@ function IccInvoiceTemplatePrintView({ output, documentId, isFinal, template }: 
         return (
           <table
             key={section.id}
-            className="print-table icc-table mt-sm"
+            className="print-table icc-table icc-template-grid-table mt-sm"
             style={{ tableLayout: "fixed", borderCollapse: "collapse" }}
           >
             {renderTemplateColGroup(sectionCols)}
@@ -614,7 +564,6 @@ function IccInvoiceTemplatePrintView({ output, documentId, isFinal, template }: 
                           whiteSpace: "pre-wrap",
                           wordBreak: "break-word",
                           verticalAlign: "top",
-                          ...templateCellLayoutStyle(cell, spacerRowScale),
                           border: cellShowsBorder(cell) ? undefined : "none",
                           textAlign: (
                             cell.id === "inv_page"
@@ -669,7 +618,6 @@ function GenericTemplatePrintView({
         }
 
         let normalizedSection: TemplateSection = section;
-        let spacerRowScale = 1;
         let tableHeaderY: number | null = null;
         let tableValueY: number | null = null;
 
@@ -688,10 +636,6 @@ function GenericTemplatePrintView({
             ...section,
             cells: [...cells.filter((cell) => cell.id !== tableConfig.rowPlaceholderId), ...virtualValueCells],
           };
-        } else {
-          const scaled = scaleSectionRowsForPrint(normalizedSection);
-          normalizedSection = scaled.section;
-          spacerRowScale = scaled.rowScale;
         }
 
         normalizedSection = ensureTemplateColumnGrid(normalizedSection);
@@ -702,7 +646,7 @@ function GenericTemplatePrintView({
         return (
           <table
             key={section.id}
-            className="print-table icc-table mt-sm"
+            className="print-table icc-table icc-template-grid-table mt-sm"
             style={{ tableLayout: "fixed", borderCollapse: "collapse" }}
           >
             {renderTemplateColGroup(sectionCols)}
@@ -787,7 +731,6 @@ function GenericTemplatePrintView({
                           whiteSpace: "pre-wrap",
                           wordBreak: "break-word",
                           verticalAlign: "top",
-                          ...templateCellLayoutStyle(cell, spacerRowScale),
                           border: cellShowsBorder(cell) ? undefined : "none",
                         }}
                       >
@@ -1277,13 +1220,6 @@ function PackingListIccTemplatePrintView({ output, documentId, isFinal, template
         }
 
         let normalizedSection: TemplateSection = section;
-        let spacerRowScale = 1;
-
-        if (section.id !== "container_table") {
-          const scaled = scaleSectionRowsForPrint(normalizedSection);
-          normalizedSection = scaled.section;
-          spacerRowScale = scaled.rowScale;
-        }
 
         normalizedSection = ensureTemplateColumnGrid(normalizedSection);
         const sectionCols = normalizedSection.w;
@@ -1298,7 +1234,7 @@ function PackingListIccTemplatePrintView({ output, documentId, isFinal, template
             .sort((a, b) => (a.x - b.x) || a.id.localeCompare(b.id));
 
           return (
-            <table key={section.id} className="print-table packing-icc-table mt-sm">
+            <table key={section.id} className="print-table packing-icc-table icc-template-grid-table mt-sm">
               {renderTemplateColGroup(sectionCols)}
               <thead>
                 <tr>
@@ -1341,7 +1277,7 @@ function PackingListIccTemplatePrintView({ output, documentId, isFinal, template
         const { rows: tableRows } = buildTemplateTableRows(normalizedSection, sectionCols);
 
         return (
-          <table key={section.id} className="print-table packing-icc-table mt-sm" style={{ tableLayout: "fixed", borderCollapse: "collapse" }}>
+          <table key={section.id} className="print-table packing-icc-table icc-template-grid-table mt-sm" style={{ tableLayout: "fixed", borderCollapse: "collapse" }}>
             {renderTemplateColGroup(sectionCols)}
             <tbody>
               {tableRows.map((rowCells, rowIndex) => (
@@ -1437,7 +1373,6 @@ function PackingListIccTemplatePrintView({ output, documentId, isFinal, template
                           whiteSpace: "pre-wrap",
                           wordBreak: "break-word",
                           verticalAlign: "top",
-                          ...templateCellLayoutStyle(cell, spacerRowScale),
                           textAlign: cell.id === "pl_page" ? "right" : undefined,
                         }}
                       >
@@ -3012,13 +2947,13 @@ export function DocumentPrintTemplate({
   } else if (output.docType === "shipping_instructions") {
     content = <ShippingInstructionsPrintViewWithTemplate output={output} documentId={documentId} input={input} isFinal={isFinal} templateLayout={templateLayout} />;
   } else if (output.docType === "quality_certificate") {
-    content = <CertificateOfQualityPrintViewWithTemplate output={output} documentId={documentId} input={input} isFinal={isFinal} templateLayout={templateLayout} />;
+    content = <CertificateOfQualityPrintView output={output} documentId={documentId} />;
   } else if (output.docType === "weight_certificate") {
-    content = <CertificateOfWeightPrintViewWithTemplate output={output} documentId={documentId} input={input} isFinal={isFinal} templateLayout={templateLayout} />;
+    content = <CertificateOfWeightPrintView output={output} documentId={documentId} />;
   } else if (output.docType === "way_bill") {
-    content = <WayBillPrintViewWithTemplate output={output} documentId={documentId} input={input} isFinal={isFinal} templateLayout={templateLayout} />;
+    content = <WayBillPrintView output={output} documentId={documentId} />;
   } else if (output.docType === "ico_certificate") {
-    content = <IcoCertificatePrintViewWithTemplate output={output} documentId={documentId} input={input} isFinal={isFinal} templateLayout={templateLayout} />;
+    content = <IcoCertificatePrintView output={output} documentId={documentId} />;
   } else if (output.docType === "bill_of_lading") {
     content = billOfLadingPrintPages({ output, documentId, input, isFinal, templateLayout });
   } else {

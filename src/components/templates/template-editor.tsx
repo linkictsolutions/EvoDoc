@@ -211,6 +211,56 @@ function snapEvenRows(y: number, h: number) {
   return Math.max(0, y);
 }
 
+function beginTemplateCellResize(
+  event: React.PointerEvent<HTMLDivElement>,
+  corner: "nw" | "se",
+  cell: TemplateGridCell,
+  cols: number,
+  colWidth: number,
+  rowHeightPx: number,
+  onTransformCell: (cellId: string, next: { x: number; y: number; w: number; h: number }) => void,
+) {
+  event.preventDefault();
+  event.stopPropagation();
+  const startClientX = event.clientX;
+  const startClientY = event.clientY;
+  const start = { x: cell.x, y: cell.y, w: cell.w, h: cell.h };
+  const target = event.currentTarget;
+  target.setPointerCapture(event.pointerId);
+
+  const onMove = (moveEvent: PointerEvent) => {
+    const dx = moveEvent.clientX - startClientX;
+    const dy = moveEvent.clientY - startClientY;
+    const dCols = Math.round(dx / colWidth);
+    const dRows = Math.round(dy / rowHeightPx);
+
+    if (corner === "se") {
+      const nextW = Math.max(1, Math.min(cols - start.x, start.w + dCols));
+      const nextH = Math.max(1, start.h + dRows);
+      onTransformCell(cell.id, { x: start.x, y: start.y, w: nextW, h: nextH });
+      return;
+    }
+
+    let nextW = Math.max(1, start.w - dCols);
+    let nextH = Math.max(1, start.h - dRows);
+    let nextX = start.x + start.w - nextW;
+    let nextY = start.y + start.h - nextH;
+    nextX = Math.max(0, nextX);
+    nextY = Math.max(0, nextY);
+    nextW = Math.max(1, Math.min(cols - nextX, nextW));
+    nextH = Math.max(1, nextH);
+    onTransformCell(cell.id, { x: nextX, y: nextY, w: nextW, h: nextH });
+  };
+
+  const onUp = () => {
+    window.removeEventListener("pointermove", onMove);
+    window.removeEventListener("pointerup", onUp);
+  };
+
+  window.addEventListener("pointermove", onMove);
+  window.addEventListener("pointerup", onUp);
+}
+
 function GridPreview({
   cols,
   rowHeightPx,
@@ -446,37 +496,34 @@ function GridPreview({
                 ×
               </button>
 
+              {/* top-left resize handle */}
+              <div
+                role="presentation"
+                onPointerDown={(event) => {
+                  const parent = event.currentTarget.parentElement?.parentElement as HTMLElement | null;
+                  const parentRect = parent?.getBoundingClientRect();
+                  const colWidth = parentRect ? parentRect.width / cols : 1;
+                  beginTemplateCellResize(event, "nw", cell, cols, colWidth, rowHeightPx, onTransformCell);
+                }}
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: 14,
+                  height: 14,
+                  cursor: "nwse-resize",
+                  background: "transparent",
+                }}
+              />
+
               {/* bottom-right resize handle */}
               <div
                 role="presentation"
                 onPointerDown={(event) => {
-                  event.preventDefault();
-                  event.stopPropagation();
-                  const startClientX = event.clientX;
-                  const startClientY = event.clientY;
-                  const start = { w: cell.w, h: cell.h };
-                  const target = event.currentTarget as HTMLElement;
-                  target.setPointerCapture(event.pointerId);
-                  const parent = target.parentElement?.parentElement as HTMLElement | null;
+                  const parent = event.currentTarget.parentElement?.parentElement as HTMLElement | null;
                   const parentRect = parent?.getBoundingClientRect();
                   const colWidth = parentRect ? parentRect.width / cols : 1;
-
-                  const onMove = (moveEvent: PointerEvent) => {
-                    const dx = moveEvent.clientX - startClientX;
-                    const dy = moveEvent.clientY - startClientY;
-                    const dCols = Math.round(dx / colWidth);
-                    const dRows = Math.round(dy / rowHeightPx);
-                    const nextW = Math.max(1, Math.min(cols - cell.x, start.w + dCols));
-                    const nextH = Math.max(1, start.h + dRows);
-                    onTransformCell(cell.id, { x: cell.x, y: cell.y, w: nextW, h: nextH });
-                  };
-
-                  const onUp = () => {
-                    window.removeEventListener("pointermove", onMove);
-                    window.removeEventListener("pointerup", onUp);
-                  };
-                  window.addEventListener("pointermove", onMove);
-                  window.addEventListener("pointerup", onUp);
+                  beginTemplateCellResize(event, "se", cell, cols, colWidth, rowHeightPx, onTransformCell);
                 }}
                 style={{
                   position: "absolute",

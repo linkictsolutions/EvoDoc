@@ -2729,7 +2729,17 @@ tbody tr:hover {
 }
 
 .template-cell-edit-actions {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
   justify-content: flex-end;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.template-cell-edit-actions button {
+  width: auto;
+  min-width: 5.5rem;
 }
 
 .template-checkbox-row,
@@ -3607,6 +3617,17 @@ textarea:disabled {
 .icc-table td {
   font-size: 0.78rem;
   padding: 0.28rem 0.35rem;
+}
+
+.icc-template-grid-table tbody tr {
+  height: 4mm;
+}
+
+.icc-template-grid-table tbody td,
+.icc-template-grid-table tbody th {
+  box-sizing: border-box;
+  vertical-align: top;
+  overflow: hidden;
 }
 
 .icc-footer-table {
@@ -5119,6 +5140,10 @@ textarea:disabled {
     padding: 0.14rem 0.16rem;
     line-height: 1.12;
     word-break: break-word;
+  }
+
+  .icc-template-grid-table tbody tr {
+    height: 4mm;
   }
 
   .icc-footer-table .icc-full-marking-cell,
