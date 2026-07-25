@@ -41,11 +41,11 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
-const packagingOptions = ["Bag of 60Kg", "Bag of 50Kg", "Bag of 30Kg", "Kg", "Lbs", "Metric Ton", "Bulk"];
 const fallbackPaymentTerms = ["CAD", "LC", "Advance & CAD", "Advance"];
 const fallbackDeliveryTerms = ["F.O.B"];
 const fallbackPriceUoms = ["Lbs", "Bag of 60Kg", "Bag of 50Kg", "Bag of 30Kg", "Kg", "Metric Ton"];
 const fallbackCurrencies = ["USD"];
+const fallbackPackagingOptions = ["Bag of 60Kg", "Bag of 50Kg", "Bag of 30Kg", "Kg", "Lbs", "Metric Ton", "Bulk"];
 
 function resolveBagWeightFromPackagingUnit(unit: string): number {
   const normalized = unit.trim().toLowerCase();
@@ -141,6 +141,7 @@ export function ContractCoreForm({
   const [deliveryTermOptions, setDeliveryTermOptions] = useState<string[]>(fallbackDeliveryTerms);
   const [priceUomOptions, setPriceUomOptions] = useState<string[]>(fallbackPriceUoms);
   const [currencyOptions, setCurrencyOptions] = useState<string[]>(fallbackCurrencies);
+  const [packagingOptions, setPackagingOptions] = useState<string[]>(fallbackPackagingOptions);
   const [buyerModalOpen, setBuyerModalOpen] = useState(false);
   const [buyerModalForm, setBuyerModalForm] = useState<BuyerModalForm>(initialBuyerModalForm);
   const [buyerModalSaving, setBuyerModalSaving] = useState(false);
@@ -323,6 +324,10 @@ export function ContractCoreForm({
         const deliveryTerms = configuration.deliveryTerms?.filter((term) => term.trim().length > 0) ?? [];
         const priceUoms = configuration.priceUoms?.filter((uom) => uom.trim().length > 0) ?? [];
         const currencies = configuration.currencies?.filter((currency) => currency.trim().length > 0) ?? [];
+        const packagingUnits = (configuration.packagingUnits ?? [])
+          .map((unit) => (typeof unit === "string" ? unit : unit.label))
+          .map((unit) => unit.trim())
+          .filter(Boolean);
         if (terms.length === 0) {
           setPaymentTermOptions(fallbackPaymentTerms);
         } else {
@@ -343,6 +348,11 @@ export function ContractCoreForm({
         } else {
           setCurrencyOptions(currencies);
         }
+        if (packagingUnits.length === 0) {
+          setPackagingOptions(fallbackPackagingOptions);
+        } else {
+          setPackagingOptions(packagingUnits);
+        }
       })
       .catch(() => {
         if (mounted) {
@@ -350,6 +360,7 @@ export function ContractCoreForm({
           setDeliveryTermOptions(fallbackDeliveryTerms);
           setPriceUomOptions(fallbackPriceUoms);
           setCurrencyOptions(fallbackCurrencies);
+          setPackagingOptions(fallbackPackagingOptions);
         }
       });
 
@@ -752,8 +763,8 @@ export function ContractCoreForm({
                 <tr><th>Quantity Kg</th><td>{computed.quantityKg.toFixed(3)}</td></tr>
               <tr><th>Quantity Lb</th><td>{computed.quantityLb.toFixed(4)}</td></tr>
                 <tr><th>Quantity MT</th><td>{computed.quantityMt.toFixed(3)}</td></tr>
-                <tr><th>Gross Weight Kg</th><td>{computed.grossWeightKg.toFixed(3)}</td></tr>
-                <tr><th>Gross Weight MT</th><td>{computed.grossWeightMt.toFixed(3)}</td></tr>
+                <tr><th>Gross Weight Kg</th><td>{computed.grossWeightKg.toLocaleString("en-US", { maximumFractionDigits: 3 })}</td></tr>
+                <tr><th>Gross Weight MT</th><td>{computed.grossWeightMt.toLocaleString("en-US", { maximumFractionDigits: 3 })}</td></tr>
                 <tr><th>Qty Bag 60</th><td>{computed.quantityBag60.toFixed(3)}</td></tr>
                 <tr><th>Qty Bag 50</th><td>{computed.quantityBag50.toFixed(3)}</td></tr>
                 <tr><th>Qty Bag 30</th><td>{computed.quantityBag30.toFixed(3)}</td></tr>

@@ -35,5 +35,13 @@ export function formatMoney(value: Decimal.Value, currency = "USD"): string {
 }
 
 export function formatWeight(value: Decimal.Value): string {
-  return `${roundWeight(value).toFixed(WEIGHT_DP)} kg`;
+  return `${formatGroupedNumber(roundWeight(value))} kg`;
+}
+
+export function formatGroupedNumber(value: Decimal.Value, digits = WEIGHT_DP): string {
+  const rounded = new Decimal(value).toDecimalPlaces(digits, Decimal.ROUND_HALF_UP).toNumber();
+  return new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: digits,
+  }).format(rounded);
 }

@@ -4,8 +4,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import clsx from "clsx";
 import { apiClient } from "@/lib/api/client";
 import { DEFAULT_ORG_ID } from "@/lib/config";
+import { packagingOptionFor } from "@/domain/company-configuration";
 import { computeContractExcelParity } from "@/domain/excel-parity";
 import { applyCalculatedStaffingWeights, collectSealOptions, deriveFinalStaffingRows } from "@/domain/execution";
+import { formatGroupedNumber } from "@/domain/rounding";
 import type { BookingsSheet, CompanyConfiguration, Contract, StaffingFinalRow, StaffingSheet } from "@/types/models";
 import { CenteredLoader } from "@/components/ui/centered-loader";
 import { useToast } from "@/components/ui/toast";
@@ -17,7 +19,7 @@ type ContractDetailResponse = {
 };
 
 function formatWeightValue(value?: number) {
-  return typeof value === "number" && Number.isFinite(value) ? value.toFixed(3) : "-";
+  return typeof value === "number" && Number.isFinite(value) ? formatGroupedNumber(value) : "-";
 }
 
 export function StaffingPage({ contractId }: { contractId: string }) {
@@ -25,6 +27,7 @@ export function StaffingPage({ contractId }: { contractId: string }) {
   const [bookings, setBookings] = useState<BookingsSheet | null>(null);
   const [form, setForm] = useState<StaffingPayload | null>(null);
   const [contract, setContract] = useState<ContractDetailResponse["contract"] | null>(null);
+  const [bagWeightKg, setBagWeightKg] = useState(0);
   const [showDoNumber, setShowDoNumber] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -43,7 +46,14 @@ export function StaffingPage({ contractId }: { contractId: string }) {
         apiClient<ContractDetailResponse>(`/api/contracts/${contractId}?orgId=${DEFAULT_ORG_ID}`),
         apiClient<CompanyConfiguration>(`/api/company-configuration?orgId=${DEFAULT_ORG_ID}`),
       ]);
-      const instructionRows = applyCalculatedStaffingWeights(staffingData.instructionRows, contractData.contract);
+      const parity = computeContractExcelParity(contractData.contract.terms, companyConfiguration);
+      const selectedPackaging = packagingOptionFor(companyConfiguration, contractData.contract.terms.packagingUnit);
+      const nextBagWeight = selectedPackaging?.bagWeightKg ?? parity.bagWeightKg ?? 0;
+      const instructionRows = applyCalculatedStaffingWeights(
+        staffingData.instructionRows,
+        contractData.contract,
+        { bagWeightKg: nextBagWeight, totalBags: parity.noOfBags },
+      );
       const nextForm = {
         ...staffingData,
         instructionRows,
@@ -51,6 +61,7 @@ export function StaffingPage({ contractId }: { contractId: string }) {
       };
       setBookings(bookingsData);
       setForm(nextForm);
+      setBagWeightKg(nextBagWeight);
       setShowDoNumber(companyConfiguration.staffingShowDoNumber ?? false);
       lastSavedRowsRef.current = instructionRows;
       setHighlightDirty(false);
@@ -103,8 +114,16 @@ export function StaffingPage({ contractId }: { contractId: string }) {
     if (certOptions.length === 0) {
       return "Set Last Cert No on Contract and ensure container count is available to generate cert options.";
     }
-    return `Cert sequence: ${certOptions[0]} to ${certOptions[certOptions.length - 1]} (${containerCount} containers).`;
-  }, [certOptions, containerCount]);
+    return `Cert sequence: ${certOptions[0]} to ${certOptions[certOptions.length - 1]} (${containerCount} containers). Bag weight: ${formatGroupedNumber(bagWeightKg)} kg.`;
+  }, [bagWeightKg, certOptions, containerCount]);
+
+  function recalculateRows(instructionRows: StaffingSheet["instructionRows"]) {
+    const parity = contract ? computeContractExcelParity(contract.terms) : undefined;
+    return applyCalculatedStaffingWeights(instructionRows, contract ?? undefined, {
+      bagWeightKg,
+      totalBags: parity?.noOfBags,
+    });
+  }
 
   function updateRow(index: number, key: keyof StaffingSheet["instructionRows"][number], value: string) {
     setForm((current) => {
@@ -117,14 +136,14 @@ export function StaffingPage({ contractId }: { contractId: string }) {
           return row;
         }
 
-        if (["tareWeightKg"].includes(String(key))) {
+        if (key === "tareWeightKg" || key === "grossWeightKg") {
           return { ...row, [key]: value === "" ? undefined : Number(value) };
         }
 
         return { ...row, [key]: value };
       });
 
-      const nextRows = applyCalculatedStaffingWeights(instructionRows, contract ?? undefined);
+      const nextRows = recalculateRows(instructionRows);
 
       return {
         ...current,
@@ -196,7 +215,9 @@ export function StaffingPage({ contractId }: { contractId: string }) {
         <div className="section-heading">
           <div>
             <h3>Staffing Instruction &amp; Report</h3>
-            <p className="sidebar-subtitle">Staffing stays parallel to Bookings. Add or remove vehicles in Bookings first, then refresh here to sync rows before saving staffing details.</p>
+            <p className="sidebar-subtitle">
+              Enter Gross Weight (freight) and Tare Weight. Net = Gross − (bags × bag weight from selected packaging). VGM = Gross + Tare.
+            </p>
           </div>
           <div className="row-actions">
             <button type="button" className="button-secondary" onClick={() => void load()} disabled={saving}>Refresh from Bookings</button>
@@ -219,10 +240,10 @@ export function StaffingPage({ contractId }: { contractId: string }) {
                 <th>Container</th>
                 <th>Seal No</th>
                 <th>Cert No</th>
-                <th>Tare Kg</th>
-                <th>First Weight</th>
-                <th>Second Weight</th>
+                <th>Gross Weight</th>
                 <th>Net Weight</th>
+                <th>Tare Weight</th>
+                <th>VGM</th>
                 <th className={doColumnClass}>DO No</th>
               </tr>
             </thead>
@@ -254,10 +275,26 @@ export function StaffingPage({ contractId }: { contractId: string }) {
                       {certOptions.map((certNo) => <option key={certNo} value={certNo}>{certNo}</option>)}
                     </select>
                   </td>
-                  <td>{formatWeightValue(row.tareWeightKg)}</td>
-                  <td>{formatWeightValue(row.firstWeightKg)}</td>
-                  <td>{formatWeightValue(row.secondWeightKg)}</td>
+                  <td>
+                    <input
+                      className={controlClass}
+                      type="number"
+                      step="0.001"
+                      value={row.grossWeightKg ?? ""}
+                      onChange={(event) => updateRow(index, "grossWeightKg", event.target.value)}
+                    />
+                  </td>
                   <td>{formatWeightValue(row.netWeightKg)}</td>
+                  <td>
+                    <input
+                      className={controlClass}
+                      type="number"
+                      step="0.001"
+                      value={row.tareWeightKg ?? ""}
+                      onChange={(event) => updateRow(index, "tareWeightKg", event.target.value)}
+                    />
+                  </td>
+                  <td>{formatWeightValue(row.vgmKg)}</td>
                   <td className={doColumnClass}>
                     <div className="staffing-do-cell">
                       <input className={controlClass} value={row.doNumber ?? ""} onChange={(event) => updateRow(index, "doNumber", event.target.value)} disabled={!showDoNumber} />
@@ -287,10 +324,10 @@ export function StaffingPage({ contractId }: { contractId: string }) {
                 <th>Container</th>
                 <th>Seal</th>
                 <th>Cert</th>
-                <th>Tare Kg</th>
-                <th>First Weight</th>
-                <th>Second Weight</th>
+                <th>Gross Weight</th>
                 <th>Net Weight</th>
+                <th>Tare Weight</th>
+                <th>VGM</th>
                 <th className={doColumnClass}>DO No</th>
               </tr>
             </thead>
@@ -307,10 +344,10 @@ export function StaffingPage({ contractId }: { contractId: string }) {
                   <td>{row.containerNumber ?? "-"}</td>
                   <td>{row.sealNumber ?? "-"}</td>
                   <td>{row.certNumber ?? "-"}</td>
-                  <td>{row.tareWeightKg ?? "-"}</td>
-                  <td>{row.firstWeightKg ?? "-"}</td>
-                  <td>{row.secondWeightKg ?? "-"}</td>
-                  <td>{row.netWeightKg ?? "-"}</td>
+                  <td>{formatWeightValue(row.grossWeightKg)}</td>
+                  <td>{formatWeightValue(row.netWeightKg)}</td>
+                  <td>{formatWeightValue(row.tareWeightKg)}</td>
+                  <td>{formatWeightValue(row.vgmKg)}</td>
                   <td className={doColumnClass}>
                     <div className="staffing-do-cell">{showDoNumber ? (row.doNumber ?? "-") : ""}</div>
                   </td>

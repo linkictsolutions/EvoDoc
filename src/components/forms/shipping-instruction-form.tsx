@@ -217,7 +217,10 @@ export function ShippingInstructionForm({
         if (!mounted) {
           return;
         }
-        const units = configuration.packagingUnits?.filter((unit) => unit.trim().length > 0) ?? [];
+        const units = (configuration.packagingUnits ?? [])
+          .map((unit) => (typeof unit === "string" ? unit : unit.label))
+          .map((unit) => unit.trim())
+          .filter(Boolean);
         setPackagingOptions(units);
         setShippingLineOptions(configuration.shippingLines?.filter((line) => line.trim().length > 0) ?? []);
       })

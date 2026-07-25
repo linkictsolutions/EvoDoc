@@ -1,5 +1,6 @@
 import { computeContractExcelParity, type ResolvedFinalFields } from "@/domain/excel-parity";
 import { resolveCompanyConfiguration } from "@/domain/company-configuration";
+import { formatGroupedNumber } from "@/domain/rounding";
 import { combineVehicleField, vehicleGroupsWithContainers } from "@/domain/vehicle-container-groups";
 import type {
   BookingsSheet,
@@ -38,8 +39,7 @@ function formatQuantity(value: number, unit: "KG" | "LBS"): string {
     return "";
   }
 
-  const normalized = Number.isInteger(value) ? String(value) : value.toFixed(3).replace(/\.?0+$/, "");
-  return `${normalized} ${unit}`;
+  return `${formatGroupedNumber(value)} ${unit}`;
 }
 
 function parseNumeric(value: string): number | null {

@@ -3,6 +3,7 @@ import { buildContractSiLcReport } from "@/domain/contract-si-lc";
 import { computeContractExcelParity, type ResolvedFinalFields } from "@/domain/excel-parity";
 import { buildTypeOfShipmentSummary } from "@/domain/type-of-shipment";
 import { combineVehicleField, vehicleGroupsWithContainers } from "@/domain/vehicle-container-groups";
+import { formatGroupedNumber } from "@/domain/rounding";
 import type {
   BookingsSheet,
   CompanyConfiguration,
@@ -115,7 +116,7 @@ function formatNumber(value: number, digits = 3): string {
     return "";
   }
 
-  return value.toFixed(digits).replace(/\.?0+$/, "");
+  return formatGroupedNumber(value, digits);
 }
 
 function formatQuantity(value: number): string {
@@ -141,10 +142,9 @@ function buildContainerLines(args: {
   }
 
   const parsedNoOfBags = parseNumeric(args.noOfBags);
-  const divisor = args.containerCount > 0 ? args.containerCount : groups.length;
-  const packages = parsedNoOfBags ? formatNumber(parsedNoOfBags / divisor) : "";
-  const netWeightKgs = divisor > 0 ? formatNumber(args.totalNetWeightKg / divisor) : "";
-  const grossWeightKgs = divisor > 0 ? formatNumber(args.totalGrossWeightKg / divisor) : "";
+  const packages = parsedNoOfBags ? formatNumber(parsedNoOfBags) : "";
+  const netWeightKgs = formatNumber(args.totalNetWeightKg);
+  const grossWeightKgs = formatNumber(args.totalGrossWeightKg);
 
   return groups.map((group) => ({
     containerNumber: combineVehicleField(group.truck?.containerNumber, group.trailer?.containerNumber),
@@ -177,9 +177,9 @@ export function buildPackingListIccSample(args: {
     containerCount: parity.containerCount,
   });
 
-  const grandTotalPackages = formatNumber(lineItems.reduce((total, line) => total + (parseNumeric(line.packages) ?? 0), 0));
-  const grandTotalNetWeightKgs = formatQuantity(lineItems.reduce((total, line) => total + (parseNumeric(line.netWeightKgs) ?? 0), 0));
-  const grandTotalGrossWeightKgs = formatQuantity(lineItems.reduce((total, line) => total + (parseNumeric(line.grossWeightKgs) ?? 0), 0));
+  const grandTotalPackages = formatNumber(parity.noOfBags);
+  const grandTotalNetWeightKgs = formatQuantity(parity.quantityKg);
+  const grandTotalGrossWeightKgs = formatQuantity(parity.grossWeightKg);
   const today = formatDate(new Date().toISOString());
   const documentRefNo = clean(args.contract.documentRefs?.packing_list);
 

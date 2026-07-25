@@ -257,7 +257,14 @@ export const companyConfigurationInputSchema = z.object({
     paymentTerms: z.array(z.string().min(1)).min(1),
     deliveryTerms: z.array(z.string().min(1)).min(1),
     priceUoms: z.array(z.string().min(1)).min(1),
-    packagingUnits: z.array(z.string().min(1)).min(1).optional(),
+    packagingUnits: z.array(z.union([
+      z.string().min(1),
+      z.object({
+        label: z.string().min(1),
+        bagWeightKg: z.number().nonnegative(),
+        netWeightKg: z.number().nonnegative().optional(),
+      }),
+    ])).min(1).optional(),
     movementTypes: z.array(z.string().min(1)).min(1).optional(),
     containerTypes: z.array(z.string().min(1)).optional(),
     shippingLines: z.array(z.string().min(1)).optional(),
@@ -320,13 +327,14 @@ export const companyConfigurationInputSchema = z.object({
       swiftNumber: z.string().optional(),
       beneficiaryAccountNumbers: z.array(z.string().min(1)).min(1),
     })).optional(),
+    /** @deprecated Migrated into packagingUnits[].bagWeightKg / netWeightKg */
     packagingDefinitions: z.array(z.object({
       label: z.string().min(1),
       uom: z.string().min(1),
       netWeightKg: z.number().positive(),
       tareWeightKg: z.number().nonnegative(),
       grossWeightKg: z.number().positive(),
-    })).min(1),
+    })).optional(),
   }),
 });
 
@@ -385,9 +393,11 @@ export const staffingInstructionRowSchema = z.object({
   sealNumber: z.string().optional(),
   certNumber: z.string().optional(),
   tareWeightKg: z.number().nonnegative().optional(),
+  grossWeightKg: z.number().nonnegative().optional(),
+  netWeightKg: z.number().nonnegative().optional(),
+  vgmKg: z.number().nonnegative().optional(),
   firstWeightKg: z.number().nonnegative().optional(),
   secondWeightKg: z.number().nonnegative().optional(),
-  netWeightKg: z.number().nonnegative().optional(),
   doNumber: z.string().optional(),
 });
 

@@ -4,31 +4,17 @@ import type {
   CompanyConfiguration,
   DocumentBrandingSettings,
   DocumentBrandingSlotSettings,
-  PackagingDefinition,
+  PackagingOption,
 } from "@/types/models";
 
-const DEFAULT_PACKAGING_DEFINITIONS: PackagingDefinition[] = [
-  {
-    label: "Bag of 60Kg",
-    uom: "Bag",
-    netWeightKg: 60,
-    tareWeightKg: 0.75,
-    grossWeightKg: 60.75,
-  },
-  {
-    label: "Bag of 50Kg",
-    uom: "Bag",
-    netWeightKg: 50,
-    tareWeightKg: 0.625,
-    grossWeightKg: 50.625,
-  },
-  {
-    label: "Bag of 30Kg",
-    uom: "Bag",
-    netWeightKg: 30,
-    tareWeightKg: 0.375,
-    grossWeightKg: 30.375,
-  },
+const DEFAULT_PACKAGING_UNITS: PackagingOption[] = [
+  { label: "Bag of 60Kg", bagWeightKg: 0.75, netWeightKg: 60 },
+  { label: "Bag of 50Kg", bagWeightKg: 0.625, netWeightKg: 50 },
+  { label: "Bag of 30Kg", bagWeightKg: 0.375, netWeightKg: 30 },
+  { label: "Kg", bagWeightKg: 0, netWeightKg: 1 },
+  { label: "Lbs", bagWeightKg: 0, netWeightKg: 0 },
+  { label: "Metric Ton", bagWeightKg: 0, netWeightKg: 1000 },
+  { label: "Bulk", bagWeightKg: 0, netWeightKg: 0 },
 ];
 
 function cleanOptional(value?: string): string | undefined {
@@ -40,7 +26,6 @@ const DEFAULT_PAYMENT_TERMS = ["CAD", "LC", "Advance & CAD", "Advance"];
 const DEFAULT_DELIVERY_TERMS = ["F.O.B"];
 const DEFAULT_PRICE_UOMS = ["Lbs", "Bag of 60Kg", "Bag of 50Kg", "Bag of 30Kg", "Kg", "Metric Ton"];
 const DEFAULT_CURRENCIES = ["USD"];
-const DEFAULT_PACKAGING_UNITS = ["Bag of 60Kg", "Bag of 50Kg", "Bag of 30Kg", "Kg", "Lbs", "Metric Ton", "Bulk"];
 const DEFAULT_MOVEMENT_TYPES = ["FCL/FCL", "CY/CY", "Port to Port", "Door to Port", "Port to Door"];
 const DEFAULT_CONTAINER_TYPES = ["20FT (FCL)", "40FT (FCL)"];
 const DEFAULT_SHIPPING_LINES: string[] = [];
@@ -158,13 +143,86 @@ function resolveCurrencies(configuration?: Partial<CompanyConfiguration> | null)
   return DEFAULT_CURRENCIES;
 }
 
-function resolvePackagingUnits(configuration?: Partial<CompanyConfiguration> | null): string[] {
-  const fromList = normalizePaymentTerms(configuration?.packagingUnits);
-  if (fromList.length > 0) {
-    return fromList;
+function normalizePackagingOption(entry: PackagingOption | string): PackagingOption | null {
+  if (typeof entry === "string") {
+    const label = entry.trim();
+    if (!label) {
+      return null;
+    }
+    const fallback = DEFAULT_PACKAGING_UNITS.find(
+      (option) => option.label.toLowerCase() === label.toLowerCase(),
+    );
+    return {
+      label,
+      bagWeightKg: fallback?.bagWeightKg ?? 0,
+      netWeightKg: fallback?.netWeightKg ?? 0,
+    };
   }
 
-  return DEFAULT_PACKAGING_UNITS;
+  const label = entry.label?.trim() ?? "";
+  if (!label) {
+    return null;
+  }
+
+  const fallback = DEFAULT_PACKAGING_UNITS.find(
+    (option) => option.label.toLowerCase() === label.toLowerCase(),
+  );
+  const bagWeightKg = Number.isFinite(entry.bagWeightKg) ? entry.bagWeightKg : (fallback?.bagWeightKg ?? 0);
+  const netWeightKg = Number.isFinite(entry.netWeightKg) && (entry.netWeightKg ?? 0) > 0
+    ? Number(entry.netWeightKg)
+    : (fallback?.netWeightKg ?? 0);
+
+  return {
+    label,
+    bagWeightKg: Math.max(0, bagWeightKg),
+    netWeightKg: Math.max(0, netWeightKg),
+  };
+}
+
+function resolvePackagingUnits(
+  configuration?: Partial<CompanyConfiguration> | null,
+  legacyDefinitions?: Array<{
+    label: string;
+    netWeightKg: number;
+    tareWeightKg: number;
+    grossWeightKg: number;
+  }> | null,
+): PackagingOption[] {
+  const rawUnits = (configuration as { packagingUnits?: Array<PackagingOption | string> } | null | undefined)
+    ?.packagingUnits;
+  const fromList = (rawUnits ?? [])
+    .map((entry) => normalizePackagingOption(entry))
+    .filter((entry): entry is PackagingOption => Boolean(entry));
+
+  const definitionByLabel = new Map(
+    (legacyDefinitions ?? []).map((definition) => [
+      definition.label.trim().toLowerCase(),
+      definition,
+    ]),
+  );
+
+  const merged = (fromList.length > 0 ? fromList : DEFAULT_PACKAGING_UNITS).map((option) => {
+    const legacy = definitionByLabel.get(option.label.toLowerCase());
+    if (!legacy) {
+      return option;
+    }
+    return {
+      label: option.label,
+      bagWeightKg: option.bagWeightKg > 0 ? option.bagWeightKg : legacy.tareWeightKg,
+      netWeightKg: option.netWeightKg > 0 ? option.netWeightKg : legacy.netWeightKg,
+    };
+  });
+
+  const unique = new Map<string, PackagingOption>();
+  for (const option of merged) {
+    unique.set(option.label.toLowerCase(), option);
+  }
+
+  return Array.from(unique.values());
+}
+
+function resolvePackagingLabels(configuration?: Partial<CompanyConfiguration> | null): string[] {
+  return resolvePackagingUnits(configuration).map((option) => option.label);
 }
 
 function resolveShippingLines(configuration?: Partial<CompanyConfiguration> | null): string[] {
@@ -258,18 +316,6 @@ function normalizeBeneficiaryBanks(value?: BeneficiaryBankProfile[] | null): Ben
   }
 
   return banks;
-}
-
-function normalizePackagingDefinition(
-  definition: PackagingDefinition,
-): PackagingDefinition {
-  return {
-    label: definition.label.trim(),
-    uom: definition.uom.trim(),
-    netWeightKg: definition.netWeightKg,
-    tareWeightKg: definition.tareWeightKg,
-    grossWeightKg: definition.grossWeightKg,
-  };
 }
 
 function cleanImageDataUrl(value?: string): string | undefined {
@@ -384,19 +430,28 @@ export function defaultCompanyConfiguration(orgId: string): CompanyConfiguration
     staffingShowDoNumber: false,
     documentBranding: DEFAULT_DOCUMENT_BRANDING,
     bulkReferenceKg: 19200,
-    packagingDefinitions: DEFAULT_PACKAGING_DEFINITIONS,
     beneficiaryBanks: [],
     createdAt: new Date(0).toISOString(),
     updatedAt: new Date(0).toISOString(),
   };
 }
 
+type LegacyPackagingDefinition = {
+  label: string;
+  uom?: string;
+  netWeightKg: number;
+  tareWeightKg: number;
+  grossWeightKg: number;
+};
+
+type LegacyCompanyConfiguration = Partial<CompanyConfiguration> & LegacyPaymentTermFields & LegacyDeliveryTermFields & {
+  packagingUnits?: Array<PackagingOption | string>;
+  packagingDefinitions?: LegacyPackagingDefinition[];
+};
+
 export function resolveCompanyConfiguration(
   orgId: string,
-  configuration?:
-    | Partial<CompanyConfiguration>
-    | (Partial<CompanyConfiguration> & LegacyPaymentTermFields & LegacyDeliveryTermFields)
-    | null,
+  configuration?: LegacyCompanyConfiguration | null,
 ): CompanyConfiguration {
   const defaults = defaultCompanyConfiguration(orgId);
 
@@ -419,7 +474,7 @@ export function resolveCompanyConfiguration(
     paymentTerms: resolvePaymentTerms(configuration),
     deliveryTerms: resolveDeliveryTerms(configuration),
     priceUoms: resolvePriceUoms(configuration),
-    packagingUnits: resolvePackagingUnits(configuration),
+    packagingUnits: resolvePackagingUnits(configuration, configuration?.packagingDefinitions),
     movementTypes: resolveMovementTypes(configuration),
     containerTypes: resolveContainerTypes(configuration),
     shippingLines: resolveShippingLines(configuration),
@@ -428,9 +483,6 @@ export function resolveCompanyConfiguration(
     documentBranding: resolveDocumentBranding(configuration),
     bulkReferenceKg: configuration?.bulkReferenceKg ?? defaults.bulkReferenceKg,
     beneficiaryBanks: normalizeBeneficiaryBanks(configuration?.beneficiaryBanks),
-    packagingDefinitions:
-      configuration?.packagingDefinitions?.map(normalizePackagingDefinition) ??
-      defaults.packagingDefinitions,
     createdAt: configuration?.createdAt ?? defaults.createdAt,
     updatedAt: configuration?.updatedAt ?? defaults.updatedAt,
   };
@@ -444,7 +496,10 @@ export function validateAndNormalizeCompanyConfigurationPayload(
   input: unknown,
 ): NormalizedCompanyConfigurationPayload {
   const parsed = companyConfigurationInputSchema.parse(input);
-  const normalized = resolveCompanyConfiguration(parsed.orgId, parsed.companyConfiguration);
+  const normalized = resolveCompanyConfiguration(
+    parsed.orgId,
+    parsed.companyConfiguration as LegacyCompanyConfiguration,
+  );
 
   return {
     companyConfiguration: {
@@ -465,7 +520,7 @@ export function validateAndNormalizeCompanyConfigurationPayload(
       paymentTerms: normalizePaymentTerms(normalized.paymentTerms),
       deliveryTerms: normalizePaymentTerms(normalized.deliveryTerms),
       priceUoms: normalizePaymentTerms(normalized.priceUoms),
-      packagingUnits: normalizePaymentTerms(normalized.packagingUnits),
+      packagingUnits: resolvePackagingUnits(normalized),
       movementTypes: normalizePaymentTerms(normalized.movementTypes),
       containerTypes: normalizePaymentTerms(normalized.containerTypes),
       shippingLines: normalizePaymentTerms(normalized.shippingLines),
@@ -474,21 +529,32 @@ export function validateAndNormalizeCompanyConfigurationPayload(
       documentBranding: resolveDocumentBranding(normalized),
       bulkReferenceKg: normalized.bulkReferenceKg,
       beneficiaryBanks: normalizeBeneficiaryBanks(normalized.beneficiaryBanks),
-      packagingDefinitions: normalized.packagingDefinitions.map(normalizePackagingDefinition),
     },
   };
 }
 
-export function packagingDefinitionFor(
+export function packagingOptionFor(
   configuration: CompanyConfiguration | undefined,
   label: string,
-): PackagingDefinition | undefined {
-  if (!configuration) {
+): PackagingOption | undefined {
+  if (!configuration || !label.trim()) {
     return undefined;
   }
 
   const normalizedLabel = label.trim().toLowerCase();
-  return configuration.packagingDefinitions.find(
-    (definition) => definition.label.trim().toLowerCase() === normalizedLabel,
+  return configuration.packagingUnits.find(
+    (option) => option.label.trim().toLowerCase() === normalizedLabel,
   );
+}
+
+/** @deprecated Use packagingOptionFor */
+export function packagingDefinitionFor(
+  configuration: CompanyConfiguration | undefined,
+  label: string,
+): PackagingOption | undefined {
+  return packagingOptionFor(configuration, label);
+}
+
+export function packagingLabels(configuration?: CompanyConfiguration | null): string[] {
+  return resolvePackagingLabels(configuration);
 }

@@ -74,7 +74,10 @@ function formatNumber(value: number, digits = 2): string {
     return "";
   }
 
-  return value.toFixed(digits);
+  return new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: digits,
+  }).format(value);
 }
 
 export interface CommercialInvoiceIccSample {

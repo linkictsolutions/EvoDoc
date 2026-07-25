@@ -79,12 +79,12 @@ export interface Item extends Timestamped {
   active: boolean;
 }
 
-export interface PackagingDefinition {
+export interface PackagingOption {
   label: string;
-  uom: string;
+  /** Weight of one empty bag (packaging material) for the selected packaging. */
+  bagWeightKg: number;
+  /** Net coffee weight per bag; used for quantity/totals when packaging is bag-based. */
   netWeightKg: number;
-  tareWeightKg: number;
-  grossWeightKg: number;
 }
 
 export interface DocumentBrandingSlotSettings {
@@ -141,7 +141,7 @@ export interface CompanyConfiguration extends Timestamped {
   paymentTerms: string[];
   deliveryTerms: string[];
   priceUoms: string[];
-  packagingUnits: string[];
+  packagingUnits: PackagingOption[];
   movementTypes: string[];
   containerTypes: string[];
   shippingLines: string[];
@@ -149,7 +149,6 @@ export interface CompanyConfiguration extends Timestamped {
   staffingShowDoNumber: boolean;
   documentBranding: DocumentBrandingSettings;
   bulkReferenceKg: number;
-  packagingDefinitions: PackagingDefinition[];
   beneficiaryBanks: BeneficiaryBankProfile[];
 }
 
@@ -321,10 +320,18 @@ export interface StaffingInstructionRow {
   containerNumber?: string;
   sealNumber?: string;
   certNumber?: string;
+  /** Container/vehicle tare. */
   tareWeightKg?: number;
-  firstWeightKg?: number;
-  secondWeightKg?: number;
+  /** Freight weight (weighed cargo). */
+  grossWeightKg?: number;
+  /** Gross − (bags × packaging bag weight). */
   netWeightKg?: number;
+  /** Gross + tare. */
+  vgmKg?: number;
+  /** @deprecated Migrated into grossWeightKg. */
+  firstWeightKg?: number;
+  /** @deprecated Migrated into grossWeightKg. */
+  secondWeightKg?: number;
   doNumber?: string;
 }
 
@@ -340,9 +347,11 @@ export interface StaffingFinalRow {
   sealNumber?: string;
   certNumber?: string;
   tareWeightKg?: number;
+  grossWeightKg?: number;
+  netWeightKg?: number;
+  vgmKg?: number;
   firstWeightKg?: number;
   secondWeightKg?: number;
-  netWeightKg?: number;
   doNumber?: string;
 }
 

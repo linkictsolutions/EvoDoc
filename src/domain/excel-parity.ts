@@ -1,6 +1,6 @@
 import Decimal from "decimal.js";
 import { KG_TO_LB_FACTOR } from "@/domain/date-format";
-import { packagingDefinitionFor } from "@/domain/company-configuration";
+import { packagingOptionFor } from "@/domain/company-configuration";
 import { roundLbWeight, roundMoney, roundWeight } from "@/domain/rounding";
 import type { CompanyConfiguration, ContractTerms, DocumentInputSnapshot } from "@/types/models";
 
@@ -19,25 +19,11 @@ function divideSafe(value: Decimal, by: Decimal.Value): Decimal {
 function resolveQuantityKg(terms: ContractTerms, companyConfiguration?: CompanyConfiguration): Decimal {
   const quantity = new Decimal(terms.quantityBags);
   const unit = normalizeUnit(terms.packagingUnit);
-  const bag60 = packagingDefinitionFor(companyConfiguration, "Bag of 60Kg");
-  const bag50 = packagingDefinitionFor(companyConfiguration, "Bag of 50Kg");
-  const bag30 = packagingDefinitionFor(companyConfiguration, "Bag of 30Kg");
+  const selected = packagingOptionFor(companyConfiguration, terms.packagingUnit);
   const bulkReferenceKg = companyConfiguration?.bulkReferenceKg ?? 19200;
 
   if (unit === "kg") {
     return quantity;
-  }
-
-  if (unit === "bag of 60kg") {
-    return quantity.mul(bag60?.netWeightKg ?? 60);
-  }
-
-  if (unit === "bag of 50kg") {
-    return quantity.mul(bag50?.netWeightKg ?? 50);
-  }
-
-  if (unit === "bag of 30kg") {
-    return quantity.mul(bag30?.netWeightKg ?? 30);
   }
 
   if (unit === "lbs" || unit === "lb") {
@@ -52,39 +38,39 @@ function resolveQuantityKg(terms: ContractTerms, companyConfiguration?: CompanyC
     return quantity.mul(bulkReferenceKg);
   }
 
+  if (selected && selected.netWeightKg > 0) {
+    return quantity.mul(selected.netWeightKg);
+  }
+
   // Fallback for free-form values.
   return quantity.mul(terms.bagWeightKg);
 }
 
-function resolveNoOfBags(terms: ContractTerms, quantityKg: Decimal): Decimal {
+function resolveNoOfBags(
+  terms: ContractTerms,
+  quantityKg: Decimal,
+  companyConfiguration?: CompanyConfiguration,
+): Decimal {
+  const selected = packagingOptionFor(companyConfiguration, terms.packagingUnit);
   const unit = normalizeUnit(terms.packagingUnit);
 
-  if (unit === "bag of 60kg" || unit === "bag of 50kg" || unit === "bag of 30kg") {
+  if ((selected && selected.netWeightKg > 0 && unit.includes("bag"))
+    || unit === "bag of 60kg"
+    || unit === "bag of 50kg"
+    || unit === "bag of 30kg") {
     return new Decimal(terms.quantityBags);
   }
 
-  return quantityKg.div(60).toDecimalPlaces(0, Decimal.ROUND_HALF_UP);
+  const divisor = selected?.netWeightKg && selected.netWeightKg > 0 ? selected.netWeightKg : 60;
+  return quantityKg.div(divisor).toDecimalPlaces(0, Decimal.ROUND_HALF_UP);
 }
 
-function resolveTareWeightKg(
+function resolveSelectedBagWeightKg(
   terms: ContractTerms,
   companyConfiguration: CompanyConfiguration | undefined,
 ): Decimal {
-  const unit = normalizeUnit(terms.packagingUnit);
-
-  if (unit === "bag of 60kg") {
-    return new Decimal(packagingDefinitionFor(companyConfiguration, "Bag of 60Kg")?.tareWeightKg ?? 0.75);
-  }
-
-  if (unit === "bag of 50kg") {
-    return new Decimal(packagingDefinitionFor(companyConfiguration, "Bag of 50Kg")?.tareWeightKg ?? 0.625);
-  }
-
-  if (unit === "bag of 30kg") {
-    return new Decimal(packagingDefinitionFor(companyConfiguration, "Bag of 30Kg")?.tareWeightKg ?? 0.375);
-  }
-
-  return new Decimal(0);
+  const selected = packagingOptionFor(companyConfiguration, terms.packagingUnit);
+  return new Decimal(selected?.bagWeightKg ?? 0);
 }
 
 export interface ContractExcelParity {
@@ -102,6 +88,7 @@ export interface ContractExcelParity {
   unitPriceBag30: number;
   containerCount: number;
   noOfBags: number;
+  bagWeightKg: number;
 }
 
 export function computeContractExcelParity(
@@ -110,9 +97,10 @@ export function computeContractExcelParity(
 ): ContractExcelParity {
   const quantityKg = resolveQuantityKg(terms, companyConfiguration);
   const quantityLb = quantityKg.mul(KG_TO_LB_FACTOR);
-  const bag60 = packagingDefinitionFor(companyConfiguration, "Bag of 60Kg");
-  const bag50 = packagingDefinitionFor(companyConfiguration, "Bag of 50Kg");
-  const bag30 = packagingDefinitionFor(companyConfiguration, "Bag of 30Kg");
+  const bag60 = packagingOptionFor(companyConfiguration, "Bag of 60Kg");
+  const bag50 = packagingOptionFor(companyConfiguration, "Bag of 50Kg");
+  const bag30 = packagingOptionFor(companyConfiguration, "Bag of 30Kg");
+  const selected = packagingOptionFor(companyConfiguration, terms.packagingUnit);
   const bulkReferenceKg = companyConfiguration?.bulkReferenceKg ?? 19200;
 
   const priceUnitForPrice = terms.priceUnitForPrice ?? 100;
@@ -122,8 +110,9 @@ export function computeContractExcelParity(
   const quantityBag50 = divideSafe(quantityKg, bag50?.netWeightKg ?? 50);
   const quantityBag30 = divideSafe(quantityKg, bag30?.netWeightKg ?? 30);
 
-  const noOfBagsDecimal = resolveNoOfBags(terms, quantityKg);
-  const grossWeightKg = quantityKg.plus(noOfBagsDecimal.mul(resolveTareWeightKg(terms, companyConfiguration)));
+  const noOfBagsDecimal = resolveNoOfBags(terms, quantityKg, companyConfiguration);
+  const bagWeightKg = resolveSelectedBagWeightKg(terms, companyConfiguration);
+  const grossWeightKg = quantityKg.plus(noOfBagsDecimal.mul(bagWeightKg));
   const quantityMt = divideSafe(quantityKg, 1000);
   const grossWeightMt = divideSafe(grossWeightKg, 1000);
 
@@ -145,6 +134,7 @@ export function computeContractExcelParity(
     unitPriceBag30: roundMoney(divideSafe(totalPrice, quantityBag30)),
     containerCount,
     noOfBags: roundWeight(noOfBags),
+    bagWeightKg: roundWeight(selected?.bagWeightKg ?? bagWeightKg.toNumber()),
   };
 }
 

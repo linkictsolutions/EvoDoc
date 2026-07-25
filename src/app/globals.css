@@ -1184,6 +1184,77 @@ tbody tr:hover {
   color: var(--muted);
 }
 
+.country-select {
+  position: relative;
+  width: 100%;
+}
+
+.country-select-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-height: 2.4rem;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--border, #cbd5e1);
+  border-radius: 0.45rem;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.country-select-value,
+.country-select-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.country-select-placeholder {
+  color: var(--muted, #64748b);
+}
+
+.country-select-menu {
+  position: absolute;
+  z-index: 40;
+  top: calc(100% + 0.25rem);
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid var(--border, #cbd5e1);
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+  overflow: hidden;
+}
+
+.country-select-search {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid var(--border, #e2e8f0);
+  border-radius: 0;
+  padding: 0.65rem 0.75rem;
+}
+
+.country-select-options {
+  max-height: 240px;
+  overflow: auto;
+}
+
+.country-select-option {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  padding: 0.55rem 0.75rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.country-select-option:hover,
+.country-select-option.is-active {
+  background: #f1f5f9;
+}
+
 .minw-320 {
   min-width: 320px;
 }

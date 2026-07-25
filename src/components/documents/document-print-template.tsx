@@ -65,7 +65,19 @@ function display(value: string | undefined): string {
     return "";
   }
 
-  return value;
+  const numericMatch = normalized.match(/^(-?\d+(?:\.\d+)?)(.*)$/);
+  if (numericMatch && !normalized.includes(",")) {
+    const amount = Number(numericMatch[1]);
+    if (Number.isFinite(amount)) {
+      const formatted = new Intl.NumberFormat("en-US", {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 6,
+      }).format(amount);
+      return `${formatted}${numericMatch[2] ?? ""}`;
+    }
+  }
+
+  return normalized;
 }
 
 type TemplateCell = {

@@ -13,7 +13,7 @@ import type {
   CompanyConfiguration,
   DocumentBrandingSettings,
   DocumentType,
-  PackagingDefinition,
+  PackagingOption,
 } from "@/types/models";
 
 type CompanyConfigurationFormState = {
@@ -33,7 +33,7 @@ type CompanyConfigurationFormState = {
   paymentTerms: string[];
   deliveryTerms: string[];
   priceUoms: string[];
-  packagingUnits: string[];
+  packagingUnits: PackagingOption[];
   movementTypes: string[];
   containerTypes: string[];
   shippingLines: string[];
@@ -41,7 +41,6 @@ type CompanyConfigurationFormState = {
   staffingShowDoNumber: boolean;
   documentBranding: DocumentBrandingSettings;
   bulkReferenceKg: string;
-  packagingDefinitions: PackagingDefinition[];
   beneficiaryBanks: BeneficiaryBankProfile[];
 };
 
@@ -58,7 +57,7 @@ const documentTypeLabels: Record<DocumentType, string> = {
 
 function toFormState(configuration: CompanyConfiguration): CompanyConfigurationFormState {
   const currencies = (configuration.currencies ?? []).filter((entry) => entry.trim().length > 0);
-  const packagingUnits = (configuration.packagingUnits ?? []).filter((entry) => entry.trim().length > 0);
+  const packagingUnits = (configuration.packagingUnits ?? []).filter((entry) => entry.label.trim().length > 0);
   const containerTypes = (configuration.containerTypes ?? []).filter((entry) => entry.trim().length > 0);
 
   return {
@@ -78,7 +77,7 @@ function toFormState(configuration: CompanyConfiguration): CompanyConfigurationF
     paymentTerms: configuration.paymentTerms,
     deliveryTerms: configuration.deliveryTerms,
     priceUoms: configuration.priceUoms,
-    packagingUnits: packagingUnits.length > 0 ? packagingUnits : ["Bag of 60Kg"],
+    packagingUnits: packagingUnits.length > 0 ? packagingUnits : [{ label: "Bag of 60Kg", bagWeightKg: 0.75, netWeightKg: 60 }],
     movementTypes: configuration.movementTypes,
     containerTypes: containerTypes.length > 0 ? containerTypes : ["20FT (FCL)", "40FT (FCL)"],
     shippingLines: (configuration.shippingLines ?? []).filter((entry) => entry.trim().length > 0),
@@ -86,7 +85,6 @@ function toFormState(configuration: CompanyConfiguration): CompanyConfigurationF
     staffingShowDoNumber: configuration.staffingShowDoNumber ?? false,
     documentBranding: configuration.documentBranding,
     bulkReferenceKg: String(configuration.bulkReferenceKg),
-    packagingDefinitions: configuration.packagingDefinitions,
     beneficiaryBanks: configuration.beneficiaryBanks ?? [],
   };
 }
@@ -205,37 +203,56 @@ export function CompanyConfigurationPage() {
     setForm((current) => current ? { ...current, [key]: value } : current);
   }
 
-  function updatePackagingDefinition(
-    index: number,
-    key: keyof PackagingDefinition,
-    value: string,
-  ) {
+  function updatePackagingUnit(index: number, key: keyof PackagingOption, value: string) {
     setForm((current) => {
       if (!current) {
         return current;
       }
 
-      const nextDefinitions = current.packagingDefinitions.map((definition, definitionIndex) => {
-        if (definitionIndex !== index) {
-          return definition;
+      const nextUnits = current.packagingUnits.map((unit, unitIndex) => {
+        if (unitIndex !== index) {
+          return unit;
         }
 
-        if (key === "label" || key === "uom") {
-          return {
-            ...definition,
-            [key]: value,
-          };
+        if (key === "label") {
+          return { ...unit, label: value };
         }
 
         return {
-          ...definition,
+          ...unit,
           [key]: Number(value),
         };
       });
 
       return {
         ...current,
-        packagingDefinitions: nextDefinitions,
+        packagingUnits: nextUnits,
+      };
+    });
+  }
+
+  function addPackagingUnit() {
+    setForm((current) => {
+      if (!current) {
+        return current;
+      }
+
+      return {
+        ...current,
+        packagingUnits: [...current.packagingUnits, { label: "", bagWeightKg: 0, netWeightKg: 0 }],
+      };
+    });
+  }
+
+  function removePackagingUnit(index: number) {
+    setForm((current) => {
+      if (!current || current.packagingUnits.length <= 1) {
+        return current;
+      }
+
+      return {
+        ...current,
+        packagingUnits: current.packagingUnits.filter((_, unitIndex) => unitIndex !== index),
       };
     });
   }
@@ -581,49 +598,6 @@ export function CompanyConfigurationPage() {
     });
   }
 
-  function updatePackagingUnit(index: number, value: string) {
-    setForm((current) => {
-      if (!current) {
-        return current;
-      }
-
-      const nextUnits = current.packagingUnits.map((unit, unitIndex) => (
-        unitIndex === index ? value : unit
-      ));
-
-      return {
-        ...current,
-        packagingUnits: nextUnits,
-      };
-    });
-  }
-
-  function addPackagingUnit() {
-    setForm((current) => {
-      if (!current) {
-        return current;
-      }
-
-      return {
-        ...current,
-        packagingUnits: [...current.packagingUnits, ""],
-      };
-    });
-  }
-
-  function removePackagingUnit(index: number) {
-    setForm((current) => {
-      if (!current || current.packagingUnits.length <= 1) {
-        return current;
-      }
-
-      return {
-        ...current,
-        packagingUnits: current.packagingUnits.filter((_, unitIndex) => unitIndex !== index),
-      };
-    });
-  }
-
   function updateMovementType(index: number, value: string) {
     setForm((current) => {
       if (!current) {
@@ -829,15 +803,10 @@ export function CompanyConfigurationPage() {
       || bulkReferenceKg <= 0
       || form.movementTypes.some((type) => type.trim().length === 0)
       || form.containerTypes.some((type) => type.trim().length === 0)
-      || form.packagingDefinitions.some((definition) => (
-        definition.label.trim().length === 0
-        || definition.uom.trim().length === 0
-        || !Number.isFinite(definition.netWeightKg)
-        || definition.netWeightKg <= 0
-        || !Number.isFinite(definition.tareWeightKg)
-        || definition.tareWeightKg <= 0
-        || !Number.isFinite(definition.grossWeightKg)
-        || definition.grossWeightKg <= 0
+      || form.packagingUnits.some((unit) => (
+        unit.label.trim().length === 0
+        || !Number.isFinite(unit.bagWeightKg)
+        || unit.bagWeightKg < 0
       ));
 
     if (missingRequired) {
@@ -982,7 +951,7 @@ export function CompanyConfigurationPage() {
             </label>
             </FormSection>
 
-            <FormSection title="Payment, Delivery, and Price Terms" description="Maintain selectable options used in contract creation.">
+            <FormSection title="Payment, Delivery, and Price Terms" description="Maintain selectable options used in contract creation. Packaging includes bag weight (empty bag) used in staffing and gross totals.">
             <div className="config-option-tables span-all">
             <div className="table-wrap config-option-table">
               <table>
@@ -1243,6 +1212,7 @@ export function CompanyConfigurationPage() {
                   <tr>
                     <th style={{ width: "72px" }}>#</th>
                     <th>Packaging</th>
+                    <th style={{ width: "160px" }}>Bag Weight (Kg)</th>
                     <th style={{ width: "130px" }}>Action</th>
                   </tr>
                 </thead>
@@ -1253,8 +1223,21 @@ export function CompanyConfigurationPage() {
                       <td>
                         <input
                           className={dirtyControlClass("packagingUnits")}
-                          value={unit}
-                          onChange={(event) => updatePackagingUnit(index, event.target.value)}
+                          value={unit.label}
+                          onChange={(event) => updatePackagingUnit(index, "label", event.target.value)}
+                          required
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          step="0.001"
+                          min="0"
+                          className={attemptedSubmit && (!Number.isFinite(unit.bagWeightKg) || unit.bagWeightKg < 0)
+                            ? "field-error-control"
+                            : dirtyControlClass("packagingUnits")}
+                          value={unit.bagWeightKg}
+                          onChange={(event) => updatePackagingUnit(index, "bagWeightKg", event.target.value)}
                           required
                         />
                       </td>
@@ -1359,75 +1342,6 @@ export function CompanyConfigurationPage() {
               Transitor Location
               <textarea className={dirtyControlClass("transitorLocation")} rows={2} value={form.transitorLocation} onChange={(event) => updateField("transitorLocation", event.target.value)} />
             </label>
-            </FormSection>
-
-            <FormSection title="Packaging Definitions" description="Bag weight and tare settings used in document totals.">
-            <div className="span-all table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Label</th>
-                    <th>UoM</th>
-                    <th>Net Weight Kg</th>
-                    <th>Tare Weight Kg</th>
-                    <th>Gross Weight Kg</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {form.packagingDefinitions.map((definition, index) => (
-                    <tr key={index}>
-                      <td>
-                        <input
-                          className={attemptedSubmit && definition.label.trim().length === 0 ? "field-error-control" : dirtyControlClass("packagingDefinitions")}
-                          value={definition.label}
-                          onChange={(event) => updatePackagingDefinition(index, "label", event.target.value)}
-                        />
-                      </td>
-                      <td>
-                        <input
-                          className={attemptedSubmit && definition.uom.trim().length === 0 ? "field-error-control" : dirtyControlClass("packagingDefinitions")}
-                          value={definition.uom}
-                          onChange={(event) => updatePackagingDefinition(index, "uom", event.target.value)}
-                        />
-                      </td>
-                      <td>
-                        <input
-                          type="number"
-                          step="0.001"
-                          className={attemptedSubmit && (!Number.isFinite(definition.netWeightKg) || definition.netWeightKg <= 0)
-                            ? "field-error-control"
-                            : undefined}
-                          value={definition.netWeightKg}
-                          onChange={(event) => updatePackagingDefinition(index, "netWeightKg", event.target.value)}
-                        />
-                      </td>
-                      <td>
-                        <input
-                          type="number"
-                          step="0.001"
-                          className={attemptedSubmit && (!Number.isFinite(definition.tareWeightKg) || definition.tareWeightKg <= 0)
-                            ? "field-error-control"
-                            : undefined}
-                          value={definition.tareWeightKg}
-                          onChange={(event) => updatePackagingDefinition(index, "tareWeightKg", event.target.value)}
-                        />
-                      </td>
-                      <td>
-                        <input
-                          type="number"
-                          step="0.001"
-                          className={attemptedSubmit && (!Number.isFinite(definition.grossWeightKg) || definition.grossWeightKg <= 0)
-                            ? "field-error-control"
-                            : undefined}
-                          value={definition.grossWeightKg}
-                          onChange={(event) => updatePackagingDefinition(index, "grossWeightKg", event.target.value)}
-                        />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
             </FormSection>
           </>
         ) : activeTab === "banking" ? (

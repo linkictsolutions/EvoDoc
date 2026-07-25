@@ -1,5 +1,6 @@
-import { packagingDefinitionFor, resolveCompanyConfiguration } from "@/domain/company-configuration";
+import { packagingOptionFor, resolveCompanyConfiguration } from "@/domain/company-configuration";
 import { computeContractExcelParity, type ResolvedFinalFields } from "@/domain/excel-parity";
+import { formatGroupedNumber } from "@/domain/rounding";
 import { combineVehicleField, vehicleGroupsWithContainers } from "@/domain/vehicle-container-groups";
 import type {
   CompanyConfiguration,
@@ -40,7 +41,7 @@ function formatNumber(value: number, digits = 3): string {
     return "";
   }
 
-  return value.toFixed(digits).replace(/\.?0+$/, "");
+  return formatGroupedNumber(value, digits);
 }
 
 function formatQuantity(value: number, unit: "KG" | "KGS"): string {
@@ -78,11 +79,13 @@ function resolveBagWeights(
 ) {
   const packagingUnit = clean(finalFields.uomPacking) || clean(contract.terms.packagingUnit);
   const definition = packagingUnit
-    ? packagingDefinitionFor(companyConfiguration, packagingUnit)
+    ? packagingOptionFor(companyConfiguration, packagingUnit)
     : undefined;
 
-  const net = definition?.netWeightKg ?? contract.terms.bagWeightKg;
-  const gross = definition?.grossWeightKg ?? net;
+  const net = definition?.netWeightKg || contract.terms.bagWeightKg;
+  const gross = definition
+    ? definition.netWeightKg + definition.bagWeightKg
+    : net;
 
   return {
     net: formatNumber(net),

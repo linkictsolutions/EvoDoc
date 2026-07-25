@@ -199,6 +199,10 @@ function distributeWeight(total: number, count: number): number[] {
 export function applyCalculatedStaffingWeights(
   rows: StaffingInstructionRow[],
   contract?: StaffingContractWeightsSource,
+  options?: {
+    bagWeightKg?: number;
+    totalBags?: number;
+  },
 ): StaffingInstructionRow[] {
   if (rows.length === 0) {
     return rows;
@@ -207,38 +211,62 @@ export function applyCalculatedStaffingWeights(
   const parity = contract
     ? computeContractExcelParity(contract.terms)
     : undefined;
-  const totalGrossWeightKg = contract?.derived?.grossWeightKg ?? parity?.grossWeightKg ?? 0;
+  const bagWeightKg = options?.bagWeightKg
+    ?? parity?.bagWeightKg
+    ?? 0;
+  const totalBags = options?.totalBags
+    ?? parity?.noOfBags
+    ?? 0;
+
   const targetIndexes = rows
-    .map((row, index) => (typeof row.tareWeightKg === "number" && Number.isFinite(row.tareWeightKg) ? index : -1))
+    .map((row, index) => {
+      const hasContainer = Boolean(row.containerNumber?.trim());
+      const hasGross = typeof row.grossWeightKg === "number" && Number.isFinite(row.grossWeightKg);
+      const hasLegacyGross = typeof row.secondWeightKg === "number" && Number.isFinite(row.secondWeightKg);
+      return (hasContainer || hasGross || hasLegacyGross) ? index : -1;
+    })
     .filter((index) => index >= 0);
   const effectiveIndexes = targetIndexes.length > 0
     ? targetIndexes
     : rows.map((_, index) => index);
-  const grossShares = distributeWeight(totalGrossWeightKg, effectiveIndexes.length);
-  const shareByIndex = new Map(effectiveIndexes.map((index, offset) => [index, grossShares[offset] ?? 0]));
+  const bagShares = distributeWeight(totalBags, effectiveIndexes.length);
+  const bagsByIndex = new Map(effectiveIndexes.map((index, offset) => [index, bagShares[offset] ?? 0]));
 
   return rows.map((row, index) => {
     const tareWeightKg = typeof row.tareWeightKg === "number" && Number.isFinite(row.tareWeightKg)
       ? roundWeight(row.tareWeightKg)
       : undefined;
+    const grossWeightKg = typeof row.grossWeightKg === "number" && Number.isFinite(row.grossWeightKg)
+      ? roundWeight(row.grossWeightKg)
+      : (typeof row.secondWeightKg === "number" && Number.isFinite(row.secondWeightKg)
+        ? roundWeight(row.secondWeightKg)
+        : undefined);
 
-    if (!shareByIndex.has(index)) {
+    if (grossWeightKg === undefined) {
       return {
         ...row,
-        firstWeightKg: tareWeightKg,
-        secondWeightKg: undefined,
+        tareWeightKg,
+        grossWeightKg: undefined,
         netWeightKg: undefined,
+        vgmKg: tareWeightKg !== undefined ? roundWeight(tareWeightKg) : undefined,
+        firstWeightKg: undefined,
+        secondWeightKg: undefined,
       };
     }
 
-    const secondWeightKg = roundWeight(shareByIndex.get(index) ?? 0);
-    const netWeightKg = roundWeight(Math.max(0, secondWeightKg - (tareWeightKg ?? 0)));
+    const bags = bagsByIndex.get(index) ?? 0;
+    const packagingWeight = roundWeight(bags * bagWeightKg);
+    const netWeightKg = roundWeight(Math.max(0, grossWeightKg - packagingWeight));
+    const vgmKg = roundWeight(grossWeightKg + (tareWeightKg ?? 0));
 
     return {
       ...row,
-      firstWeightKg: tareWeightKg,
-      secondWeightKg,
+      tareWeightKg,
+      grossWeightKg,
       netWeightKg,
+      vgmKg,
+      firstWeightKg: undefined,
+      secondWeightKg: undefined,
     };
   });
 }
@@ -268,9 +296,12 @@ export function syncStaffingInstructionRows(
       ...row,
       sealNumber: existing.sealNumber ?? readLegacyOptionalString(existing, "sealNumberV2") ?? row.sealNumber,
       certNumber: existing.certNumber ?? readLegacyOptionalString(existing, "certNumberV2"),
-      firstWeightKg: existing.firstWeightKg,
-      secondWeightKg: existing.secondWeightKg,
+      tareWeightKg: existing.tareWeightKg ?? row.tareWeightKg,
+      grossWeightKg: existing.grossWeightKg
+        ?? existing.secondWeightKg
+        ?? row.grossWeightKg,
       netWeightKg: existing.netWeightKg,
+      vgmKg: existing.vgmKg,
       doNumber: existing.doNumber,
     };
   });
@@ -283,23 +314,33 @@ export function normalizeStaffingPayload(input: unknown) {
     staffing: {
       orgId: parsed.orgId,
       contractId: parsed.contractId,
-      instructionRows: parsed.staffing.instructionRows.map((row) => ({
-        rowNo: row.rowNo,
-        vehicleNo: row.vehicleNo,
-        vehicleType: row.vehicleType,
-        plateNo: cleanOptional(row.plateNo),
-        driverName: cleanOptional(row.driverName),
-        driverPhoneNo: cleanOptional(row.driverPhoneNo),
-        licenseNo: cleanOptional(row.licenseNo),
-        containerNumber: cleanOptional(row.containerNumber),
-        sealNumber: cleanOptional(row.sealNumber),
-        certNumber: cleanOptional(row.certNumber),
-        tareWeightKg: normalizeNumber(row.tareWeightKg),
-        firstWeightKg: normalizeNumber(row.firstWeightKg),
-        secondWeightKg: normalizeNumber(row.secondWeightKg),
-        netWeightKg: normalizeNumber(row.netWeightKg),
-        doNumber: cleanOptional(row.doNumber),
-      })),
+      instructionRows: parsed.staffing.instructionRows.map((row) => {
+        const grossWeightKg = normalizeNumber(row.grossWeightKg) ?? normalizeNumber(row.secondWeightKg);
+        const tareWeightKg = normalizeNumber(row.tareWeightKg);
+        const bagNet = normalizeNumber(row.netWeightKg);
+        const vgmKg = normalizeNumber(row.vgmKg)
+          ?? (grossWeightKg !== undefined
+            ? roundWeight(grossWeightKg + (tareWeightKg ?? 0))
+            : undefined);
+
+        return {
+          rowNo: row.rowNo,
+          vehicleNo: row.vehicleNo,
+          vehicleType: row.vehicleType,
+          plateNo: cleanOptional(row.plateNo),
+          driverName: cleanOptional(row.driverName),
+          driverPhoneNo: cleanOptional(row.driverPhoneNo),
+          licenseNo: cleanOptional(row.licenseNo),
+          containerNumber: cleanOptional(row.containerNumber),
+          sealNumber: cleanOptional(row.sealNumber),
+          certNumber: cleanOptional(row.certNumber),
+          tareWeightKg,
+          grossWeightKg,
+          netWeightKg: bagNet,
+          vgmKg,
+          doNumber: cleanOptional(row.doNumber),
+        };
+      }),
     } satisfies Omit<StaffingSheet, "createdAt" | "updatedAt">,
   };
 }
@@ -321,9 +362,9 @@ export function deriveFinalStaffingRows(staffing?: StaffingSheet): StaffingFinal
     sealNumber: row.sealNumber || "-",
     certNumber: row.certNumber || "-",
     tareWeightKg: row.tareWeightKg,
-    firstWeightKg: row.firstWeightKg,
-    secondWeightKg: row.secondWeightKg,
+    grossWeightKg: row.grossWeightKg ?? row.secondWeightKg,
     netWeightKg: row.netWeightKg,
+    vgmKg: row.vgmKg,
     doNumber: row.doNumber,
   }));
 }
